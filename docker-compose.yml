@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: katc1-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-katc1}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-katc1_secure_password_2024}
+      POSTGRES_DB: ${DB_NAME:-katc1_auth}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-katc1}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - katc1-network
+
+  # Next.js Application (Frontend + Backend API Routes)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: katc1-app
+    environment:
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-katc1}
+      DB_PASSWORD: ${DB_PASSWORD:-katc1_secure_password_2024}
+      DB_NAME: ${DB_NAME:-katc1_auth}
+
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your_super_secret_jwt_key_change_this_in_production_2024}
+
+      # Next.js
+      NODE_ENV: ${NODE_ENV:-production}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-KATC 유사호출부호 경고시스템}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - /app/.next
+    networks:
+      - katc1-network
+
+volumes:
+  postgres_data:
+
+networks:
+  katc1-network:
+    driver: bridge

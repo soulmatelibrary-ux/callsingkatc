@@ -1,7 +1,7 @@
 /**
  * LoginForm 컴포넌트
  * - react-hook-form + zod 유효성 검사
- * - 로그인 성공 시 상태에 따라 라우팅
+ * - 로그인 성공 시 비밀번호 변경 여부에 따라 라우팅
  */
 
 'use client';
@@ -44,7 +44,6 @@ export function LoginForm() {
   async function onSubmit(values: LoginFormValues) {
     setServerError(null);
     try {
-      // 로컬 PostgreSQL API 호출
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -69,7 +68,11 @@ export function LoginForm() {
       if (result.user.status === 'suspended') {
         setServerError(AUTH_ERRORS.SUSPENDED_ACCOUNT);
         useAuthStore.getState().logout();
+      } else if (result.forceChangePassword) {
+        // 첫 로그인 - 비밀번호 변경 필수
+        router.push(ROUTES.CHANGE_PASSWORD);
       } else {
+        // 정상 로그인
         router.push(ROUTES.DASHBOARD);
       }
     } catch (err: any) {
@@ -120,18 +123,12 @@ export function LoginForm() {
         로그인
       </Button>
 
-      <div className="flex items-center justify-between text-sm">
+      <div className="text-center text-sm">
         <Link
           href={ROUTES.FORGOT_PASSWORD}
           className="text-primary hover:text-primary-dark hover:underline"
         >
           비밀번호 찾기
-        </Link>
-        <Link
-          href={ROUTES.SIGNUP}
-          className="text-gray-600 hover:text-gray-900 hover:underline"
-        >
-          회원가입
         </Link>
       </div>
     </form>

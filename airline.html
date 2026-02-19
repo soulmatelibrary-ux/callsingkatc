@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>유사호출부호 경고시스템 — 항공사 v7</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+:root {
+    --bg:#f0f2f5;--surface:#ffffff;--surface-alt:#f8f9fb;
+    --border:#e2e5ea;--border-light:#eef0f3;
+    --text:#1a1d23;--text-sec:#5a6170;--text-muted:#8b92a0;
+    --primary:#2563eb;--primary-light:#dbeafe;--primary-dark:#1d4ed8;
+    --danger:#dc2626;--danger-light:#fef2f2;
+    --warning:#f59e0b;--warning-light:#fffbeb;
+    --success:#16a34a;--success-light:#f0fdf4;
+    --info:#0891b2;--info-light:#ecfeff;
+    --purple:#7c3aed;--purple-light:#f5f3ff;
+    --radius:10px;--radius-sm:6px;--radius-lg:14px;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.06);--shadow:0 2px 8px rgba(0,0,0,.08);--shadow-lg:0 8px 24px rgba(0,0,0,.12);
+    --font:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;}
+.app-wrapper{min-height:100vh;display:flex;flex-direction:column;}
+.top-bar{background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15);}
+.top-bar h1{font-size:17px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;}
+.top-bar .icon{font-size:20px;}
+.top-bar .airline-name{background:rgba(255,255,255,.15);padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;}
+.top-bar-right{display:flex;align-items:center;gap:10px;}
+.btn-topbar{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;font-family:var(--font);}
+.btn-topbar:hover{background:rgba(255,255,255,.25);}
+.btn-topbar.danger{background:rgba(220,38,38,.3);}
+.btn-topbar.danger:hover{background:rgba(220,38,38,.5);}
+.main-content{flex:1;padding:20px 24px;max-width:1400px;margin:0 auto;width:100%;}
+.tab-nav{display:flex;gap:4px;margin-bottom:20px;border-bottom:2px solid var(--border);}
+.tab-btn{padding:10px 20px;border:none;background:none;color:var(--text-sec);font-size:14px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;font-family:var(--font);}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);}
+.tab-btn .badge-count{background:var(--danger);color:#fff;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;font-weight:700;}
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+
+.login-container{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 50%,#0891b2 100%);}
+.login-card{background:#fff;border-radius:var(--radius-lg);padding:48px 40px;width:420px;max-width:90vw;box-shadow:var(--shadow-lg);text-align:center;}
+.login-card h2{font-size:22px;font-weight:800;margin-bottom:6px;}
+.login-card p{color:var(--text-sec);font-size:14px;margin-bottom:28px;}
+.login-card .logo{font-size:42px;margin-bottom:16px;}
+.form-group{margin-bottom:18px;text-align:left;}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-sec);margin-bottom:6px;}
+.form-select{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:var(--font);outline:none;background:#fff;}
+.btn-login{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:8px;}
+.btn-login:hover{background:var(--primary-dark);}
+.login-footer{margin-top:20px;font-size:12px;color:var(--text-muted);}
+
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;background:var(--surface);padding:14px 18px;border-radius:var(--radius);border:1px solid var(--border);}
+.filter-bar label{font-size:13px;font-weight:600;color:var(--text-sec);white-space:nowrap;}
+.filter-bar input[type="date"]{padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);outline:none;}
+.pf-sep{color:var(--text-muted);}
+.pf-quick{display:flex;gap:4px;margin-left:4px;}
+.pf-qbtn{padding:5px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:#fff;font-size:12px;font-weight:600;color:var(--text-sec);cursor:pointer;font-family:var(--font);white-space:nowrap;}
+.pf-qbtn:hover{border-color:var(--primary);color:var(--primary);}
+.pf-qbtn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);}
+.btn-primary{background:var(--primary);color:#fff;}.btn-primary:hover{background:var(--primary-dark);}
+.btn-secondary{background:var(--surface);color:var(--text-sec);border:1.5px solid var(--border);}.btn-secondary:hover{background:var(--surface-alt);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+
+/* ===== 2패널 대시보드 ===== */
+.dash-row {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-bottom:24px;
+}
+.dash-left {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:28px 28px 24px;
+    box-shadow:var(--shadow-sm);
+}
+.dl-title { font-size:14px; font-weight:700; color:var(--text-sec); margin-bottom:16px; }
+.dl-big { display:flex; align-items:baseline; gap:8px; margin-bottom:20px; }
+.dl-big .dl-num { font-size:40px; font-weight:800; color:var(--text); line-height:1; }
+.dl-big .dl-unit { font-size:15px; color:var(--text-muted); font-weight:500; }
+.dl-cards { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.dl-card {
+    border-radius:var(--radius);
+    padding:16px 18px;
+    position:relative;
+    cursor:pointer;
+    transition:all .2s;
+    border:2px solid transparent;
+}
+.dl-card:hover { opacity:.85; }
+.dl-card.active { border-color:rgba(0,0,0,.15); box-shadow:0 2px 8px rgba(0,0,0,.1); transform:scale(1.02); }
+.dl-card .dc-label { font-size:13px; font-weight:700; margin-bottom:8px; }
+.dl-card .dc-row { display:flex; align-items:baseline; gap:6px; }
+.dl-card .dc-num { font-size:28px; font-weight:800; line-height:1; }
+.dl-card .dc-pct { font-size:13px; font-weight:600; color:rgba(0,0,0,.45); }
+.dl-card.c-atc { background:#fef2f2; }
+.dl-card.c-atc .dc-label { color:#b91c1c; }
+.dl-card.c-atc .dc-num { color:#b91c1c; }
+.dl-card.c-pilot { background:#fff7ed; }
+.dl-card.c-pilot .dc-label { color:#c2410c; }
+.dl-card.c-pilot .dc-num { color:#c2410c; }
+.dl-card.c-none { background:#f0fdf4; }
+.dl-card.c-none .dc-label { color:#15803d; }
+.dl-card.c-none .dc-num { color:#15803d; }
+
+.dash-right {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:28px 28px 24px;
+    box-shadow:var(--shadow-sm);
+    display:flex;
+    flex-direction:column;
+}
+.dr-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+.dr-title { font-size:14px; font-weight:700; color:var(--text-sec); }
+.dr-total { font-size:13px; font-weight:700; color:var(--primary); }
+.dr-bars { display:flex; flex-direction:column; gap:14px; flex:1; justify-content:center; }
+.dr-row { display:flex; align-items:center; gap:12px; }
+.dr-row.top-item .dr-label { font-weight:800; color:var(--text); }
+.dr-row.top-item .dr-cnt { font-weight:800; color:var(--primary); }
+.dr-label { width:90px; flex-shrink:0; font-size:13px; font-weight:600; text-align:right; color:var(--text-sec); }
+.dr-track {
+    flex:1; height:28px; background:#f1f3f5; border-radius:6px; overflow:hidden;
+}
+.dr-fill {
+    height:100%; border-radius:6px; transition:width .5s ease;
+    min-width:0;
+}
+.dr-cnt { width:32px; flex-shrink:0; font-size:14px; font-weight:700; text-align:right; color:var(--text-sec); }
+
+/* 사건 카드 */
+.inc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px;}
+.inc-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;transition:all .2s;border-left:4px solid var(--border);}
+.inc-card:hover{box-shadow:var(--shadow);transform:translateY(-1px);}
+.inc-card.risk-very-high{border-left-color:var(--danger);}.inc-card.risk-high{border-left-color:var(--warning);}
+.inc-card.risk-low{border-left-color:var(--success);}.inc-card.risk-very-low{border-left-color:var(--info);}
+.inc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.inc-top-left{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.cs{font-size:15px;font-weight:800;letter-spacing:.5px;font-family:'Courier New',monospace;}
+.cs.mine{color:var(--primary);}.cs.other{color:var(--danger);}
+.cs-arrow{color:var(--text-muted);font-size:13px;}
+.error-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.error-badge.atc{background:#fef2f2;color:#dc2626;}
+.error-badge.pilot{background:#fffbeb;color:#d97706;}
+.error-badge.none-type{background:var(--success-light);color:var(--success);}
+.sub-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap;background:var(--purple-light);color:var(--purple);}
+.btn-action{padding:5px 12px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);white-space:nowrap;}
+.btn-action:hover{background:var(--primary-dark);}
+.inc-bottom{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.inc-metric{text-align:center;padding:8px 4px;background:var(--surface-alt);border-radius:var(--radius-sm);}
+.m-label{font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:4px;}
+.m-value{font-size:14px;font-weight:700;}
+.m-value.danger{color:var(--danger);}.m-value.warning{color:var(--warning);}
+.m-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.m-badge.very-high{background:#fef2f2;color:#dc2626;}.m-badge.high{background:#fffbeb;color:#d97706;}
+.m-badge.low{background:#f0fdf4;color:#16a34a;}.m-badge.very-low{background:#ecfeff;color:#0891b2;}
+.inc-timeline{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border-light);}
+.tl-label{font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:6px;}
+.tl-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.t-chip{font-size:11px;background:var(--surface-alt);color:var(--text-sec);padding:3px 10px;border-radius:12px;font-weight:500;}
+
+.act-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.act-sum-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;}
+.act-sum-card .as-num{font-size:24px;font-weight:800;line-height:1;}
+.act-sum-card .as-label{font-size:12px;color:var(--text-sec);font-weight:500;margin-top:6px;}
+.af-bar{display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.af-chip{padding:6px 16px;border:1.5px solid var(--border);border-radius:20px;background:#fff;font-size:13px;font-weight:600;color:var(--text-sec);cursor:pointer;font-family:var(--font);}
+.af-chip:hover{border-color:var(--primary);color:var(--primary);}
+.af-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:var(--surface-alt);font-weight:700;color:var(--text-sec);text-align:left;padding:10px 14px;border-bottom:2px solid var(--border);white-space:nowrap;font-size:12px;}
+td{padding:10px 14px;border-bottom:1px solid var(--border-light);}
+tr:hover td{background:var(--surface-alt);}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;}
+.badge-danger{background:#fef2f2;color:#dc2626;}.badge-warning{background:#fffbeb;color:#d97706;}
+.badge-success{background:#f0fdf4;color:#16a34a;}.badge-info{background:#ecfeff;color:#0891b2;}
+.admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.admin-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+.admin-stat .asl{font-size:12px;color:var(--text-muted);margin-bottom:4px;}.admin-stat .asn{font-size:24px;font-weight:800;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.active{display:flex;}
+.modal{background:#fff;border-radius:var(--radius-lg);width:560px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.modal-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;}
+.modal-header h3{font-size:16px;font-weight:700;}
+.modal-close{background:none;border:none;font-size:22px;color:var(--text-muted);cursor:pointer;}.modal-close:hover{color:var(--text);}
+.modal-body{padding:24px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+.form-row{margin-bottom:16px;}
+.form-row label{display:block;font-size:13px;font-weight:600;color:var(--text-sec);margin-bottom:5px;}
+.form-row .req{color:var(--danger);}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);outline:none;}
+.form-row textarea{min-height:80px;resize:vertical;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--primary);}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text-muted);}
+.empty-state .icon{font-size:40px;margin-bottom:12px;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.section-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.section-count{font-size:13px;color:var(--text-muted);font-weight:500;}
+
+@media print{.top-bar,.tab-nav,.filter-bar,.btn,.pf-quick,.af-bar,.no-print{display:none!important;}body{background:#fff;}}
+@media(max-width:1024px){.dash-row{grid-template-columns:1fr;} .admin-stats{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){.top-bar{padding:10px 16px;}.top-bar h1{font-size:14px;}.main-content{padding:14px 12px;}.inc-grid{grid-template-columns:1fr;}.inc-bottom{grid-template-columns:repeat(2,1fr);}.filter-bar{flex-direction:column;align-items:stretch;}.pf-quick{width:100%;flex-wrap:wrap;margin-left:0;}.tab-btn{padding:8px 12px;font-size:13px;}.admin-stats,.act-summary{grid-template-columns:repeat(2,1fr);gap:8px;}.dl-cards{grid-template-columns:1fr;}}
+.fade-in{animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="login-container">
+    <div class="login-card">
+        <div class="logo">✈️</div>
+        <h2>유사호출부호 경고시스템</h2>
+        <p>항공사 전용 — 사후분석 및 조치관리</p>
+        <div class="form-group">
+            <label>항공사 선택</label>
+            <select id="loginAirline" class="form-select">
+                <option value="">항공사를 선택하세요</option>
+                <option value="KAL">대한항공 (KAL)</option><option value="AAR">아시아나항공 (AAR)</option>
+                <option value="JJA">제주항공 (JJA)</option><option value="JNA">진에어 (JNA)</option>
+                <option value="TWB">티웨이항공 (TWB)</option><option value="ABL">에어부산 (ABL)</option>
+                <option value="ASV">에어서울 (ASV)</option><option value="EOK">이스타항공 (EOK)</option>
+                <option value="FGW">플라이강원 (FGW)</option>
+            </select>
+        </div>
+        <button class="btn-login" onclick="doLogin()">로그인</button>
+        <div style="margin-top:14px;"><button class="btn-login" style="background:#6b7280;" onclick="doAdminLogin()">관리자 로그인</button></div>
+        <div class="login-footer">국토교통부 항공교통본부 · 유사호출부호 안전관리 시스템</div>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div id="appScreen" class="app-wrapper" style="display:none;">
+    <div class="top-bar">
+        <h1><span class="icon">✈️</span>유사호출부호 경고시스템<span id="topName" class="airline-name"></span></h1>
+        <div class="top-bar-right">
+            <span id="topDate" style="font-size:12px;opacity:.8;"></span>
+            <button class="btn-topbar danger" onclick="doLogout()">로그아웃</button>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('dash',this)">📊 유사호출부호 발생현황</button>
+            <button class="tab-btn" onclick="switchTab('act',this)">📋 조치 이력 <span id="actBadge" class="badge-count" style="display:none;">0</span></button>
+            <button id="tabAdmin" class="tab-btn" onclick="switchTab('admin',this)" style="display:none;">🔧 관리자</button>
+        </div>
+
+        <!-- 발생현황 -->
+        <div id="panel-dash" class="tab-panel active">
+            <div class="filter-bar">
+                <label>📅 조회기간</label>
+                <input type="date" id="fFrom" style="width:150px;"><span class="pf-sep">~</span>
+                <input type="date" id="fTo" style="width:150px;">
+                <div class="pf-quick">
+                    <button class="pf-qbtn" onclick="setQ('today',this)">오늘</button>
+                    <button class="pf-qbtn" onclick="setQ('7',this)">최근 1주</button>
+                    <button class="pf-qbtn active" onclick="setQ('14',this)">최근 2주</button>
+                    <button class="pf-qbtn" onclick="setQ('30',this)">최근 1개월</button>
+                </div>
+            </div>
+
+            <!-- 좌: 오류유형 요약 | 우: 세부오류유형 분포 -->
+            <div class="dash-row">
+                <div class="dash-left" id="dashLeft"></div>
+                <div class="dash-right">
+                    <div class="dr-header">
+                        <div class="dr-title" id="drTitle">세부오류유형 분포</div>
+                        <div class="dr-total" id="drTotal"></div>
+                    </div>
+                    <div class="dr-bars" id="drBars"></div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <div class="section-title">⚠️ 오류 발생 편명 <span id="incCnt" class="section-count"></span></div>
+                <div style="display:flex;gap:8px;align-items:center;" class="no-print">
+                    <label style="font-size:12px;font-weight:600;color:var(--text-sec);">정렬</label>
+                    <select id="incSort" onchange="renderList()" style="padding:5px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);">
+                        <option value="date">최신순</option><option value="count">발생건수순</option><option value="risk">위험도순</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" onclick="expInc()">📥 엑셀</button>
+                </div>
+            </div>
+            <div id="incGrid" class="inc-grid"></div>
+        </div>
+
+        <!-- 조치 이력 -->
+        <div id="panel-act" class="tab-panel">
+            <div class="act-summary" id="actSum"></div>
+            <div class="af-bar no-print">
+                <button class="af-chip active" onclick="fAct('all',this)">전체</button>
+                <button class="af-chip" onclick="fAct('진행중',this)">⏳ 진행중</button>
+                <button class="af-chip" onclick="fAct('완료',this)">✅ 완료</button>
+                <div style="flex:1;"></div>
+                <button class="btn btn-success btn-sm" onclick="expAct()">📥 엑셀</button>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>등록일</th><th>예정일</th><th>편명</th><th>조치유형</th><th>담당자</th><th>상태</th><th>상세</th></tr></thead><tbody id="actTbl"></tbody></table></div>
+        </div>
+
+        <!-- 관리자 -->
+        <div id="panel-admin" class="tab-panel">
+            <div class="filter-bar">
+                <label>📅 조회기간</label>
+                <input type="date" id="aFrom" style="width:150px;"><span class="pf-sep">~</span>
+                <input type="date" id="aTo" style="width:150px;">
+                <button class="btn btn-primary btn-sm" onclick="renderAdmin()">조회</button>
+            </div>
+            <div class="admin-stats" id="adminStats"></div>
+            <div class="section-header"><div class="section-title">📊 항공사별 현황</div></div>
+            <div class="table-wrap" style="margin-bottom:20px;">
+                <table><thead><tr><th>항공사</th><th>전체</th><th>관제사 오류</th><th>조종사 오류</th><th>오류 미발생</th><th>조치 진행중</th><th>조치 완료</th></tr></thead><tbody id="adminTbl"></tbody></table>
+            </div>
+            <div class="section-header">
+                <div class="section-title">📋 전체 조치 이력</div>
+                <div style="display:flex;gap:8px;">
+                    <select id="adminAF" onchange="renderAdminAct()" style="padding:6px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);"><option value="all">전체 항공사</option></select>
+                    <button class="btn btn-success btn-sm" onclick="expAll()">📥 전체 엑셀</button>
+                </div>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>항공사</th><th>등록일</th><th>예정일</th><th>편명</th><th>조치유형</th><th>담당자</th><th>상태</th><th>상세</th></tr></thead><tbody id="adminActTbl"></tbody></table></div>
+        </div>
+    </div>
+</div>
+
+<!-- 조치 등록 모달 -->
+<div id="amModal" class="modal-overlay" onclick="if(event.target===this)closeAM()">
+    <div class="modal">
+        <div class="modal-header"><h3>조치 등록</h3><button class="modal-close" onclick="closeAM()">&times;</button></div>
+        <div class="modal-body">
+            <div class="form-row"><label>유사호출부호 <span class="req">*</span></label><select id="amCS"></select></div>
+            <div class="form-row"><label>조치 유형 <span class="req">*</span></label>
+                <select id="amTp"><option value="">선택하세요</option><option>편명 변경 완료</option><option>조종사 브리핑 시행</option><option>운항관리사 모니터링 강화</option><option>향후 스케줄 조정 계획</option><option>조치 불필요</option><option>기타</option></select></div>
+            <div class="form-row"><label>담당자 <span class="req">*</span></label><input type="text" id="amMg" placeholder="담당자 이름"></div>
+            <div class="form-row"><label>조치 예정일</label><input type="date" id="amDu"></div>
+            <div class="form-row"><label>상세내용</label><textarea id="amDt" placeholder="조치 내용을 기술하세요."></textarea></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-secondary" onclick="closeAM()">취소</button><button class="btn btn-primary" onclick="saveNewAct()">저장</button></div>
+    </div>
+</div>
+
+<!-- 상세/수정 모달 -->
+<div id="dmModal" class="modal-overlay" onclick="if(event.target===this)closeDM()">
+    <div class="modal">
+        <div class="modal-header"><h3>조치 상세 · 수정</h3><button class="modal-close" onclick="closeDM()">&times;</button></div>
+        <div class="modal-body" id="dmBody"></div>
+    </div>
+</div>
+
+<script>
+const AL={KAL:{n:'대한항공'},AAR:{n:'아시아나항공'},JJA:{n:'제주항공'},JNA:{n:'진에어'},TWB:{n:'티웨이항공'},ABL:{n:'에어부산'},ASV:{n:'에어서울'},EOK:{n:'이스타항공'},FGW:{n:'플라이강원'}};
+let cc='',cn='',isA=false,af='all',sf='all';
+
+/*
+  핵심 구조:
+  - errorType: '관제사 오류' | '조종사 오류' | '오류 미발생'  → 상호 배타적, 합=전체
+  - subError: '복창오류' | '무응답/재호출' | '고도이탈' | '비행경로이탈' | '기타' | ''  → 1건당 1개, 합=전체
+    (오류 미발생이면 subError는 빈값)
+*/
+const INC=[
+    // KAL 7건: 관제사3 + 조종사2 + 미발생2
+    {id:'I01',pair:'KAL852 | KAL851',mine:'KAL852',other:'KAL851',airline:'KAL',errorType:'관제사 오류',subError:'복창오류',risk:'매우높음',similarity:'매우높음',count:4,lastDate:'2026-02-13',dates:['02-13 14:20','02-11 09:15','02-08 16:40','02-05 11:30']},
+    {id:'I02',pair:'KAL789 | AAR789',mine:'KAL789',other:'AAR789',airline:'KAL',errorType:'관제사 오류',subError:'무응답/재호출',risk:'높음',similarity:'높음',count:2,lastDate:'2026-02-12',dates:['02-12 10:45','02-07 15:20']},
+    {id:'I03',pair:'KAL456 | AAR456',mine:'KAL456',other:'AAR456',airline:'KAL',errorType:'조종사 오류',subError:'고도이탈',risk:'매우높음',similarity:'높음',count:4,lastDate:'2026-02-11',dates:['02-11 08:30','02-09 13:10','02-06 17:00','02-03 09:45']},
+    {id:'I04',pair:'KAL1203 | KAL1230',mine:'KAL1203',other:'KAL1230',airline:'KAL',errorType:'조종사 오류',subError:'비행경로이탈',risk:'높음',similarity:'높음',count:2,lastDate:'2026-02-10',dates:['02-10 16:00','02-04 11:20']},
+    {id:'I05',pair:'KAL672 | JJA672',mine:'KAL672',other:'JJA672',airline:'KAL',errorType:'관제사 오류',subError:'복창오류',risk:'높음',similarity:'높음',count:1,lastDate:'2026-02-09',dates:['02-09 18:20']},
+    {id:'I06',pair:'KAL305 | TWB305',mine:'KAL305',other:'TWB305',airline:'KAL',errorType:'오류 미발생',subError:'',risk:'낮음',similarity:'낮음',count:0,lastDate:'2026-02-08',dates:[]},
+    {id:'I07',pair:'KAL118 | JNA118',mine:'KAL118',other:'JNA118',airline:'KAL',errorType:'오류 미발생',subError:'',risk:'낮음',similarity:'낮음',count:0,lastDate:'2026-02-06',dates:[]},
+    // AAR 3건: 관제사1 + 조종사1 + 미발생1
+    {id:'I08',pair:'AAR321 | KAL321',mine:'AAR321',other:'KAL321',airline:'AAR',errorType:'관제사 오류',subError:'기타',risk:'높음',similarity:'높음',count:3,lastDate:'2026-02-13',dates:['02-13 11:20','02-10 14:50','02-06 09:30']},
+    {id:'I09',pair:'AAR502 | AAR520',mine:'AAR502',other:'AAR520',airline:'AAR',errorType:'조종사 오류',subError:'복창오류',risk:'높음',similarity:'높음',count:2,lastDate:'2026-02-11',dates:['02-11 15:40','02-08 10:10']},
+    {id:'I10',pair:'AAR115 | JJA115',mine:'AAR115',other:'JJA115',airline:'AAR',errorType:'오류 미발생',subError:'',risk:'낮음',similarity:'낮음',count:0,lastDate:'2026-02-07',dates:[]},
+    // JJA 3건: 관제사2 + 미발생1
+    {id:'I11',pair:'JJA108 | JNA108',mine:'JJA108',other:'JNA108',airline:'JJA',errorType:'관제사 오류',subError:'고도이탈',risk:'매우높음',similarity:'매우높음',count:5,lastDate:'2026-02-14',dates:['02-14 07:10','02-12 13:20','02-10 08:40','02-07 16:55','02-04 10:30']},
+    {id:'I12',pair:'JJA672 | KAL672',mine:'JJA672',other:'KAL672',airline:'JJA',errorType:'관제사 오류',subError:'무응답/재호출',risk:'높음',similarity:'높음',count:1,lastDate:'2026-02-09',dates:['02-09 18:20']},
+    {id:'I13',pair:'JJA905 | TWB905',mine:'JJA905',other:'TWB905',airline:'JJA',errorType:'오류 미발생',subError:'',risk:'낮음',similarity:'낮음',count:0,lastDate:'2026-02-05',dates:[]},
+    // TWB 2건: 조종사1 + 미발생1
+    {id:'I14',pair:'TWB712 | ABL712',mine:'TWB712',other:'ABL712',airline:'TWB',errorType:'조종사 오류',subError:'비행경로이탈',risk:'높음',similarity:'높음',count:2,lastDate:'2026-02-12',dates:['02-12 09:30','02-08 14:20']},
+    {id:'I15',pair:'TWB305 | KAL305',mine:'TWB305',other:'KAL305',airline:'TWB',errorType:'오류 미발생',subError:'',risk:'낮음',similarity:'낮음',count:0,lastDate:'2026-02-08',dates:[]},
+    // JNA 2건: 관제사1 + 미발생1
+    {id:'I16',pair:'JNA108 | JJA108',mine:'JNA108',other:'JJA108',airline:'JNA',errorType:'관제사 오류',subError:'복창오류',risk:'매우높음',similarity:'매우높음',count:3,lastDate:'2026-02-14',dates:['02-14 07:10','02-10 08:40','02-04 10:30']},
+    {id:'I17',pair:'JNA118 | KAL118',mine:'JNA118',other:'KAL118',airline:'JNA',errorType:'오류 미발생',subError:'',risk:'낮음',similarity:'낮음',count:0,lastDate:'2026-02-06',dates:[]},
+];
+
+const SAMPLE_ACT=[
+    {id:'S01',airline:'KAL',callsign:'KAL852 | KAL851',type:'조종사 브리핑 시행',manager:'김운항',dueDate:'2026-02-15',detail:'KAL852/KAL851 유사호출부호 관련 조종사 특별 브리핑 실시.',dateTime:'2026-02-13',status:'완료'},
+    {id:'S02',airline:'KAL',callsign:'KAL456 | AAR456',type:'항공당국 협의',manager:'박안전',dueDate:'2026-02-20',detail:'KAL456/AAR456 반복 발생 건 항공교통안전과 협의 요청.',dateTime:'2026-02-12',status:'진행중'},
+    {id:'S03',airline:'KAL',callsign:'KAL789 | AAR789',type:'운항관리사 모니터링 강화',manager:'이관리',dueDate:'2026-02-18',detail:'KAL789/AAR789 동시 운항 구간 모니터링 강화.',dateTime:'2026-02-10',status:'진행중'},
+    {id:'S04',airline:'KAL',callsign:'KAL1203',type:'조종사 브리핑 시행',manager:'김운항',dueDate:'',detail:'KAL1203/KAL1230 조종사 오류 안전 브리핑 완료.',dateTime:'2026-02-08',status:'완료'},
+    {id:'S05',airline:'KAL',callsign:'KAL852',type:'편명 변경 완료',manager:'최편성',dueDate:'2026-02-25',detail:'KAL852 편명 변경 검토 중.',dateTime:'2026-02-14',status:'진행중'},
+    {id:'S06',airline:'KAL',callsign:'KAL672',type:'조종사 브리핑 시행',manager:'김운항',dueDate:'',detail:'KAL672/JJA672 사례 브리핑 완료.',dateTime:'2026-02-09',status:'완료'},
+    {id:'S07',airline:'AAR',callsign:'AAR321 | KAL321',type:'조종사 브리핑 시행',manager:'최운항',dueDate:'',detail:'AAR321/KAL321 유사호출부호 주의 브리핑 완료.',dateTime:'2026-02-13',status:'완료'},
+    {id:'S08',airline:'AAR',callsign:'AAR502 | AAR520',type:'편명 변경 완료',manager:'정안전',dueDate:'2026-02-28',detail:'AAR502 편명 변경 검토 중.',dateTime:'2026-02-11',status:'진행중'},
+    {id:'S09',airline:'AAR',callsign:'AAR321',type:'운항관리사 모니터링 강화',manager:'최운항',dueDate:'2026-02-20',detail:'AAR321/KAL321 동시 출발 모니터링 강화.',dateTime:'2026-02-10',status:'진행중'},
+    {id:'S10',airline:'AAR',callsign:'AAR115',type:'조치 불필요',manager:'정안전',dueDate:'',detail:'단발성 사안, 추가 조치 불필요.',dateTime:'2026-02-08',status:'완료'},
+    {id:'S11',airline:'JJA',callsign:'JJA108 | JNA108',type:'향후 스케줄 조정 계획',manager:'한스케줄',dueDate:'2026-02-20',detail:'JJA108/JNA108 스케줄 조정 검토.',dateTime:'2026-02-14',status:'진행중'},
+    {id:'S12',airline:'JJA',callsign:'JJA672',type:'조종사 브리핑 시행',manager:'한스케줄',dueDate:'',detail:'JJA672/KAL672 주의 브리핑 완료.',dateTime:'2026-02-10',status:'완료'},
+    {id:'S13',airline:'JJA',callsign:'JJA108',type:'조종사 브리핑 시행',manager:'한스케줄',dueDate:'',detail:'JJA108 유사호출부호 특별 브리핑.',dateTime:'2026-02-12',status:'완료'},
+    {id:'S14',airline:'TWB',callsign:'TWB712 | ABL712',type:'운항관리사 모니터링 강화',manager:'윤관리',dueDate:'2026-02-22',detail:'TWB712/ABL712 모니터링 강화.',dateTime:'2026-02-12',status:'진행중'},
+    {id:'S15',airline:'TWB',callsign:'TWB712',type:'조종사 브리핑 시행',manager:'윤관리',dueDate:'',detail:'TWB712 유사호출부호 주의 브리핑 완료.',dateTime:'2026-02-13',status:'완료'},
+];
+
+let ACTS=JSON.parse(localStorage.getItem('cs_v7')||'null')||[...SAMPLE_ACT];
+function svActs(){localStorage.setItem('cs_v7',JSON.stringify(ACTS));}
+
+const td=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+const fd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const rO={'매우높음':4,'높음':3,'낮음':2,'매우낮음':1};
+const rC=r=>r==='매우높음'?'very-high':r==='높음'?'high':r==='낮음'?'low':'very-low';
+const rB=r=>`<span class="m-badge ${rC(r)}">${r}</span>`;
+function inR(ds,f,t){if(!ds||ds==='-')return false;return ds.slice(0,10)>=f&&ds.slice(0,10)<=t;}
+
+function getI(){
+    const f=document.getElementById('fFrom')?.value||'',t=document.getElementById('fTo')?.value||'';
+    let d=isA?INC:INC.filter(i=>i.airline===cc);
+    if(f&&t)d=d.filter(i=>inR(i.lastDate,f,t));
+    return d;
+}
+function getA(){return isA?ACTS:ACTS.filter(a=>a.airline===cc);}
+
+function doLogin(){const c=document.getElementById('loginAirline').value;if(!c){alert('항공사를 선택하세요.');return;}cc=c;cn=AL[c].n;isA=false;start();}
+function doAdminLogin(){cc='';cn='관리자';isA=true;start();}
+function doLogout(){document.getElementById('loginScreen').style.display='flex';document.getElementById('appScreen').style.display='none';}
+
+function start(){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='flex';
+    document.getElementById('topName').textContent=isA?'🔧 관리자':cn;
+    document.getElementById('topDate').textContent=td();
+    document.getElementById('tabAdmin').style.display=isA?'':'none';
+    const t=new Date(),tw=new Date(t);tw.setDate(t.getDate()-14);
+    document.getElementById('fFrom').value=fd(tw);document.getElementById('fTo').value=td();
+    if(isA){document.getElementById('aFrom').value=fd(tw);document.getElementById('aTo').value=td();
+        const s=document.getElementById('adminAF');s.innerHTML='<option value="all">전체 항공사</option>';
+        Object.entries(AL).forEach(([k,v])=>{s.innerHTML+=`<option value="${k}">${v.n}</option>`;});}
+    switchTab('dash',document.querySelector('.tab-btn'));renderAll();
+}
+function switchTab(id,btn){
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    const p=document.getElementById('panel-'+id);if(p){p.classList.add('active');p.classList.add('fade-in');}
+    if(btn)btn.classList.add('active');
+    if(id==='act')renderActs();if(id==='admin')renderAdmin();
+}
+function setQ(v,el){
+    document.querySelectorAll('.pf-qbtn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');
+    const e=new Date();let s=new Date();if(v==='today')s=e;else s.setDate(e.getDate()-parseInt(v)+1);
+    document.getElementById('fFrom').value=fd(s);document.getElementById('fTo').value=fd(e);renderDash();
+}
+function renderAll(){renderDash();renderActs();if(isA){renderAdmin();renderAdminAct();}updBadge();}
+
+// ====== 대시보드 ======
+function renderDash(){
+    const data=getI();
+    const nAtc=data.filter(i=>i.errorType==='관제사 오류').length;
+    const nPlt=data.filter(i=>i.errorType==='조종사 오류').length;
+    const nNone=data.filter(i=>i.errorType==='오류 미발생').length;
+    const total=data.length;
+    const pAtc=total?Math.round(nAtc/total*100):0;
+    const pPlt=total?Math.round(nPlt/total*100):0;
+    const pNone=total?Math.round(nNone/total*100):0;
+
+    // 표시 건수 (필터에 따라)
+    const dispNum=sf==='atc'?nAtc:sf==='pilot'?nPlt:sf==='none'?nNone:total;
+    const dispLabel=sf==='atc'?'관제사오류':sf==='pilot'?'조종사오류':sf==='none'?'오류 미발생':'전체';
+
+    document.getElementById('dashLeft').innerHTML=`
+        <div class="dl-title">오류유형 요약</div>
+        <div class="dl-big"><span class="dl-num">${dispNum}</span><span class="dl-unit">건 ${sf==='all'?'검색됨':'('+dispLabel+')'}</span></div>
+        <div class="dl-cards">
+            <div class="dl-card c-atc${sf==='atc'?' active':''}" onclick="clickCard('atc')">
+                <div class="dc-label">관제사오류</div>
+                <div class="dc-row"><span class="dc-num">${nAtc}</span><span class="dc-pct">${pAtc}%</span></div>
+            </div>
+            <div class="dl-card c-pilot${sf==='pilot'?' active':''}" onclick="clickCard('pilot')">
+                <div class="dc-label">조종사오류</div>
+                <div class="dc-row"><span class="dc-num">${nPlt}</span><span class="dc-pct">${pPlt}%</span></div>
+            </div>
+            <div class="dl-card c-none${sf==='none'?' active':''}" onclick="clickCard('none')">
+                <div class="dc-label">오류 미발생</div>
+                <div class="dc-row"><span class="dc-num">${nNone}</span><span class="dc-pct">${pNone}%</span></div>
+            </div>
+        </div>`;
+
+    renderChart(data);
+    renderList();
+}
+
+function clickCard(key){
+    sf=(sf===key)?'all':key;
+    renderDash();
+}
+
+// ====== 세부오류유형 차트 (6종: 5세부 + 오류미발생, 합=카드 숫자) ======
+function renderChart(data){
+    // 필터 적용
+    let subset=data;
+    if(sf==='atc') subset=data.filter(i=>i.errorType==='관제사 오류');
+    else if(sf==='pilot') subset=data.filter(i=>i.errorType==='조종사 오류');
+    else if(sf==='none') subset=data.filter(i=>i.errorType==='오류 미발생');
+
+    const allTypes=['복창오류','무응답/재호출','고도이탈','비행경로이탈','기타','오류 미발생'];
+    const colorMap={'복창오류':'#7c3aed','무응답/재호출':'#6366f1','고도이탈':'#dc2626','비행경로이탈':'#f59e0b','기타':'#64748b','오류 미발생':'#16a34a'};
+
+    // 집계: subError가 비어있으면 '오류 미발생'
+    const counts={};
+    subset.forEach(i=>{
+        const se=i.subError||'오류 미발생';
+        counts[se]=(counts[se]||0)+1;
+    });
+
+    // 건수 높은 순 정렬 (0건도 포함)
+    const sorted=allTypes.map(t=>([t,counts[t]||0])).sort((a,b)=>b[1]-a[1]);
+    const maxVal=Math.max(...sorted.map(([,v])=>v),1);
+    const sumVal=sorted.reduce((s,[,v])=>s+v,0);
+
+    const titleSuffix=sf==='all'?'전체':sf==='atc'?'관제사 오류':sf==='pilot'?'조종사 오류':'오류 미발생';
+    document.getElementById('drTitle').textContent=sf==='all'?'세부오류유형 분포':'세부오류유형 분포 — '+titleSuffix;
+    document.getElementById('drTotal').textContent=sumVal+'건';
+    document.getElementById('drBars').innerHTML=sorted.map(([lbl,cnt])=>{
+        const isTop=cnt>0 && cnt===sorted[0][1];
+        const pct=cnt>0?Math.max((cnt/maxVal)*100,6):0;
+        const color=colorMap[lbl]||'#64748b';
+        const barBg=cnt>0?color:'#e9ecef';
+        return`<div class="dr-row${isTop?' top-item':''}">
+            <div class="dr-label">${lbl}</div>
+            <div class="dr-track"><div class="dr-fill" style="width:${pct}%;background:${barBg};"></div></div>
+            <div class="dr-cnt">${cnt}</div>
+        </div>`;
+    }).join('');
+}
+
+// ====== 사건 카드 목록 ======
+function renderList(){
+    const data=getI();
+    let list=[...data];
+    // 카드 필터 적용
+    if(sf==='atc') list=list.filter(i=>i.errorType==='관제사 오류');
+    else if(sf==='pilot') list=list.filter(i=>i.errorType==='조종사 오류');
+    else if(sf==='none') list=list.filter(i=>i.errorType==='오류 미발생');
+
+    const s=document.getElementById('incSort')?.value||'date';
+    if(s==='date')list.sort((a,b)=>b.lastDate.localeCompare(a.lastDate));
+    else if(s==='count')list.sort((a,b)=>b.count-a.count);
+    else list.sort((a,b)=>(rO[b.risk]||0)-(rO[a.risk]||0));
+
+    document.getElementById('incCnt').textContent=`(${list.length}건)`;
+    document.getElementById('incGrid').innerHTML=list.length?list.map(i=>{
+        const eCls=i.errorType==='관제사 오류'?'atc':i.errorType==='조종사 오류'?'pilot':'none-type';
+        const eBdg=`<span class="error-badge ${eCls}">${i.errorType}</span>`;
+        const sBdg=i.subError?`<span class="sub-badge">${i.subError}</span>`:'';
+        return`<div class="inc-card risk-${rC(i.risk)}">
+            <div class="inc-top">
+                <div class="inc-top-left">
+                    <span class="cs mine">${i.mine}</span><span class="cs-arrow">↔</span><span class="cs other">${i.other}</span>
+                    ${eBdg}${sBdg}
+                </div>
+                <button class="btn-action" onclick="openAM('${i.mine}','${i.other}')">조치 등록</button>
+            </div>
+            <div class="inc-bottom">
+                <div class="inc-metric"><div class="m-label">발생건수</div><div class="m-value ${i.count>=4?'danger':i.count>=2?'warning':''}">${i.count}건</div></div>
+                <div class="inc-metric"><div class="m-label">최근 발생일</div><div class="m-value">${i.lastDate.slice(5)}</div></div>
+                <div class="inc-metric"><div class="m-label">유사성</div><div class="m-value">${rB(i.similarity)}</div></div>
+                <div class="inc-metric"><div class="m-label">오류가능성</div><div class="m-value">${rB(i.risk)}</div></div>
+            </div>
+            ${i.dates.length?`<div class="inc-timeline"><div class="tl-label">📅 발생 이력</div><div class="tl-chips">${i.dates.map(d=>`<span class="t-chip">${d}</span>`).join('')}</div></div>`:''}
+        </div>`;
+    }).join(''):'<div class="empty-state"><div class="icon">✅</div><p>해당 조건의 발생 이력이 없습니다</p></div>';
+}
+
+// ====== 조치 이력 ======
+function renderActs(){
+    const all=getA();const proc=all.filter(a=>a.status==='진행중').length,done=all.filter(a=>a.status==='완료').length;
+    document.getElementById('actSum').innerHTML=`
+        <div class="act-sum-card"><div class="as-num" style="color:var(--primary);">${all.length}</div><div class="as-label">전체 조치</div></div>
+        <div class="act-sum-card"><div class="as-num" style="color:var(--info);">${proc}</div><div class="as-label">진행중</div></div>
+        <div class="act-sum-card"><div class="as-num" style="color:var(--success);">${done}</div><div class="as-label">완료</div></div>`;
+    let list=all;
+    if(af==='진행중')list=all.filter(a=>a.status==='진행중');else if(af==='완료')list=all.filter(a=>a.status==='완료');
+    list.sort((a,b)=>{if(a.status!==b.status)return a.status==='진행중'?-1:1;return b.dateTime.localeCompare(a.dateTime);});
+    document.getElementById('actTbl').innerHTML=list.length?list.map(x=>`<tr>
+        <td>${x.dateTime}</td><td>${x.dueDate||'-'}</td><td><strong>${x.callsign}</strong></td><td>${x.type}</td>
+        <td>${x.manager}</td><td><span class="badge ${x.status==='완료'?'badge-success':'badge-info'}">${x.status}</span></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="viewDet('${x.id}')">보기</button></td>
+    </tr>`).join(''):'<tr><td colspan="7"><div class="empty-state"><div class="icon">📭</div><p>조치 이력이 없습니다</p></div></td></tr>';
+    updBadge();
+}
+function fAct(s,el){af=s;document.querySelectorAll('.af-chip').forEach(c=>c.classList.remove('active'));if(el)el.classList.add('active');renderActs();}
+
+function openAM(c1,c2){
+    document.getElementById('amCS').innerHTML=`<option value="${c1} | ${c2}">${c1} | ${c2}</option><option value="${c1}">${c1}</option><option value="${c2}">${c2}</option>`;
+    document.getElementById('amTp').value='';document.getElementById('amMg').value='';
+    document.getElementById('amDu').value='';document.getElementById('amDt').value='';
+    document.getElementById('amModal').classList.add('active');
+}
+function closeAM(){document.getElementById('amModal').classList.remove('active');}
+function saveNewAct(){
+    const cs=document.getElementById('amCS').value,tp=document.getElementById('amTp').value,mg=document.getElementById('amMg').value;
+    if(!cs||!tp||!mg){alert('필수 항목(*)을 모두 입력하세요.');return;}
+    ACTS.push({id:'A'+Date.now(),airline:cc||'ADMIN',callsign:cs,type:tp,manager:mg,
+        dueDate:document.getElementById('amDu').value||'',detail:document.getElementById('amDt').value,dateTime:td(),status:'진행중'});
+    svActs();closeAM();renderActs();if(isA)renderAdminAct();alert('✅ 조치가 등록되었습니다.');
+}
+
+function viewDet(id){
+    const a=ACTS.find(x=>x.id===id);if(!a)return;
+    document.getElementById('dmBody').innerHTML=`
+        <div style="display:grid;gap:14px;">
+            <div class="form-row"><label>유사호출부호</label><input type="text" id="ed_cs" value="${a.callsign}"></div>
+            <div class="form-row"><label>항공사</label><input type="text" value="${AL[a.airline]?.n||a.airline}" readonly style="background:var(--surface-alt);"></div>
+            <div class="form-row"><label>조치유형 <span class="req">*</span></label>
+                <select id="ed_tp"><option>편명 변경 완료</option><option>조종사 브리핑 시행</option><option>운항관리사 모니터링 강화</option><option>향후 스케줄 조정 계획</option><option>항공당국 협의</option><option>조치 불필요</option><option>기타</option></select></div>
+            <div class="form-row"><label>담당자 <span class="req">*</span></label><input type="text" id="ed_mg" value="${a.manager}"></div>
+            <div class="form-row"><label>등록일</label><input type="text" value="${a.dateTime}" readonly style="background:var(--surface-alt);"></div>
+            <div class="form-row"><label>조치 예정일</label><input type="date" id="ed_du" value="${a.dueDate||''}"></div>
+            <div class="form-row"><label>상세내용</label><textarea id="ed_dt" style="min-height:100px;">${a.detail||''}</textarea></div>
+            <div class="form-row"><label>상태 <span class="req">*</span></label>
+                <select id="ed_st"><option value="진행중">진행중</option><option value="완료">완료</option></select></div>
+        </div>
+        <div style="margin-top:16px;display:flex;justify-content:space-between;">
+            <button class="btn btn-danger btn-sm" onclick="delAct('${a.id}')">🗑️ 삭제</button>
+            <div style="display:flex;gap:8px;"><button class="btn btn-secondary" onclick="closeDM()">취소</button><button class="btn btn-primary" onclick="svEd('${a.id}')">저장</button></div>
+        </div>`;
+    document.getElementById('ed_tp').value=a.type;document.getElementById('ed_st').value=a.status;
+    document.getElementById('dmModal').classList.add('active');
+}
+function svEd(id){
+    const idx=ACTS.findIndex(x=>x.id===id);if(idx===-1)return;
+    const tp=document.getElementById('ed_tp').value,mg=document.getElementById('ed_mg').value;
+    if(!tp||!mg){alert('조치유형과 담당자를 입력하세요.');return;}
+    ACTS[idx]={...ACTS[idx],callsign:document.getElementById('ed_cs').value,type:tp,manager:mg,
+        dueDate:document.getElementById('ed_du').value||'',detail:document.getElementById('ed_dt').value,status:document.getElementById('ed_st').value};
+    svActs();closeDM();renderActs();if(isA)renderAdminAct();alert('✅ 수정되었습니다.');
+}
+function closeDM(){document.getElementById('dmModal').classList.remove('active');}
+function delAct(id){if(!confirm('삭제하시겠습니까?'))return;const idx=ACTS.findIndex(x=>x.id===id);if(idx!==-1)ACTS.splice(idx,1);svActs();renderActs();if(isA)renderAdminAct();closeDM();}
+function updBadge(){const p=getA().filter(a=>a.status!=='완료').length;const b=document.getElementById('actBadge');if(p>0){b.style.display='';b.textContent=p;}else b.style.display='none';}
+
+// ====== 관리자 ======
+function renderAdmin(){
+    const f=document.getElementById('aFrom')?.value||'',t=document.getElementById('aTo')?.value||'';
+    let tot=0;const rows=[];
+    Object.entries(AL).forEach(([c,info])=>{
+        let incs=INC.filter(i=>i.airline===c);
+        if(f&&t)incs=incs.filter(i=>inR(i.lastDate,f,t));
+        const acts=ACTS.filter(a=>a.airline===c);tot+=incs.length;
+        rows.push({n:info.n,total:incs.length,
+            atc:incs.filter(i=>i.errorType==='관제사 오류').length,
+            plt:incs.filter(i=>i.errorType==='조종사 오류').length,
+            none:incs.filter(i=>i.errorType==='오류 미발생').length,
+            proc:acts.filter(a=>a.status==='진행중').length,done:acts.filter(a=>a.status==='완료').length});
+    });
+    document.getElementById('adminStats').innerHTML=`
+        <div class="admin-stat"><div class="asl">등록 항공사</div><div class="asn">${Object.keys(AL).length}</div></div>
+        <div class="admin-stat"><div class="asl">전체 발생건수</div><div class="asn" style="color:var(--danger);">${tot}</div></div>
+        <div class="admin-stat"><div class="asl">조치 진행중</div><div class="asn" style="color:var(--info);">${ACTS.filter(a=>a.status==='진행중').length}</div></div>
+        <div class="admin-stat"><div class="asl">조치 완료</div><div class="asn" style="color:var(--success);">${ACTS.filter(a=>a.status==='완료').length}</div></div>`;
+    document.getElementById('adminTbl').innerHTML=rows.filter(r=>r.total>0||r.proc>0||r.done>0).map(r=>`<tr>
+        <td><strong>${r.n}</strong></td><td style="font-weight:700;">${r.total}</td>
+        <td>${r.atc||'-'}</td><td>${r.plt||'-'}</td><td>${r.none||'-'}</td>
+        <td><span class="badge badge-info">${r.proc}</span></td><td><span class="badge badge-success">${r.done}</span></td>
+    </tr>`).join('')||'<tr><td colspan="7"><div class="empty-state"><p>데이터 없음</p></div></td></tr>';
+    renderAdminAct();
+}
+function renderAdminAct(){
+    const fv=document.getElementById('adminAF').value;
+    const a=fv==='all'?ACTS:ACTS.filter(x=>x.airline===fv);
+    document.getElementById('adminActTbl').innerHTML=a.length?a.map(x=>`<tr>
+        <td><strong>${AL[x.airline]?.n||x.airline}</strong></td><td>${x.dateTime}</td><td>${x.dueDate||'-'}</td>
+        <td><strong>${x.callsign}</strong></td><td>${x.type}</td><td>${x.manager}</td>
+        <td><span class="badge ${x.status==='완료'?'badge-success':'badge-info'}">${x.status}</span></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="viewDet('${x.id}')">보기</button></td>
+    </tr>`).join(''):'<tr><td colspan="8"><div class="empty-state"><p>조치 이력 없음</p></div></td></tr>';
+}
+
+// ====== 엑셀 ======
+function expInc(){
+    const d=getI();if(!d.length){alert('없음');return;}
+    const ws=XLSX.utils.json_to_sheet(d.map(i=>({'편명1':i.mine,'편명2':i.other,'오류유형':i.errorType,'세부오류유형':i.subError||'-','유사성':i.similarity,'오류가능성':i.risk,'발생건수':i.count,'최근발생일':i.lastDate})));
+    ws['!cols']=[{wch:14},{wch:14},{wch:12},{wch:14},{wch:10},{wch:10},{wch:10},{wch:14}];
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'발생현황');XLSX.writeFile(wb,`${cn||'전체'}_발생현황_${td()}.xlsx`);
+}
+function expAct(){
+    const a=getA();if(!a.length){alert('없음');return;}
+    const ws=XLSX.utils.json_to_sheet(a.map(x=>({'등록일':x.dateTime,'예정일':x.dueDate||'-','편명':x.callsign,'조치유형':x.type,'담당자':x.manager,'상세내용':x.detail||'','상태':x.status})));
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'조치이력');XLSX.writeFile(wb,`${cn||'전체'}_조치이력_${td()}.xlsx`);
+}
+function expAll(){
+    if(!ACTS.length){alert('없음');return;}
+    const ws=XLSX.utils.json_to_sheet(ACTS.map(x=>({'항공사':AL[x.airline]?.n||x.airline,'등록일':x.dateTime,'예정일':x.dueDate||'-','편명':x.callsign,'조치유형':x.type,'담당자':x.manager,'상세내용':x.detail||'','상태':x.status})));
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'전체');XLSX.writeFile(wb,`전체_조치이력_${td()}.xlsx`);
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('amModal').classList.contains('active'))closeAM();else if(document.getElementById('dmModal').classList.contains('active'))closeDM();}});
+</script>
+</body>
+</html>
+
