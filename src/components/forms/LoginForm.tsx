@@ -1,0 +1,139 @@
+/**
+ * LoginForm 컴포넌트
+ * - react-hook-form + zod 유효성 검사
+ * - 로그인 성공 시 상태에 따라 라우팅
+ */
+
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { useAuthStore } from '@/store/authStore';
+import { AUTH_ERRORS, ROUTES } from '@/lib/constants';
+
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, '이메일을 입력해주세요.')
+    .email(AUTH_ERRORS.INVALID_EMAIL),
+  password: z.string().min(1, '비밀번호를 입력해주세요.'),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+export function LoginForm() {
+  const router = useRouter();
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  async function onSubmit(values: LoginFormValues) {
+    setServerError(null);
+    try {
+      // 로컬 PostgreSQL API 호출
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setServerError(error.error || AUTH_ERRORS.UNKNOWN_ERROR);
+        return;
+      }
+
+      const result = await response.json();
+
+      // Zustand에 저장
+      setAuth(result.user, result.accessToken);
+
+      // 상태에 따라 라우팅
+      if (result.user.status === 'suspended') {
+        setServerError(AUTH_ERRORS.SUSPENDED_ACCOUNT);
+        useAuthStore.getState().logout();
+      } else {
+        router.push(ROUTES.DASHBOARD);
+      }
+    } catch (err: any) {
+      setServerError(AUTH_ERRORS.UNKNOWN_ERROR);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+      <Input
+        id="email"
+        type="email"
+        label="이메일"
+        placeholder="user@example.com"
+        autoComplete="email"
+        required
+        error={errors.email?.message}
+        {...register('email')}
+      />
+
+      <Input
+        id="password"
+        type="password"
+        label="비밀번호"
+        placeholder="비밀번호 입력"
+        autoComplete="current-password"
+        required
+        error={errors.password?.message}
+        {...register('password')}
+      />
+
+      {serverError && (
+        <div
+          role="alert"
+          className="px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700"
+        >
+          {serverError}
+        </div>
+      )}
+
+      <Button
+        type="submit"
+        variant="primary"
+        fullWidth
+        size="lg"
+        isLoading={isSubmitting}
+      >
+        로그인
+      </Button>
+
+      <div className="flex items-center justify-between text-sm">
+        <Link
+          href={ROUTES.FORGOT_PASSWORD}
+          className="text-primary hover:text-primary-dark hover:underline"
+        >
+          비밀번호 찾기
+        </Link>
+        <Link
+          href={ROUTES.SIGNUP}
+          className="text-gray-600 hover:text-gray-900 hover:underline"
+        >
+          회원가입
+        </Link>
+      </div>
+    </form>
+  );
+}
