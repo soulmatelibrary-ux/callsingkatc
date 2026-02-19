@@ -66,7 +66,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
       setAirlineCode('');
 
       // 사용자 목록 새로고침
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
 
       // 3초 후 모달 닫기
       setTimeout(() => {
