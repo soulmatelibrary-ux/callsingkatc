@@ -45,10 +45,12 @@ export function Header() {
   }));
 
   // 페이지 로드 시 서버에서 최신 사용자 정보 가져오기 (단일 진실의 소스)
-  // 빈 배열 의존성: 컴포넌트 마운트 시 한 번만 실행 (무한 루프 방지)
+  // isAuthenticated가 변경될 때마다 최신 정보 갱신
   useEffect(() => {
-    fetchUserInfo();
-  }, []);
+    if (isAuthenticated) {
+      fetchUserInfo();
+    }
+  }, [isAuthenticated, fetchUserInfo]);
 
   async function handleLogout() {
     try {
