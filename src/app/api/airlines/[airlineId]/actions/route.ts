@@ -11,7 +11,7 @@
  *   - limit: 페이지 크기 (기본값: 20, 최대: 100)
  *
  * POST /api/airlines/[airlineId]/actions
- * 항공사의 조치 등록 (관리자만)
+ * 항공사의 조치 등록 (인증된 사용자)
  *
  * 요청 본문:
  * {
@@ -120,16 +120,15 @@ export async function GET(
     // 데이터 조회
     const result = await query(sql, queryParams);
 
-    // 전체 개수 조회 (각 조치 행을 개별 계산)
+    // 전체 개수 조회 (필터 조건 포함)
     let countSql = `
-      SELECT COUNT(*) as total FROM (
-        SELECT a.id FROM callsigns cs
-        LEFT JOIN actions a ON cs.id = a.callsign_id
-        WHERE cs.airline_id = $1
-      ) as t
+      SELECT COUNT(DISTINCT a.id) as total FROM callsigns cs
+      LEFT JOIN actions a ON cs.id = a.callsign_id
+      WHERE cs.airline_id = $1
     `;
     const countParams: any[] = [airlineId];
 
+    // 필터 조건 (데이터 쿼리와 동일)
     if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
       countSql += ` AND a.status = $${countParams.length + 1}`;
       countParams.push(status);
@@ -158,7 +157,7 @@ export async function GET(
     }
 
     const countResult = await query(countSql, countParams);
-    const total = parseInt(countResult.rows[0].total, 10);
+    const total = parseInt(countResult.rows[0].total || '0', 10);
 
     return NextResponse.json({
       data: result.rows.map((row: any) => ({
@@ -249,23 +248,24 @@ export async function POST(
     const token = authHeader.substring(7);
     const payload = verifyToken(token);
 
-    if (!payload || payload.role !== 'admin') {
+    if (!payload) {
       return NextResponse.json(
-        { error: '관리자만 접근 가능합니다.' },
-        { status: 403 }
+        { error: '유효하지 않은 토큰입니다.' },
+        { status: 401 }
       );
     }
 
-    // 요청 본문
+    // 요청 본문 (ActionModal에서 snake_case로 전송)
+    const body = await request.json();
     const {
-      callsignId,
-      actionType,
+      callsign_id: callsignId,
+      action_type: actionType,
       description,
-      managerName,
-      managerEmail,
-      responsibleStaff,
-      plannedDueDate,
-    } = await request.json();
+      manager_name: managerName,
+      manager_email: managerEmail,
+      responsible_staff: responsibleStaff,
+      planned_due_date: plannedDueDate,
+    } = body;
 
     // 필수 필드 검증
     if (!callsignId || !actionType) {
