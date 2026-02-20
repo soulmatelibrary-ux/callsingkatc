@@ -79,12 +79,12 @@ export async function GET(
       FROM actions a
       LEFT JOIN callsigns cs ON a.callsign_id = cs.id
       LEFT JOIN airlines al ON a.airline_id = al.id
-      WHERE a.airline_id = $1
+      WHERE a.airline_id = $1 AND a.status IN ('in_progress', 'completed')
     `;
     const queryParams: any[] = [airlineId];
 
-    // 필터 조건
-    if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
+    // 필터 조건 (pending 상태는 제외)
+    if (status && ['in_progress', 'completed'].includes(status)) {
       sql += ` AND a.status = $${queryParams.length + 1}`;
       queryParams.push(status);
     }
@@ -120,16 +120,16 @@ export async function GET(
     // 데이터 조회
     const result = await query(sql, queryParams);
 
-    // 전체 개수 조회 (필터 조건 포함)
+    // 전체 개수 조회 (필터 조건 포함, pending 상태 제외)
     let countSql = `
       SELECT COUNT(a.id) as total FROM actions a
       LEFT JOIN callsigns cs ON a.callsign_id = cs.id
-      WHERE a.airline_id = $1
+      WHERE a.airline_id = $1 AND a.status IN ('in_progress', 'completed')
     `;
     const countParams: any[] = [airlineId];
 
-    // 필터 조건 (데이터 쿼리와 동일)
-    if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
+    // 필터 조건 (pending 상태는 제외)
+    if (status && ['in_progress', 'completed'].includes(status)) {
       countSql += ` AND a.status = $${countParams.length + 1}`;
       countParams.push(status);
     }
