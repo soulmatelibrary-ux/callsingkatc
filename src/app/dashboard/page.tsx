@@ -62,7 +62,7 @@ export default function DashboardPage() {
     dateFrom: actionDateFrom || undefined,
     dateTo: actionDateTo || undefined,
     page: actionPage,
-    limit: 100,  // 한 페이지에 최대 100개까지 조회
+    limit: 999,  // 항공사의 모든 조치 이력 조회
   });
 
   useEffect(() => {
