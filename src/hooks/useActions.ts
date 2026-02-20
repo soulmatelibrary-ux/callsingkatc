@@ -19,6 +19,62 @@ import {
 } from '@/types/action';
 
 /**
+ * 전체 조치 목록 조회 (관리자 대시보드용)
+ * 필터: airlineId(선택), status, search, dateFrom, dateTo
+ * 페이지네이션 지원
+ */
+export function useAllActions(filters?: {
+  airlineId?: string;
+  status?: 'pending' | 'in_progress' | 'completed';
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  limit?: number;
+}) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const page = filters?.page || 1;
+  const limit = filters?.limit || 20;
+
+  return useQuery({
+    queryKey: ['all-actions', filters?.airlineId, filters?.status, filters?.search, filters?.dateFrom, filters?.dateTo, page, limit],
+    queryFn: async () => {
+      if (!accessToken) {
+        throw new Error('인증 토큰이 없습니다.');
+      }
+
+      const params = new URLSearchParams();
+      if (filters?.airlineId) params.append('airlineId', filters.airlineId);
+      if (filters?.status) params.append('status', filters.status);
+      if (filters?.search) params.append('search', filters.search);
+      if (filters?.dateFrom) params.append('dateFrom', filters.dateFrom);
+      if (filters?.dateTo) params.append('dateTo', filters.dateTo);
+      params.append('page', String(page));
+      params.append('limit', String(limit));
+
+      const response = await fetch(`/api/actions?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('인증이 필요합니다.');
+        }
+        throw new Error('조치 목록 조회 실패');
+      }
+
+      const data = (await response.json()) as ActionListResponse;
+      return data;
+    },
+    enabled: !!accessToken,
+    staleTime: 30 * 1000, // 30초
+    gcTime: 5 * 60 * 1000, // 5분
+  });
+}
+
+/**
  * 조치 목록 조회 (항공사별)
  * 필터: status, search
  * 페이지네이션 지원

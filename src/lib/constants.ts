@@ -64,6 +64,7 @@ export const ROUTES = {
   ADMIN_USERS: '/admin/users',
   ADMIN_PASSWORD_RESET: '/admin/password-reset',
   ADMIN_AIRLINES: '/admin/airlines',
+  ADMIN_ACTIONS: '/admin/actions',
 };
 
 /**

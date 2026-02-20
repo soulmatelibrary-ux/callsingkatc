@@ -5,13 +5,14 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
 import { Header } from '@/components/layout/Header';
+import { useAirlineCallsigns } from '@/hooks/useActions';
+import * as XLSX from 'xlsx';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isAdmin } = useAuthStore((s) => ({
+  const { user, isAuthenticated } = useAuthStore((s) => ({
     user: s.user,
     isAuthenticated: s.isAuthenticated(),
-    isAdmin: s.isAdmin(),
   }));
 
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -23,12 +24,22 @@ export default function DashboardPage() {
     details?: any;
   } | null>(null);
 
+  // 호출부호 필터
+  const [riskLevelFilter, setRiskLevelFilter] = useState<string>('');
+  const [callsignPage, setCallsignPage] = useState(1);
+
+  // 호출부호 목록 조회 (사용자의 항공사별)
+  const callsignsQuery = useAirlineCallsigns(user?.airline_id, {
+    riskLevel: riskLevelFilter || undefined,
+    page: callsignPage,
+    limit: 20,
+  });
+
   useEffect(() => {
     if (!isAuthenticated) {
       router.push(ROUTES.HOME);
       return;
     }
-    // 관리자도 대시보드 접근 가능하도록 수정
   }, [isAuthenticated, router]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,7 +84,6 @@ export default function DashboardPage() {
           details: result,
         });
         setSelectedFile(null);
-        // 파일 input 리셋
         const fileInput = document.getElementById('file-input') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
       } else {
@@ -92,25 +102,226 @@ export default function DashboardPage() {
     }
   };
 
+  const riskColors: Record<string, string> = {
+    '매우높음': '#dc2626',
+    '높음': '#f59e0b',
+    '낮음': '#16a34a',
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-16 pb-10">
-        <div className="text-center py-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">대시보드</h1>
-          <p className="text-gray-600 mb-8">유사호출부호 항공사 관리 기능이 곧 추가됩니다.</p>
+        {/* 페이지 헤더 */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">대시보드</h1>
+          <p className="text-gray-600">
+            {user?.airline?.code
+              ? `${user.airline.code} 항공사의 유사호출부호 현황을 확인하세요.`
+              : '유사호출부호 현황을 확인하세요.'}
+          </p>
+        </div>
 
-          {/* Excel 업로드 섹션 */}
+        {/* 호출부호 목록 섹션 */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          {/* 헤더 */}
+          <div className="flex justify-between items-start mb-6">
+            <h2 className="text-xl font-bold text-gray-900">유사호출부호 목록</h2>
+            <button
+              onClick={() => setIsUploadModalOpen(!isUploadModalOpen)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+            >
+              {isUploadModalOpen ? 'Excel 업로드 닫기' : 'Excel 업로드'}
+            </button>
+          </div>
+
+          {/* 필터 UI */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* 위험도 필터 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                위험도
+              </label>
+              <select
+                value={riskLevelFilter}
+                onChange={(e) => {
+                  setRiskLevelFilter(e.target.value);
+                  setCallsignPage(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">전체</option>
+                <option value="매우높음">매우높음</option>
+                <option value="높음">높음</option>
+                <option value="낮음">낮음</option>
+              </select>
+            </div>
+
+            {/* 초기화 버튼 */}
+            <div>
+              <button
+                onClick={() => {
+                  setRiskLevelFilter('');
+                  setCallsignPage(1);
+                }}
+                className="w-full px-4 py-2 mt-6 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
+              >
+                초기화
+              </button>
+            </div>
+
+            {/* Excel 내보내기 */}
+            <div>
+              <button
+                onClick={() => {
+                  if (!callsignsQuery.data?.data) return;
+                  const rows = callsignsQuery.data.data.map((cs) => ({
+                    '호출부호 쌍': cs.callsign_pair,
+                    '자신 호출부호': cs.my_callsign,
+                    '타사 호출부호': cs.other_callsign,
+                    '위험도': cs.risk_level,
+                    '유사도': cs.similarity,
+                    '발생 횟수': cs.occurrence_count,
+                    '마지막 발생일': cs.last_occurred_at
+                      ? new Date(cs.last_occurred_at).toLocaleDateString('ko-KR')
+                      : '-',
+                  }));
+                  const ws = XLSX.utils.json_to_sheet(rows);
+                  const wb = XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(wb, ws, '호출부호목록');
+                  XLSX.writeFile(
+                    wb,
+                    `${user?.airline?.code || '항공사'}_호출부호목록_${new Date().toLocaleDateString('ko-KR')}.xlsx`
+                  );
+                }}
+                disabled={!callsignsQuery.data?.data || callsignsQuery.data.data.length === 0}
+                className="w-full px-4 py-2 mt-6 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+              >
+                내보내기
+              </button>
+            </div>
+          </div>
+
+          {/* 호출부호 테이블 */}
+          {callsignsQuery.isLoading ? (
+            <div className="p-8 text-center text-gray-600">로딩 중...</div>
+          ) : callsignsQuery.error ? (
+            <div className="p-8 text-center text-red-600">
+              {callsignsQuery.error instanceof Error
+                ? callsignsQuery.error.message
+                : '호출부호 목록 조회 실패'}
+            </div>
+          ) : (callsignsQuery.data?.data.length ?? 0) === 0 ? (
+            <div className="p-8 text-center text-gray-600">호출부호가 없습니다.</div>
+          ) : (
+            <>
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      호출부호 쌍
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      위험도
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      유사도
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      발생 횟수
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      마지막 발생일
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {callsignsQuery.data?.data.map((cs) => (
+                    <tr key={cs.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                        <div className="font-medium">{cs.callsign_pair}</div>
+                        <div className="text-xs text-gray-500">
+                          {cs.my_callsign} / {cs.other_callsign}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          style={{
+                            color: riskColors[cs.risk_level || '낮음'],
+                            fontWeight: 600,
+                          }}
+                        >
+                          {cs.risk_level || '-'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                        {cs.similarity || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                        {cs.occurrence_count || 0}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                        {cs.last_occurred_at
+                          ? new Date(cs.last_occurred_at).toLocaleDateString('ko-KR')
+                          : '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* 페이지네이션 */}
+              {callsignsQuery.data && callsignsQuery.data.pagination.totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between mt-4">
+                  <button
+                    onClick={() => setCallsignPage(Math.max(1, callsignPage - 1))}
+                    disabled={callsignPage === 1}
+                    className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    이전
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    {callsignPage} / {callsignsQuery.data.pagination.totalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setCallsignPage(
+                        Math.min(callsignsQuery.data.pagination.totalPages, callsignPage + 1)
+                      )
+                    }
+                    disabled={callsignPage === callsignsQuery.data.pagination.totalPages}
+                    className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    다음
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Excel 업로드 섹션 (토글 가능) */}
+        {isUploadModalOpen && (
           <div className="max-w-2xl mx-auto mt-12">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
               <div className="flex items-center justify-center mb-6">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  <svg
+                    className="w-8 h-8 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
                   </svg>
                 </div>
               </div>
-              
+
               <h2 className="text-xl font-bold text-gray-900 mb-2">유사호출부호 데이터 업로드</h2>
               <p className="text-sm text-gray-600 mb-6">
                 Excel 파일(.xlsx, .xls)로 유사호출부호 데이터를 일괄 업로드할 수 있습니다.
@@ -209,7 +420,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

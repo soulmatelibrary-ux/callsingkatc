@@ -3,13 +3,16 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { ActionModal } from '@/components/actions/ActionModal';
-import { useAirlineActions, useAirlineCallsigns } from '@/hooks/useActions';
+import { useAllActions, useAirlineCallsigns } from '@/hooks/useActions';
 import { useAirlines } from '@/hooks/useAirlines';
 import Link from 'next/link';
+import * as XLSX from 'xlsx';
 
 export default function AdminActionsPage() {
   const [selectedAirlineId, setSelectedAirlineId] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<'pending' | 'in_progress' | 'completed' | ''>('');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
   const [page, setPage] = useState(1);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [limit] = useState(20);
@@ -17,10 +20,12 @@ export default function AdminActionsPage() {
   // 항공사 목록 조회
   const airlinesQuery = useAirlines();
 
-  // 조치 목록 조회
-  const actionsQuery = useAirlineActions({
+  // 전체 조치 목록 조회
+  const actionsQuery = useAllActions({
     airlineId: selectedAirlineId || undefined,
     status: selectedStatus as any,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
     page,
     limit,
   });
@@ -68,7 +73,7 @@ export default function AdminActionsPage() {
 
         {/* 필터 및 검색 */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
             {/* 항공사 필터 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -112,16 +117,86 @@ export default function AdminActionsPage() {
               </select>
             </div>
 
-            {/* 생성 버튼 */}
+            {/* 시작 날짜 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                시작 날짜
+              </label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => {
+                  setDateFrom(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* 종료 날짜 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                종료 날짜
+              </label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => {
+                  setDateTo(e.target.value);
+                  setPage(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* 초기화 버튼 */}
             <div className="flex items-end">
               <button
-                onClick={() => setIsCreateModalOpen(true)}
-                disabled={!selectedAirlineId}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+                onClick={() => {
+                  setSelectedAirlineId('');
+                  setSelectedStatus('');
+                  setDateFrom('');
+                  setDateTo('');
+                  setPage(1);
+                }}
+                className="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
               >
-                조치 등록
+                초기화
               </button>
             </div>
+          </div>
+
+          {/* 액션 버튼 */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              disabled={!selectedAirlineId}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+            >
+              조치 등록
+            </button>
+            <button
+              onClick={() => {
+                if (!actionsQuery.data?.data) return;
+                const rows = actionsQuery.data.data.map((a) => ({
+                  '항공사': a.airline?.code,
+                  '호출부호 쌍': a.callsign?.callsign_pair,
+                  '위험도': a.callsign?.risk_level,
+                  '조치 유형': a.action_type,
+                  '담당자': a.manager_name || '-',
+                  '상태': statusLabels[a.status],
+                  '등록일': new Date(a.registered_at).toLocaleDateString('ko-KR'),
+                }));
+                const ws = XLSX.utils.json_to_sheet(rows);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, '조치목록');
+                XLSX.writeFile(wb, `조치목록_${new Date().toLocaleDateString('ko-KR')}.xlsx`);
+              }}
+              disabled={!actionsQuery.data?.data || actionsQuery.data.data.length === 0}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+            >
+              Excel 내보내기
+            </button>
           </div>
 
           {/* 결과 요약 */}
