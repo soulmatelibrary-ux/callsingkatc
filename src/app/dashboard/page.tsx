@@ -421,13 +421,38 @@ export default function DashboardPage() {
                 <tbody className="divide-y divide-gray-200">
                   {actionsQuery.data?.data.map((action) => (
                     <tr key={action.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                      <td className="px-6 py-4 text-gray-900">
                         <div className="font-medium">{action.callsign?.callsign_pair}</div>
-                        <div className="text-xs text-gray-500">
-                          위험도:{' '}
-                          <span style={{ color: riskColors[action.callsign?.risk_level || '낮음'] }}>
-                            {action.callsign?.risk_level}
-                          </span>
+                        <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
+                          <div className="bg-gray-50 p-2 rounded">
+                            <div className="text-gray-600">발생건수</div>
+                            <div className="font-semibold text-gray-900">
+                              {action.callsign?.occurrence_count || 0}건
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-2 rounded">
+                            <div className="text-gray-600">최근 발생일</div>
+                            <div className="font-semibold text-gray-900">
+                              {action.callsign?.last_occurred_at
+                                ? new Date(action.callsign.last_occurred_at).toLocaleDateString('ko-KR')
+                                : '-'}
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-2 rounded">
+                            <div className="text-gray-600">원인사</div>
+                            <div className="font-semibold text-gray-900 text-red-600">
+                              {action.callsign?.error_type || '-'}
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 p-2 rounded">
+                            <div className="text-gray-600">위험도</div>
+                            <div
+                              className="font-semibold"
+                              style={{ color: riskColors[action.callsign?.risk_level || '낮음'] }}
+                            >
+                              {action.callsign?.risk_level || '-'}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
