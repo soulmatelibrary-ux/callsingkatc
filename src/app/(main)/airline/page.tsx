@@ -539,22 +539,22 @@ export default function AirlinePage() {
                           });
 
                           return (
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-0.5">
                               {Array.from(my).map((char, idx) => (
                                 <span
                                   key={`my-${idx}`}
-                                  className={`font-black text-sm ${
+                                  className={`font-black text-lg leading-none ${
                                     char >= '0' && char <= '9' ? colorMap[char] : 'text-gray-900'
                                   }`}
                                 >
                                   {char}
                                 </span>
                               ))}
-                              <span className="text-gray-300 font-bold">↔</span>
+                              <span className="text-gray-400 font-bold mx-0.5">↔</span>
                               {Array.from(other).map((char, idx) => (
                                 <span
                                   key={`other-${idx}`}
-                                  className={`font-black text-sm ${
+                                  className={`font-black text-lg leading-none ${
                                     char >= '0' && char <= '9' ? colorMap[char] : 'text-gray-900'
                                   }`}
                                 >
@@ -567,19 +567,28 @@ export default function AirlinePage() {
 
                         return (
                           <div key={incident.id} className="border-b-2 border-gray-100 last:border-b-0">
-                            {/* 첫 번째 행: 호출부호, 오류 유형, 조치 등록 버튼 */}
+                            {/* 첫 번째 행: 호출부호, 분류 정보, 조치 등록 버튼 */}
                             <div className="px-8 py-5 flex items-center justify-between gap-6 group hover:bg-primary/[0.02] transition-colors border-b border-gray-50">
-                              <div className="flex-1 min-w-0">
-                                {renderColoredCallsign(incident.pair)}
-                              </div>
+                              <div className="flex-1 min-w-0 flex flex-col gap-2">
+                                {/* 호출부호 - 더 크고 굵게 */}
+                                <div className="inline-block w-fit px-4 py-2 bg-blue-50 rounded-lg">
+                                  {renderColoredCallsign(incident.pair)}
+                                </div>
 
-                              <div className="flex-shrink-0">
-                                <span className={`inline-block text-[12px] font-bold px-3 py-1 rounded-lg ${
-                                  incident.error_type === '관제사 오류' ? 'text-rose-600 bg-rose-50' :
-                                  incident.error_type === '조종사 오류' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'
-                                }`}>
-                                  {incident.error_type}
-                                </span>
+                                {/* 분류 정보 태그 */}
+                                <div className="flex flex-wrap gap-2 items-center">
+                                  <span className={`inline-block text-[11px] font-bold px-3 py-1 rounded-full ${
+                                    incident.error_type === '관제사 오류' ? 'text-rose-600 bg-rose-50' :
+                                    incident.error_type === '조종사 오류' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'
+                                  }`}>
+                                    {incident.error_type}
+                                  </span>
+                                  {incident.sub_error && (
+                                    <span className="inline-block text-[11px] font-bold px-3 py-1 rounded-full text-indigo-600 bg-indigo-50">
+                                      {incident.sub_error}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
 
                               <button
