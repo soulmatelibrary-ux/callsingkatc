@@ -170,7 +170,7 @@ export function UserApprovalTable() {
                   </td>
                   <td className="px-4 py-3">
                     <select
-                      value={user.airline_id || ''}
+                      value={user.airline?.code || ''}
                       onChange={(e) => handleAirlineChange(user.id, e.target.value)}
                       disabled={updatingAirline?.userId === user.id}
                       className={[
