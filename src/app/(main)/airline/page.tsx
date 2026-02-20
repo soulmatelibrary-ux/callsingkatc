@@ -6,6 +6,7 @@ import { parseJsonCookie } from '@/lib/cookies';
 import { ROUTES } from '@/lib/constants';
 import { useAirlineActions, useAirlineCallsigns } from '@/hooks/useActions';
 import { useAuthStore } from '@/store/authStore';
+import { Header } from '@/components/layout/Header';
 import { ActionModal } from '@/components/actions/ActionModal';
 
 const AL: Record<string, { n: string }> = {
@@ -295,740 +296,332 @@ export default function AirlinePage() {
 
   return (
     <>
-      <div
-        style={{
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
-        }}
-      >
-      {/* 상단 정보 */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderBottom: '1px solid #e5e7eb',
-          padding: '24px 32px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px',
-            }}
-          >
-            <span style={{ fontSize: '32px' }}>✈️</span>
-            <div>
-              <h1
-                style={{
-                  fontSize: '20px',
-                  fontWeight: 'bold',
-                  color: '#1e3a5f',
-                  margin: '0 0 6px 0',
-                }}
-              >
-                {airlineName} - 유사호출부호 경고시스템
-              </h1>
-              <p
-                style={{
-                  fontSize: '13px',
-                  color: '#6b7280',
-                  margin: '0',
-                }}
-              >
-                항공사 전용 · 사후분석 및 조치관리
-              </p>
+      <main className="max-w-7xl w-full mx-auto px-6 py-10 space-y-8 animate-fade-in">
+        {/* 페이지 헤더 */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-200 pb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-8 h-1 bg-primary rounded-full" />
+              <span className="text-primary font-bold text-sm tracking-widest uppercase">Airline Portal</span>
             </div>
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight">
+              {airlineName} - 유사호출부호 경고시스템
+            </h1>
+            <p className="mt-2 text-gray-500 font-medium">항공사 전용 · 사후분석 및 조치관리</p>
           </div>
-          <div
-            style={{
-              textAlign: 'right',
-              color: '#6b7280',
-              fontSize: '13px',
-            }}
-          >
+          <div className="text-sm font-bold text-gray-400 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm">
             {new Date().toLocaleDateString('ko-KR')}
           </div>
         </div>
-      </div>
 
-      {/* 탭 네비게이션 */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderBottom: '1px solid #e5e7eb',
-          paddingLeft: '32px',
-          paddingRight: '32px',
-        }}
-      >
-        <div style={{ display: 'flex', gap: '32px' }}>
-            <button
-              onClick={() => setActiveTab('incidents')}
-              style={{
-                padding: '16px 0',
-                borderBottom: activeTab === 'incidents' ? '2px solid #2563eb' : '2px solid transparent',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: activeTab === 'incidents' ? '#2563eb' : '#6b7280',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'color 0.2s',
-              }}
-            >
-              📊 유사호출부호 발생현황
-            </button>
-            <button
-              onClick={() => setActiveTab('actions')}
-              style={{
-                padding: '16px 0',
-                borderBottom:
-                  activeTab === 'actions'
-                    ? '2px solid #2563eb'
-                    : '2px solid transparent',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: activeTab === 'actions' ? '#2563eb' : '#6b7280',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'color 0.2s',
-              }}
-            >
-              📋 조치 이력
-            </button>
-          </div>
+        {/* 탭 네비게이션 */}
+        <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm border border-gray-100 flex flex-wrap gap-1">
+          <button
+            onClick={() => setActiveTab('incidents')}
+            className={`flex-1 min-w-[160px] px-6 py-3 rounded-xl text-sm font-black tracking-tight transition-all ${activeTab === 'incidents'
+              ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]'
+              : 'bg-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+          >
+            📊 유사호출부호 발생현황
+          </button>
+          <button
+            onClick={() => setActiveTab('actions')}
+            className={`flex-1 min-w-[160px] px-6 py-3 rounded-xl text-sm font-black tracking-tight transition-all ${activeTab === 'actions'
+              ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]'
+              : 'bg-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+          >
+            📋 조치 이력
+          </button>
         </div>
 
-        {/* 콘텐츠 */}
-        <div style={{ padding: '32px', maxWidth: '1400px', margin: '0 auto' }}>
+        {/* 콘텐츠 영역 */}
+        <div className="animate-fade-in-up">
           {activeTab === 'incidents' && (
             <>
               {/* 조회 기간 필터 */}
-              <div
-                style={{
-                  marginBottom: '24px',
-                  background: '#f9fafb',
-                  borderRadius: '12px',
-                  padding: '16px 20px',
-                  border: '1px solid #e5e7eb',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      minWidth: '120px',
-                    }}
-                  >
-                    <span style={{ fontSize: '18px' }}>📅</span>
-                    <span
-                      style={{
-                        fontSize: '14px',
-                        fontWeight: 600,
-                        color: '#374151',
-                      }}
-                    >
-                      조회기간
-                    </span>
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+                <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">조회 기간</p>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="date"
+                          value={startDate}
+                          onChange={handleStartDateChange}
+                          className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
+                        />
+                        <span className="text-gray-300">~</span>
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={handleEndDateChange}
+                          className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={handleStartDateChange}
-                      style={{
-                        padding: '8px 10px',
-                        borderRadius: '8px',
-                        border: '1px solid #d1d5db',
-                        fontSize: '13px',
-                        color: '#111827',
-                      }}
-                    />
-                    <span style={{ color: '#9ca3af' }}>~</span>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={handleEndDateChange}
-                      style={{
-                        padding: '8px 10px',
-                        borderRadius: '8px',
-                        border: '1px solid #d1d5db',
-                        fontSize: '13px',
-                        color: '#111827',
-                      }}
-                    />
 
+                  <div className="flex bg-gray-50/50 p-1 rounded-xl border border-gray-100">
                     <button
                       type="button"
                       onClick={() => applyQuickRange('today')}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: '999px',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        border: '1px solid #d1d5db',
-                        backgroundColor:
-                          activeRange === 'today' ? '#2563eb' : '#ffffff',
-                        color: activeRange === 'today' ? '#ffffff' : '#4b5563',
-                        cursor: 'pointer',
-                      }}
+                      className={`px-4 py-2 rounded-lg text-xs font-black tracking-tight transition-all ${activeRange === 'today' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                        }`}
                     >
                       오늘
                     </button>
                     <button
                       type="button"
                       onClick={() => applyQuickRange('1w')}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: '999px',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        border: '1px solid #d1d5db',
-                        backgroundColor:
-                          activeRange === '1w' ? '#2563eb' : '#ffffff',
-                        color: activeRange === '1w' ? '#ffffff' : '#4b5563',
-                        cursor: 'pointer',
-                      }}
+                      className={`px-4 py-2 rounded-lg text-xs font-black tracking-tight transition-all ${activeRange === '1w' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                        }`}
                     >
-                      최근 1주
+                      1주
                     </button>
                     <button
                       type="button"
                       onClick={() => applyQuickRange('2w')}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: '999px',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        border: '1px solid #d1d5db',
-                        backgroundColor:
-                          activeRange === '2w' ? '#2563eb' : '#ffffff',
-                        color: activeRange === '2w' ? '#ffffff' : '#4b5563',
-                        cursor: 'pointer',
-                      }}
+                      className={`px-4 py-2 rounded-lg text-xs font-black tracking-tight transition-all ${activeRange === '2w' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                        }`}
                     >
-                      최근 2주
+                      2주
                     </button>
                     <button
                       type="button"
                       onClick={() => applyQuickRange('1m')}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: '999px',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        border: '1px solid #d1d5db',
-                        backgroundColor:
-                          activeRange === '1m' ? '#2563eb' : '#ffffff',
-                        color: activeRange === '1m' ? '#ffffff' : '#4b5563',
-                        cursor: 'pointer',
-                      }}
+                      className={`px-4 py-2 rounded-lg text-xs font-black tracking-tight transition-all ${activeRange === '1m' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                        }`}
                     >
-                      최근 1개월
+                      1개월
                     </button>
                   </div>
                 </div>
+
+                <div className="flex gap-3 w-full md:w-auto">
+                  <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-2xl font-bold shadow-sm hover:bg-gray-50 transition-all text-sm">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>Excel 내보내기</span>
+                  </button>
+                </div>
               </div>
-              {/* 오류유형 요약 + 세부오류유형 분포 레이아웃 */}
+              {/* 요약 통계 (Full Width) */}
               {total > 0 && (
-                <div
-                  style={{
-                    marginBottom: '32px',
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1.35fr)',
-                    gap: '24px',
-                  }}
-                >
-                  {/* 좌측: 오류유형 요약 */}
-                  <div
-                    style={{
-                      background: '#ffffff',
-                      borderRadius: '12px',
-                      padding: '20px 24px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                      border: '1px solid #e5e7eb',
-                    }}
-                  >
-                    <h3
-                      style={{
-                        fontSize: '15px',
-                        fontWeight: 700,
-                        color: '#111827',
-                        marginBottom: '12px',
-                      }}
-                    >
-                      오류유형 요약
-                    </h3>
-                    <div style={{ marginBottom: '18px' }}>
-                      <div
-                        style={{
-                          fontSize: '32px',
-                          fontWeight: 800,
-                          color: '#111827',
-                          lineHeight: 1,
-                          marginBottom: '4px',
-                        }}
-                      >
-                        {visibleIncidents.length}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                  <div className="group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
+                    <div className="relative flex flex-col h-full">
+                      <div className="flex justify-between items-start mb-4">
+                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total Cases</p>
                       </div>
-                      <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                        건 ({selectedErrorLabel === '전체' ? '전체' : selectedErrorLabel})
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-5xl font-black text-gray-900 tracking-tighter">{total}</p>
+                        <span className="text-sm font-bold text-gray-400">건</span>
                       </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                        gap: '12px',
-                      }}
-                    >
-                      <div
-                        onClick={() =>
-                          setErrorTypeFilter(
-                            errorTypeFilter === '관제사 오류' ? 'all' : '관제사 오류',
-                          )
-                        }
-                        style={{
-                          background: '#fff5f5',
-                          borderRadius: '10px',
-                          padding: '14px 12px',
-                          border:
-                            errorTypeFilter === '관제사 오류'
-                              ? '2px solid #f97373'
-                              : '1px solid #fed7d7',
-                          cursor: 'pointer',
-                          boxShadow:
-                            errorTypeFilter === '관제사 오류'
-                              ? '0 0 0 1px rgba(248,113,113,0.25)'
-                              : 'none',
-                          transition: 'box-shadow 0.15s, transform 0.15s',
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: '12px',
-                            color: '#b91c1c',
-                            fontWeight: 600,
-                            marginBottom: '6px',
-                          }}
-                        >
-                          관제사오류
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '22px',
-                            fontWeight: 700,
-                            color: '#dc2626',
-                            marginBottom: '2px',
-                          }}
-                        >
-                          {atcCount}
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#a16061' }}>
-                          전체의{' '}
-                          {total > 0 ? Math.round((atcCount / total) * 100) : 0}%
-                        </div>
-                      </div>
-
-                      <div
-                        onClick={() =>
-                          setErrorTypeFilter(
-                            errorTypeFilter === '조종사 오류' ? 'all' : '조종사 오류',
-                          )
-                        }
-                        style={{
-                          background: '#fffbf0',
-                          borderRadius: '10px',
-                          padding: '14px 12px',
-                          border:
-                            errorTypeFilter === '조종사 오류'
-                              ? '2px solid #fdba74'
-                              : '1px solid #fed7aa',
-                          cursor: 'pointer',
-                          boxShadow:
-                            errorTypeFilter === '조종사 오류'
-                              ? '0 0 0 1px rgba(251,191,36,0.25)'
-                              : 'none',
-                          transition: 'box-shadow 0.15s, transform 0.15s',
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: '12px',
-                            color: '#b45309',
-                            fontWeight: 600,
-                            marginBottom: '6px',
-                          }}
-                        >
-                          조종사오류
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '22px',
-                            fontWeight: 700,
-                            color: '#f97316',
-                            marginBottom: '2px',
-                          }}
-                        >
-                          {pilotCount}
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#a16207' }}>
-                          전체의{' '}
-                          {total > 0 ? Math.round((pilotCount / total) * 100) : 0}%
-                        </div>
-                      </div>
-
-                      <div
-                        onClick={() =>
-                          setErrorTypeFilter(
-                            errorTypeFilter === '오류 미발생' ? 'all' : '오류 미발생',
-                          )
-                        }
-                        style={{
-                          background: '#f0fdf4',
-                          borderRadius: '10px',
-                          padding: '14px 12px',
-                          border:
-                            errorTypeFilter === '오류 미발생'
-                              ? '2px solid #4ade80'
-                              : '1px solid #bbf7d0',
-                          cursor: 'pointer',
-                          boxShadow:
-                            errorTypeFilter === '오류 미발생'
-                              ? '0 0 0 1px rgba(34,197,94,0.25)'
-                              : 'none',
-                          transition: 'box-shadow 0.15s, transform 0.15s',
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: '12px',
-                            color: '#15803d',
-                            fontWeight: 600,
-                            marginBottom: '6px',
-                          }}
-                        >
-                          오류 미발생
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '22px',
-                            fontWeight: 700,
-                            color: '#16a34a',
-                            marginBottom: '2px',
-                          }}
-                        >
-                          {noneCount}
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#4b7c5e' }}>
-                          전체의{' '}
-                          {total > 0 ? Math.round((noneCount / total) * 100) : 0}%
-                        </div>
-                      </div>
+                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">분석 기간 내 전체 발생 건수</p>
                     </div>
                   </div>
 
-                  {/* 우측: 세부오류유형 분포 */}
                   <div
-                    style={{
-                      background: '#ffffff',
-                      borderRadius: '12px',
-                      padding: '20px 24px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                      border: '1px solid #e5e7eb',
-                    }}
+                    onClick={() => setErrorTypeFilter(errorTypeFilter === '관제사 오류' ? 'all' : '관제사 오류')}
+                    className={`group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === '관제사 오류' ? 'ring-2 ring-rose-500 shadow-rose-500/10' : ''}`}
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginBottom: '16px',
-                        gap: '12px',
-                      }}
-                    >
-                      <div>
-                        <h3
-                          style={{
-                            fontSize: '15px',
-                            fontWeight: 700,
-                            color: '#111827',
-                            marginBottom: '4px',
-                          }}
-                        >
-                          세부오류유형 분포 — {selectedErrorLabel}
-                        </h3>
-                        <p
-                          style={{
-                            fontSize: '12px',
-                            color: '#6b7280',
-                            margin: 0,
-                          }}
-                        >
-                          선택된 오류유형 내 세부 분포입니다.
-                        </p>
+                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-rose-600" />
+                    <div className="relative flex flex-col h-full">
+                      <div className="flex justify-between items-start mb-4">
+                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">ATC Related</p>
+                        {total > 0 && (
+                          <span className="text-[10px] font-black px-2 py-1 rounded-md bg-rose-50 text-rose-600">
+                            {Math.round((atcCount / total) * 100)}%
+                          </span>
+                        )}
                       </div>
-                      <div
-                        style={{
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          color: '#4b5563',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {visibleIncidents.length}건
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-5xl font-black text-rose-600 tracking-tighter">{atcCount}</p>
+                        <span className="text-sm font-bold text-gray-400">건</span>
                       </div>
+                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">관제사 요인으로 판명된 사례</p>
                     </div>
+                  </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {subTypeStats.map((row) => {
-                        const width = row.count === 0 ? 4 : Math.round((row.count / maxSubCount) * 100);
-                        return (
-                          <div
-                            key={row.key}
-                            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
-                          >
-                            <div style={{ flex: 1 }}>
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  fontSize: '12px',
-                                  color: '#6b7280',
-                                  marginBottom: '4px',
-                                }}
-                              >
-                                <span>{row.label}</span>
-                              </div>
-                              <div
-                                style={{
-                                  width: '100%',
-                                  height: '10px',
-                                  borderRadius: '999px',
-                                  background: '#f3f4f6',
-                                  overflow: 'hidden',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    width: `${width}%`,
-                                    height: '100%',
-                                    borderRadius: '999px',
-                                    background: row.color,
-                                    opacity: row.count === 0 ? 0.15 : 0.95,
-                                    transition: 'width 0.2s ease-out',
-                                  }}
-                                />
-                              </div>
-                            </div>
-                            <div
-                              style={{
-                                width: '32px',
-                                textAlign: 'right',
-                                fontSize: '12px',
-                                color: '#111827',
-                              }}
-                            >
-                              {row.count}
-                            </div>
-                          </div>
-                        );
-                      })}
+                  <div
+                    onClick={() => setErrorTypeFilter(errorTypeFilter === '조종사 오류' ? 'all' : '조종사 오류')}
+                    className={`group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === '조종사 오류' ? 'ring-2 ring-amber-500 shadow-amber-500/10' : ''}`}
+                  >
+                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-amber-600" />
+                    <div className="relative flex flex-col h-full">
+                      <div className="flex justify-between items-start mb-4">
+                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Pilot Related</p>
+                        {total > 0 && (
+                          <span className="text-[10px] font-black px-2 py-1 rounded-md bg-amber-50 text-amber-600">
+                            {Math.round((pilotCount / total) * 100)}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-5xl font-black text-amber-600 tracking-tighter">{pilotCount}</p>
+                        <span className="text-sm font-bold text-gray-400">건</span>
+                      </div>
+                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">조종사 요인으로 판명된 사례</p>
+                    </div>
+                  </div>
+
+                  <div
+                    onClick={() => setErrorTypeFilter(errorTypeFilter === '오류 미발생' ? 'all' : '오류 미발생')}
+                    className={`group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === '오류 미발생' ? 'ring-2 ring-emerald-500 shadow-emerald-500/10' : ''}`}
+                  >
+                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-emerald-600" />
+                    <div className="relative flex flex-col h-full">
+                      <div className="flex justify-between items-start mb-4">
+                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">No Error</p>
+                        {total > 0 && (
+                          <span className="text-[10px] font-black px-2 py-1 rounded-md bg-emerald-50 text-emerald-600">
+                            {Math.round((noneCount / total) * 100)}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <p className="text-5xl font-black text-emerald-600 tracking-tighter">{noneCount}</p>
+                        <span className="text-sm font-bold text-gray-400">건</span>
+                      </div>
+                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">오류 없이 경고만 발생한 사례</p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* 인시던트 카드 */}
-              <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>
-                ⚠️ 오류 발생 편명 ({visibleIncidents.length}건)
-              </h2>
-              {errorTypeFilter !== 'all' && (
-                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>
-                  선택된 오류유형: <strong>{errorTypeFilter}</strong>
-                </p>
-              )}
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '24px' }}>
-                {visibleIncidents.map((incident: any) => (
-                  <div
-                    key={incident.id}
-                    style={{
-                      background: '#ffffff',
-                      borderRadius: '8px',
-                      padding: '24px',
-                      borderLeft: `5px solid ${riskColor[incident.risk]}`,
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                      transition: 'box-shadow 0.2s',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)')}
-                  >
-                    {/* 편명 및 타입 정보 */}
-                    <div style={{ marginBottom: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ color: '#2563eb', fontWeight: 'bold', fontSize: '18px' }}>{incident.mine}</span>
-                          <span style={{ color: '#d1d5db', fontSize: '14px' }}>↔</span>
-                          <span style={{ color: '#dc2626', fontWeight: 'bold', fontSize: '18px' }}>{incident.other}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleOpenActionModal(incident)}
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            padding: '6px 12px',
-                            borderRadius: '4px',
-                            background: '#2563eb',
-                            color: '#ffffff',
-                            border: 'none',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          조치 등록
-                        </button>
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            padding: '4px 10px',
-                            borderRadius: '4px',
-                            backgroundColor:
-                              incident.errorType === '관제사 오류'
-                                ? '#fef2f2'
-                                : incident.errorType === '조종사 오류'
-                                ? '#fff7ed'
-                                : '#f0fdf4',
-                            color:
-                              incident.errorType === '관제사 오류'
-                                ? '#dc2626'
-                                : incident.errorType === '조종사 오류'
-                                ? '#d97706'
-                                : '#16a34a',
-                          }}
-                        >
-                          {incident.errorType}
-                        </span>
-                        {incident.subError && (
-                          <span style={{ fontSize: '11px', fontWeight: '600', padding: '4px 10px', borderRadius: '4px', backgroundColor: '#f3e8ff', color: '#a855f7' }}>
-                            {incident.subError}
-                          </span>
-                        )}
-                      </div>
+              {/* 상세 분석 그리드 (2:1 비율) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mb-12">
+                <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                  <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
+                    <div>
+                      <h3 className="text-xl font-black text-gray-900 tracking-tight">유사호출부호 발생현황</h3>
+                      <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
+                        Risk analyzed callsign pairs ({visibleIncidents.length} cases)
+                      </p>
                     </div>
-
-                    {/* 상세 정보 그리드 */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-                      <div style={{ background: '#f3f4f6', padding: '14px', borderRadius: '6px', textAlign: 'center' }}>
-                        <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: '600', marginBottom: '6px' }}>발생건수</div>
-                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: incident.count >= 4 ? '#dc2626' : incident.count >= 2 ? '#f97316' : '#6b7280' }}>
-                          {incident.count}건
-                        </div>
-                      </div>
-                      <div style={{ background: '#f3f4f6', padding: '14px', borderRadius: '6px', textAlign: 'center' }}>
-                        <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: '600', marginBottom: '6px' }}>최근 발생</div>
-                        <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#1f2937' }}>{incident.lastDate.slice(5)}</div>
-                      </div>
-                      <div style={{ background: '#f3f4f6', padding: '14px', borderRadius: '6px', textAlign: 'center' }}>
-                        <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: '600', marginBottom: '6px' }}>유사성</div>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            padding: '4px 8px',
-                            borderRadius: '3px',
-                            backgroundColor:
-                              incident.similarity === '매우높음'
-                                ? '#fef2f2'
-                                : incident.similarity === '높음'
-                                ? '#fff7ed'
-                                : '#f0fdf4',
-                            color:
-                              incident.similarity === '매우높음'
-                                ? '#dc2626'
-                                : incident.similarity === '높음'
-                                ? '#d97706'
-                                : '#16a34a',
-                          }}
-                        >
-                          {incident.similarity}
-                        </span>
-                      </div>
-                      <div style={{ background: '#f3f4f6', padding: '14px', borderRadius: '6px', textAlign: 'center' }}>
-                        <div style={{ color: '#6b7280', fontSize: '11px', fontWeight: '600', marginBottom: '6px' }}>위험도</div>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: '600',
-                            padding: '4px 8px',
-                            borderRadius: '3px',
-                            backgroundColor:
-                              incident.risk === '매우높음'
-                                ? '#fef2f2'
-                                : incident.risk === '높음'
-                                ? '#fff7ed'
-                                : '#f0fdf4',
-                            color:
-                              incident.risk === '매우높음'
-                                ? '#dc2626'
-                                : incident.risk === '높음'
-                                ? '#d97706'
-                                : '#16a34a',
-                          }}
-                        >
-                          {incident.risk}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* 발생 이력 */}
-                    {incident.dates && incident.dates.length > 0 && (
-                      <div style={{ paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
-                        <div style={{ fontSize: '11px', fontWeight: '600', color: '#6b7280', marginBottom: '8px' }}>📅 발생 이력</div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                          {incident.dates.map((date: string, idx: number) => (
-                            <span key={idx} style={{ fontSize: '11px', background: '#f3f4f6', color: '#4b5563', padding: '4px 8px', borderRadius: '3px' }}>
-                              {date}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
-                ))}
+
+                  <div className="overflow-x-auto flex-1">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-white">
+                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Callsign Pair</th>
+                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Error Type</th>
+                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Risk</th>
+                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Sim. %</th>
+                          <th className="px-8 py-4 text-right text-[11px] font-black text-gray-400 uppercase tracking-widest">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {visibleIncidents.map((incident: any) => (
+                          <tr key={incident.id} className="group hover:bg-primary/[0.02] transition-colors">
+                            <td className="px-8 py-5">
+                              <div className="flex flex-col">
+                                <span className="font-extrabold text-gray-900 tracking-tight">{incident.pair}</span>
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">
+                                  {new Date(incident.occurred_at).toLocaleString('ko-KR')}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-8 py-5">
+                              <span className={`text-[12px] font-bold ${incident.error_type === '관제사 오류' ? 'text-rose-600' :
+                                  incident.error_type === '조종사 오류' ? 'text-amber-600' : 'text-emerald-600'
+                                }`}>
+                                {incident.error_type}
+                              </span>
+                            </td>
+                            <td className="px-8 py-5">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${incident.risk === '매우높음' ? 'bg-rose-500 text-white' :
+                                  incident.risk === '높음' ? 'bg-amber-400 text-white' : 'bg-emerald-400 text-white'
+                                }`}>
+                                {incident.risk}
+                              </span>
+                            </td>
+                            <td className="px-8 py-5">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-black text-gray-700">{incident.similarity}%</span>
+                                <div className="w-12 h-1 bg-gray-100 rounded-full overflow-hidden hidden md:block">
+                                  <div
+                                    className={`h-full ${incident.similarity > 90 ? 'bg-rose-500' :
+                                        incident.similarity > 70 ? 'bg-amber-400' : 'bg-emerald-400'
+                                      }`}
+                                    style={{ width: `${incident.similarity}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-8 py-5 text-right">
+                              <button
+                                onClick={() => handleOpenActionModal(incident)}
+                                className="px-4 py-2 bg-primary text-white text-[11px] font-black rounded-xl shadow-md shadow-primary/20 hover:scale-[1.05] active:scale-[0.95] transition-all uppercase tracking-widest"
+                              >
+                                조치 등록
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 우측 사이드바: 세부오류유형 분포 */}
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                  <div className="flex items-center gap-2 mb-8">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <h3 className="text-xl font-black text-gray-900 tracking-tight">세부 오류 분석</h3>
+                  </div>
+
+                  <div className="space-y-6">
+                    {subTypeStats.map((row, i) => {
+                      const width = row.count === 0 ? 0 : Math.round((row.count / maxSubCount) * 100);
+                      return (
+                        <div key={row.key} className="space-y-2">
+                          <div className="flex justify-between items-end">
+                            <span className="text-sm font-black text-gray-700 tracking-tight">{row.label}</span>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-lg font-black text-gray-900 leading-none">{row.count}</span>
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Cases</span>
+                            </div>
+                          </div>
+                          <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div
+                              className="h-full transition-all duration-1000 ease-out shadow-sm"
+                              style={{
+                                width: `${width}%`,
+                                backgroundColor: row.color,
+                                transitionDelay: `${i * 100}ms`
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-12 p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Analysis Insight</p>
+                    <p className="text-[13px] font-bold text-gray-600 leading-relaxed">
+                      {selectedErrorLabel} 유형 내에서 가장 높은 비율을 차지하는 항목은 <span className="text-primary">{subTypeStats[0]?.label || '-'}</span>입니다.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {visibleIncidents.length === 0 && (
-                <div style={{ background: '#ffffff', borderRadius: '8px', padding: '48px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '40px', marginBottom: '16px' }}>✅</div>
-                  <p style={{ color: '#6b7280' }}>등록된 유사호출부호 발생 이력이 없습니다</p>
+                <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100 mt-8">
+                  <div className="text-4xl mb-4">✅</div>
+                  <p className="text-gray-500 font-bold">등록된 유사호출부호 발생 이력이 없습니다</p>
                 </div>
               )}
             </>
@@ -1333,7 +926,7 @@ export default function AirlinePage() {
             </>
           )}
         </div>
-      </div>
+      </main>
 
       {isActionModalOpen && selectedIncident && callsignsData && (
         <ActionModal
@@ -1348,7 +941,8 @@ export default function AirlinePage() {
             window.location.reload();
           }}
         />
-      )}
+      )
+      }
     </>
   );
 }

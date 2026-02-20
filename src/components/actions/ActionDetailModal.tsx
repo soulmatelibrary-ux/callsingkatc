@@ -16,6 +16,7 @@ export function ActionDetailModal({ action, onClose, onSuccess }: ActionDetailMo
     description: action.description || '',
     manager_name: action.manager_name || '',
     manager_email: action.manager_email || '',
+    responsible_staff: action.responsible_staff || '',
     planned_due_date: action.planned_due_date || '',
     status: action.status,
     result_detail: action.result_detail || '',
@@ -127,6 +128,20 @@ export function ActionDetailModal({ action, onClose, onSuccess }: ActionDetailMo
             </div>
           </div>
 
+          {/* 항공사 담당자명 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              항공사 담당자명
+            </label>
+            <input
+              type="text"
+              value={formData.responsible_staff}
+              onChange={(e) => setFormData({ ...formData, responsible_staff: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="항공사에서 담당하는 담당자명"
+            />
+          </div>
+
           {/* 등록일 (읽기전용) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -177,7 +192,6 @@ export function ActionDetailModal({ action, onClose, onSuccess }: ActionDetailMo
               onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="pending">대기중</option>
               <option value="in_progress">진행중</option>
               <option value="completed">완료</option>
             </select>

@@ -98,24 +98,22 @@ export function Header() {
               {user.email}
             </span>
 
-            <div className="flex bg-black/10 p-1 rounded-xl backdrop-blur-sm">
-              <Link
-                href={isAdmin ? ROUTES.DASHBOARD : ROUTES.AIRLINE}
-                className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${isAdmin ? 'text-white/70 hover:text-white' : 'bg-white/20 text-white shadow-sm'
-                  }`}
-              >
-                대시보드
-              </Link>
-
-              {isAdmin && (
+            {isAdmin && (
+              <div className="flex bg-black/10 p-1 rounded-xl backdrop-blur-sm">
+                <Link
+                  href={ROUTES.DASHBOARD}
+                  className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-lg transition-all"
+                >
+                  대시보드
+                </Link>
                 <Link
                   href={ROUTES.ADMIN}
                   className="px-4 py-2 bg-white/20 text-white text-sm font-extrabold rounded-lg shadow-sm"
                 >
                   관리자 페이지
                 </Link>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* 로그아웃 */}
             <button
