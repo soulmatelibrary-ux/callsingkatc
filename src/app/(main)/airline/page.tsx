@@ -716,21 +716,33 @@ export default function AirlinePage() {
                 {/* 상태 필터 탭 */}
                 <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/50 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm border border-gray-100">
                   <button
-                    onClick={() => { setActionStatusFilter('all'); setActionPage(1); }}
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
+                      setActionStatusFilter('all');
+                      setActionPage(1);
+                    }}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'all' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     전체
                   </button>
                   <button
-                    onClick={() => { setActionStatusFilter('in_progress'); setActionPage(1); }}
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
+                      setActionStatusFilter('in_progress');
+                      setActionPage(1);
+                    }}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     진행중
                   </button>
                   <button
-                    onClick={() => { setActionStatusFilter('completed'); setActionPage(1); }}
+                    onClick={() => {
+                      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
+                      setActionStatusFilter('completed');
+                      setActionPage(1);
+                    }}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'completed' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
