@@ -10,6 +10,7 @@
  */
 
 import nodemailer, { Transporter } from 'nodemailer';
+import { ROUTES } from '@/lib/constants';
 
 // SMTP 트랜스포터 (이메일 발송 설정)
 let transporter: Transporter | null = null;
@@ -92,13 +93,16 @@ export async function sendTempPasswordEmail(
   email: string,
   tempPassword: string
 ): Promise<void> {
+  const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+  const loginUrl = `${appBaseUrl}${ROUTES.LOGIN}`;
+
   const html = `
     <h2>KATC1 - 비밀번호 초기화</h2>
     <p>안녕하세요,</p>
     <p>비밀번호 초기화를 요청하셨습니다.</p>
     <p><strong>임시 비밀번호:</strong> <code>${tempPassword}</code></p>
     <p>위 임시 비밀번호로 로그인한 후 반드시 새로운 비밀번호로 변경해주세요.</p>
-    <p><a href="http://localhost:3000/login">로그인 바로가기</a></p>
+    <p><a href="${loginUrl}">로그인 바로가기</a></p>
     <hr>
     <p style="color: #666; font-size: 12px;">
       이 이메일은 자동 발송되었습니다. 심의하지 않은 비밀번호 초기화라면 무시해주세요.
@@ -114,7 +118,7 @@ KATC1 - 비밀번호 초기화
 임시 비밀번호: ${tempPassword}
 
 위 임시 비밀번호로 로그인한 후 반드시 새로운 비밀번호로 변경해주세요.
-로그인: http://localhost:3000/login
+로그인: ${loginUrl}
 
 이 이메일은 자동 발송되었습니다. 심의하지 않은 비밀번호 초기화라면 무시해주세요.
   `;

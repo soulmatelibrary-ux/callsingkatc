@@ -53,11 +53,12 @@ export const POLLING = {
  */
 export const ROUTES = {
   HOME: '/',
-  LOGIN: '/login',
+  LOGIN: '/',
   SIGNUP: '/signup',
   FORGOT_PASSWORD: '/forgot-password',
   CHANGE_PASSWORD: '/change-password',
   PENDING: '/pending',
+  AIRLINE: '/airline',
   DASHBOARD: '/dashboard',
   ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',

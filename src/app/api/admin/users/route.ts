@@ -83,7 +83,11 @@ export async function GET(request: NextRequest) {
           : null,
         is_default_password: user.is_default_password,
         password_change_required: user.password_change_required,
+        // 날짜/로그인 필드: snake_case + camelCase 둘 다 제공
         last_password_changed_at: user.last_password_changed_at,
+        last_login_at: user.last_login_at,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
         lastLoginAt: user.last_login_at,
         createdAt: user.created_at,
         updatedAt: user.updated_at,

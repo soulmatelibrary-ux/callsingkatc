@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-20T02:55:35.135Z",
+  "lastUpdated": "2026-02-20T06:26:24.708Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -26,7 +26,9 @@
     "stats",
     "password-reset",
     "airline",
-    "airlines"
+    "airlines",
+    "actions",
+    "callsigns"
   ],
   "primaryFeature": "katc1",
   "features": {
@@ -39,9 +41,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:37:49.180Z",
-        "lastUpdated": "2026-02-20T02:18:55.074Z"
+        "lastUpdated": "2026-02-20T06:26:24.708Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/middleware.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/page.tsx"
     },
     "api": {
       "phase": "do",
@@ -91,9 +93,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:41:18.945Z",
-        "lastUpdated": "2026-02-20T02:55:15.376Z"
+        "lastUpdated": "2026-02-20T05:41:07.601Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/layout/Header.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/components/layout/Providers.tsx"
     },
     "forms": {
       "phase": "do",
@@ -117,7 +119,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:43:18.371Z",
-        "lastUpdated": "2026-02-20T02:17:10.697Z"
+        "lastUpdated": "2026-02-20T04:30:49.890Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/page.tsx"
     },
@@ -143,9 +145,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:43:44.364Z",
-        "lastUpdated": "2026-02-19T14:40:52.207Z"
+        "lastUpdated": "2026-02-20T05:52:24.163Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/(auth)/login/page.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/auth/login/route.ts"
     },
     "signup": {
       "phase": "do",
@@ -195,7 +197,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:44:19.849Z",
-        "lastUpdated": "2026-02-19T11:08:29.601Z"
+        "lastUpdated": "2026-02-20T03:20:07.095Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/(auth)/pending/page.tsx"
     },
@@ -221,7 +223,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:44:52.743Z",
-        "lastUpdated": "2026-02-20T02:55:35.135Z"
+        "lastUpdated": "2026-02-20T03:09:25.300Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/dashboard/page.tsx"
     },
@@ -234,9 +236,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:45:02.496Z",
-        "lastUpdated": "2026-02-19T14:43:53.433Z"
+        "lastUpdated": "2026-02-20T05:32:48.033Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/users/route.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/users/client.tsx"
     },
     "logout": {
       "phase": "do",
@@ -260,7 +262,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:02.029Z",
-        "lastUpdated": "2026-02-19T10:49:11.709Z"
+        "lastUpdated": "2026-02-20T05:32:11.326Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/auth/me/route.ts"
     },
@@ -273,7 +275,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:07.868Z",
-        "lastUpdated": "2026-02-19T10:23:49.106Z"
+        "lastUpdated": "2026-02-20T05:52:26.881Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/auth/refresh/route.ts"
     },
@@ -286,9 +288,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-20T02:23:54.427Z"
+        "lastUpdated": "2026-02-20T04:22:33.332Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/airlines/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/actions/[id]/route.ts"
     },
     "katc1-backend": {
       "phase": "do",
@@ -325,9 +327,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T11:18:22.152Z",
-        "lastUpdated": "2026-02-19T11:19:56.767Z"
+        "lastUpdated": "2026-02-20T04:19:42.193Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/users/[id]/password-reset/route.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/password-reset/page.tsx"
     },
     "airline": {
       "phase": "do",
@@ -338,7 +340,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T02:01:15.039Z",
-        "lastUpdated": "2026-02-20T02:28:42.931Z"
+        "lastUpdated": "2026-02-20T03:24:10.479Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/(main)/airline/page.tsx"
     },
@@ -354,6 +356,32 @@
         "lastUpdated": "2026-02-20T02:24:43.209Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/airlines/page.tsx"
+    },
+    "actions": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-20T04:18:32.683Z",
+        "lastUpdated": "2026-02-20T05:31:58.622Z"
+      },
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/actions/route.ts"
+    },
+    "callsigns": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-20T04:18:58.733Z",
+        "lastUpdated": "2026-02-20T05:32:17.710Z"
+      },
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/callsigns/route.ts"
     }
   },
   "pipeline": {
@@ -364,7 +392,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-20T02:55:35.135Z"
+    "lastActivity": "2026-02-20T06:26:24.708Z"
   },
   "history": [
     {
@@ -1756,6 +1784,552 @@
     {
       "timestamp": "2026-02-20T02:55:35.135Z",
       "feature": "dashboard",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:02:53.965Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:08:35.422Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:09:25.300Z",
+      "feature": "dashboard",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:15:25.987Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:16:03.560Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:17:36.244Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:19:28.245Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:19:52.892Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:20:07.095Z",
+      "feature": "pending",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:20:18.218Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:20:56.416Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:21:37.102Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:21:43.116Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:22:11.237Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:23:44.405Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:23:47.869Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:24:10.479Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:27:39.513Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:34:50.790Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:34:57.274Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:35:01.411Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:35:05.157Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:35:09.480Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:35:12.805Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:35:16.717Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:35:22.087Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T03:35:29.897Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:17:52.288Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:18:32.683Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:18:47.850Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:18:58.733Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:19:08.285Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:19:18.895Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:19:31.899Z",
+      "feature": "password-reset",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:19:42.193Z",
+      "feature": "password-reset",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:19:56.098Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:19:58.557Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:20:35.283Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:20:41.994Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:20:45.235Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:20:48.382Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:20:50.828Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:21:43.427Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:21:46.893Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:21:51.198Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:21:54.343Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:21:56.920Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:22:27.951Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:22:30.824Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:22:33.332Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:22:53.583Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:22:56.174Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:23:01.135Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:23:08.394Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:23:36.883Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:25:35.682Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:29:43.222Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:30:02.613Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:30:49.890Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:31:16.520Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:31:28.518Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T04:49:44.393Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:08:19.628Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:08:24.189Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:09:10.229Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:31:25.181Z",
+      "feature": "me",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:31:32.756Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:31:58.622Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:32:11.326Z",
+      "feature": "me",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:32:17.710Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:32:25.915Z",
+      "feature": "users",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:32:41.275Z",
+      "feature": "users",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:32:48.033Z",
+      "feature": "users",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:40:40.739Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:41:07.601Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:41:11.086Z",
+      "feature": "refresh",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:49:18.195Z",
+      "feature": "login",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:49:22.375Z",
+      "feature": "refresh",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:49:25.207Z",
+      "feature": "refresh",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:52:24.163Z",
+      "feature": "login",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:52:26.881Z",
+      "feature": "refresh",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:52:30.285Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T05:52:34.177Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T06:22:15.641Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T06:22:22.658Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T06:23:16.403Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T06:23:27.229Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T06:23:36.755Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T06:25:43.864Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T06:25:46.136Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T06:26:24.708Z",
+      "feature": "katc1",
       "phase": "do",
       "action": "updated"
     }

@@ -1,24 +1,33 @@
 /**
  * GET /api/auth/me
- * 현재 로그인 사용자 정보 조회
+ * 현재 로그인 사용자 정보 조회 (refreshToken 쿠키 기반 복원 지원)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/jwt';
 import { query } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
-    // 헤더에서 토큰 추출
+    // 토큰 추출: 1) Authorization 헤더 2) refreshToken 쿠키
+    let token = null;
     const authHeader = request.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
+
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    } else {
+      // 클라이언트 새로고침: refreshToken 쿠키로 세션 복원
+      token = request.cookies.get('refreshToken')?.value;
+    }
+
+    if (!token) {
       return NextResponse.json(
         { error: '인증 토큰이 필요합니다.' },
         { status: 401 }
       );
     }
-
-    const token = authHeader.substring(7);
 
     // 토큰 검증
     const payload = verifyToken(token);

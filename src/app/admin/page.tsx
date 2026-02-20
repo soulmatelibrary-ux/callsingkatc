@@ -128,7 +128,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-24 pb-10 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-16 pb-10 space-y-6">
         {/* 페이지 제목 */}
         <div className="flex items-center justify-between">
           <div>
@@ -139,22 +139,28 @@ export default function AdminDashboardPage() {
           </div>
           <div className="flex gap-3">
             <Link
-              href="/admin/users"
+              href="/admin/users?tab=users"
               className="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
             >
               사용자 관리
             </Link>
             <Link
-              href="/admin/airlines"
+              href="/admin/users?tab=airlines"
               className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
             >
               항공사 관리
             </Link>
             <Link
-              href="/admin/password-reset"
+              href="/admin/users?tab=password"
               className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
             >
               비밀번호 초기화
+            </Link>
+            <Link
+              href="/admin/actions"
+              className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+            >
+              조치 관리
             </Link>
           </div>
         </div>

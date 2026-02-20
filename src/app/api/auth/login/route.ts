@@ -41,6 +41,12 @@ export async function POST(request: NextRequest) {
     }
 
     const user = result.rows[0];
+    console.log('[LOGIN] 조회된 사용자:', {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    });
 
     // 비밀번호 검증
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
@@ -103,24 +109,15 @@ export async function POST(request: NextRequest) {
       {
         user: sanitizedUser,
         accessToken,
-        refreshToken,
         forceChangePassword: sanitizedUser.forceChangePassword,
       },
       { status: 200 }
     );
 
-    // refreshToken을 httpOnly 쿠키에 저장
+    // refreshToken만 httpOnly 쿠키에 저장 (user 정보는 쿠키에서 제거)
     response.cookies.set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60,
-      path: '/',
-    });
-
-    // user 정보를 일반 쿠키에도 저장 (클라이언트/미들웨어 접근용)
-    response.cookies.set('user', JSON.stringify(sanitizedUser), {
-      httpOnly: false,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60,
       path: '/',

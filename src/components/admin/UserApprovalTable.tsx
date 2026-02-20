@@ -27,10 +27,13 @@ const filterLabels: Record<FilterStatus, string> = {
 };
 
 function formatDate(isoString: string) {
-  return new Date(isoString).toLocaleDateString('ko-KR', {
+  return new Date(isoString).toLocaleString('ko-KR', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
   });
 }
 
@@ -38,6 +41,7 @@ export function UserApprovalTable() {
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [updatingAirline, setUpdatingAirline] = useState<{ userId: string; airlineId: string } | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ userId: string; email: string } | null>(null);
   const queryClient = useQueryClient();
 
   const {
@@ -48,7 +52,7 @@ export function UserApprovalTable() {
   } = useUsers(filter === 'all' ? undefined : (filter as 'active' | 'suspended'));
 
   const { data: airlines = [], isLoading: airlinesLoading } = useAirlines();
-  const { approve, reject, suspend, activate } = useUserMutations();
+  const { approve, reject, suspend, activate, deleteUser } = useUserMutations();
 
   // 항공사 변경 함수
   const token = useAuthStore((s) => s.accessToken);
@@ -82,8 +86,15 @@ export function UserApprovalTable() {
       approve.isPending ||
       reject.isPending ||
       suspend.isPending ||
-      activate.isPending
+      activate.isPending ||
+      deleteUser.isPending
     );
+  }
+
+  async function handleDeleteConfirm() {
+    if (!deleteConfirm) return;
+    await deleteUser.mutate(deleteConfirm.userId);
+    setDeleteConfirm(null);
   }
 
   return (
@@ -226,6 +237,16 @@ export function UserApprovalTable() {
                           활성화
                         </Button>
                       )}
+                      {user.role !== 'admin' && (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          disabled={isMutating(user.id)}
+                          onClick={() => setDeleteConfirm({ userId: user.id, email: user.email })}
+                        >
+                          삭제
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -244,6 +265,38 @@ export function UserApprovalTable() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
+
+      {/* 삭제 확인 다이얼로그 */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-lg max-w-sm mx-4 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-2">사용자 삭제</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              정말로 <span className="font-semibold">{deleteConfirm.email}</span>을(를) 삭제하시겠습니까?
+              <br />
+              이 작업은 되돌릴 수 없습니다.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleteUser.isPending}
+              >
+                취소
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                isLoading={deleteUser.isPending}
+                onClick={handleDeleteConfirm}
+              >
+                삭제
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

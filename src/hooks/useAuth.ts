@@ -21,7 +21,7 @@ export function useAuth() {
       // 서버 오류에 관계없이 클라이언트 초기화
     } finally {
       store.logout();
-      router.push(ROUTES.LOGIN);
+      router.push(ROUTES.HOME);
     }
   }
 

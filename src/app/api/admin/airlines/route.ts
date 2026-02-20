@@ -34,16 +34,17 @@ export async function GET(request: NextRequest) {
     }
 
     // display_order 기준으로 정렬된 항공사 목록 조회
-    // display_order 컬럼이 없으면 created_at 기준으로 정렬
+    // display_order가 같을 경우 code 기준으로 2차 정렬
+    // display_order 컬럼이 없으면 created_at, code 기준으로 정렬
     let result;
     try {
       result = await query(
-        'SELECT id, code, name_ko, name_en, display_order FROM airlines ORDER BY display_order ASC'
+        'SELECT id, code, name_ko, name_en, display_order FROM airlines ORDER BY display_order ASC, code ASC'
       );
     } catch (err: any) {
       if (err.code === '42703') { // column does not exist 에러
         result = await query(
-          'SELECT id, code, name_ko, name_en, 0 as display_order FROM airlines ORDER BY created_at ASC'
+          'SELECT id, code, name_ko, name_en, 0 as display_order FROM airlines ORDER BY created_at ASC, code ASC'
         );
       } else {
         throw err;

@@ -36,29 +36,20 @@ function PlaneIcon() {
 
 export function Header() {
   const router = useRouter();
-  const { user, isAuthenticated, isAdmin, logout, setUser } = useAuthStore((s) => ({
+  const { user, isAuthenticated, isAdmin, logout, fetchUserInfo } = useAuthStore((s) => ({
     user: s.user,
     isAuthenticated: s.isAuthenticated(),
     isAdmin: s.isAdmin(),
     logout: s.logout,
-    setUser: s.setUser,
+    fetchUserInfo: s.fetchUserInfo,
   }));
 
-  // 새로고침 후 쿠키에서 user 복원
+  // 새로고침 시 서버에서 사용자 정보 가져오기 (단일 진실의 소스)
   useEffect(() => {
     if (!user) {
-      const userCookie = document.cookie
-        .split(';')
-        .find(c => c.trim().startsWith('user='));
-
-      const parsed = parseJsonCookie<any>(userCookie);
-      if (parsed) {
-        setUser(parsed);
-      } else if (userCookie) {
-        console.error('Header: user cookie parse error');
-      }
+      fetchUserInfo();
     }
-  }, [user, setUser]);
+  }, [user, fetchUserInfo]);
 
   async function handleLogout() {
     try {
@@ -67,7 +58,7 @@ export function Header() {
       // 서버 오류여도 클라이언트 상태는 초기화
     } finally {
       logout();
-      router.push(ROUTES.LOGIN);
+      router.push(ROUTES.HOME);
     }
   }
 
@@ -101,15 +92,18 @@ export function Header() {
               {user.email}
             </span>
 
-            {/* 대시보드 링크 */}
+            {/* 대시보드 링크
+                - 관리자: /dashboard (관리자 대시보드)
+                - 일반 사용자: /airline (항공사 메인 대시보드)
+            */}
             <Link
-              href={ROUTES.DASHBOARD}
+              href={isAdmin ? ROUTES.DASHBOARD : ROUTES.AIRLINE}
               className="px-3 py-1.5 text-white text-sm font-medium rounded-md bg-white/15 hover:bg-white/25 transition-colors"
             >
               대시보드
             </Link>
 
-            {/* 관리자 전용 링크 */}
+            {/* 관리자 전용 링크: 현재 관리자 메인 페이지 */}
             {isAdmin && (
               <Link
                 href={ROUTES.ADMIN}

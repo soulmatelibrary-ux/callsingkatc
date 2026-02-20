@@ -1,9 +1,12 @@
 'use client';
 
-import { Header } from '@/components/layout/Header';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { parseJsonCookie } from '@/lib/cookies';
+import { ROUTES } from '@/lib/constants';
+import { useAirlineActions, useAirlineCallsigns } from '@/hooks/useActions';
+import { useAuthStore } from '@/store/authStore';
+import { ActionModal } from '@/components/actions/ActionModal';
 
 const AL: Record<string, { n: string }> = {
   KAL: { n: '대한항공' },
@@ -26,18 +29,14 @@ interface CookieUser {
   };
 }
 
-const INC = [
-  { id: 'I01', pair: 'KAL852 | KAL851', mine: 'KAL852', other: 'KAL851', airline: 'KAL', errorType: '관제사 오류', subError: '복창오류', risk: '매우높음', similarity: '매우높음', count: 4, lastDate: '2026-02-13', dates: ['02-13 14:20', '02-11 09:15', '02-08 16:40', '02-05 11:30'] },
-  { id: 'I02', pair: 'KAL789 | AAR789', mine: 'KAL789', other: 'AAR789', airline: 'KAL', errorType: '관제사 오류', subError: '무응답/재호출', risk: '높음', similarity: '높음', count: 2, lastDate: '2026-02-12', dates: ['02-12 10:45', '02-07 15:20'] },
-  { id: 'I03', pair: 'KAL456 | AAR456', mine: 'KAL456', other: 'AAR456', airline: 'KAL', errorType: '조종사 오류', subError: '고도이탈', risk: '매우높음', similarity: '높음', count: 4, lastDate: '2026-02-11', dates: ['02-11 08:30', '02-09 13:10', '02-06 17:00', '02-03 09:45'] },
-  { id: 'I04', pair: 'KAL1203 | KAL1230', mine: 'KAL1203', other: 'KAL1230', airline: 'KAL', errorType: '조종사 오류', subError: '비행경로이탈', risk: '높음', similarity: '높음', count: 2, lastDate: '2026-02-10', dates: ['02-10 16:00', '02-04 11:20'] },
-  { id: 'I05', pair: 'KAL672 | JJA672', mine: 'KAL672', other: 'JJA672', airline: 'KAL', errorType: '관제사 오류', subError: '복창오류', risk: '높음', similarity: '높음', count: 1, lastDate: '2026-02-09', dates: ['02-09 18:20'] },
-  { id: 'I06', pair: 'KAL305 | TWB305', mine: 'KAL305', other: 'TWB305', airline: 'KAL', errorType: '오류 미발생', subError: '', risk: '낮음', similarity: '낮음', count: 0, lastDate: '2026-02-08', dates: [] },
-  { id: 'I07', pair: 'KAL118 | JNA118', mine: 'KAL118', other: 'JNA118', airline: 'KAL', errorType: '오류 미발생', subError: '', risk: '낮음', similarity: '낮음', count: 0, lastDate: '2026-02-06', dates: [] },
-  { id: 'I08', pair: 'AAR789 | AAR798', mine: 'AAR789', other: 'AAR798', airline: 'AAR', errorType: '관제사 오류', subError: '복창오류', risk: '매우높음', similarity: '매우높음', count: 3, lastDate: '2026-02-14', dates: ['02-14 11:30', '02-12 14:20', '02-10 09:15'] },
-  { id: 'I09', pair: 'AAR456 | KAL456', mine: 'AAR456', other: 'KAL456', airline: 'AAR', errorType: '조종사 오류', subError: '고도이탈', risk: '높음', similarity: '높음', count: 2, lastDate: '2026-02-13', dates: ['02-13 16:00', '02-08 10:45'] },
-  { id: 'I10', pair: 'JJA672 | KAL672', mine: 'JJA672', other: 'KAL672', airline: 'JJA', errorType: '관제사 오류', subError: '무응답/재호출', risk: '높음', similarity: '높음', count: 1, lastDate: '2026-02-12', dates: ['02-12 13:50'] },
-];
+// 목업 데이터 제거 - 실제 DB 데이터 사용
+
+function formatDateInput(date: Date): string {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export default function AirlinePage() {
   const router = useRouter();
@@ -45,7 +44,42 @@ export default function AirlinePage() {
   const [airlineName, setAirlineName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('incidents');
-  const [incidents, setIncidents] = useState<any[]>([]);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [selectedIncident, setSelectedIncident] = useState<any | null>(null);
+  const [startDate, setStartDate] = useState<string>(() => {
+    const now = new Date();
+    return formatDateInput(new Date(now.getFullYear(), now.getMonth(), 1));
+  });
+  const [endDate, setEndDate] = useState<string>(() => {
+    const now = new Date();
+    return formatDateInput(now);
+  });
+  const [activeRange, setActiveRange] = useState<'custom' | 'today' | '1w' | '2w' | '1m'>('custom');
+  const [errorTypeFilter, setErrorTypeFilter] = useState<'all' | '관제사 오류' | '조종사 오류' | '오류 미발생'>('all');
+
+  // 조치이력 탭용 state
+  const [actionPage, setActionPage] = useState(1);
+  const [actionLimit, setActionLimit] = useState(30);
+  const [actionSearch, setActionSearch] = useState('');
+  const [actionSearchInput, setActionSearchInput] = useState('');
+  const [actionStatusFilter, setActionStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
+  const [airlineId, setAirlineId] = useState<string | undefined>(undefined);
+
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  // 조치 목록 데이터
+  const { data: actionsData, isLoading: actionsLoading } = useAirlineActions({
+    airlineId: airlineId,
+    status: actionStatusFilter === 'all' ? undefined : actionStatusFilter,
+    search: actionSearch || undefined,
+    page: actionPage,
+    limit: actionLimit,
+  });
+
+  // 호출부호 목록 (incidents 및 조치 등록에 사용)
+  const { data: callsignsData, isLoading: callsignsLoading } = useAirlineCallsigns(airlineId, {
+    limit: 1000,
+  });
 
   useEffect(() => {
     console.log('🔄 airline/page useEffect 실행됨');
@@ -60,13 +94,14 @@ export default function AirlinePage() {
     const userData = parseJsonCookie<CookieUser>(userCookie);
 
     if (!userData) {
-      console.log('❌ 사용자 정보 파싱 실패 - 로그인 페이지로 이동');
-      router.push('/login');
+      console.log('❌ 사용자 정보 파싱 실패 - 첫 페이지로 이동');
+      router.push(ROUTES.LOGIN);
       return;
     }
 
     let code = userData.airline?.code || '';
     let name = userData.airline?.name_ko || '';
+    let id = (userData as any).airline?.id || '';
 
     if (!code) {
       code = 'KAL';
@@ -78,13 +113,13 @@ export default function AirlinePage() {
       name = AL[code]?.n || '';
     }
 
-    console.log('📍 최종 항공사:', code, name);
+    console.log('📍 최종 항공사:', code, name, id);
 
     setAirlineCode(code);
     setAirlineName(name);
-    const filtered = INC.filter(i => i.airline === code);
-    console.log('✅ 필터링된 데이터:', filtered);
-    setIncidents(filtered);
+    if (id) {
+      setAirlineId(id);
+    }
     console.log('✅ 로딩 완료 - setLoading(false) 호출');
     setLoading(false);
   }, [router]);
@@ -96,45 +131,243 @@ export default function AirlinePage() {
     '매우낮음': '#0891b2',
   };
 
-  if (loading) {
+  function handleStartDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setStartDate(value);
+    setActiveRange('custom');
+    if (endDate && value && value > endDate) {
+      setEndDate(value);
+    }
+  }
+
+  function handleEndDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setEndDate(value);
+    setActiveRange('custom');
+    if (startDate && value && value < startDate) {
+      setStartDate(value);
+    }
+  }
+
+  function applyQuickRange(type: 'today' | '1w' | '2w' | '1m') {
+    const now = new Date();
+    let start = new Date(now);
+    const end = new Date(now);
+
+    if (type === 'today') {
+      // 그대로 오늘 하루
+    } else if (type === '1w') {
+      start.setDate(now.getDate() - 6);
+    } else if (type === '2w') {
+      start.setDate(now.getDate() - 13);
+    } else if (type === '1m') {
+      start.setDate(now.getDate() - 29);
+    }
+
+    setStartDate(formatDateInput(start));
+    setEndDate(formatDateInput(end));
+    setActiveRange(type);
+  }
+
+  function handleOpenActionModal(incident: any) {
+    setSelectedIncident(incident);
+    setIsActionModalOpen(true);
+  }
+
+  function handleCloseActionModal() {
+    setIsActionModalOpen(false);
+    setSelectedIncident(null);
+  }
+
+  if (loading || callsignsLoading) {
     return (
-      <>
-        <Header />
-        <div className="pt-16 flex items-center justify-center min-h-screen">
-          <div className="text-gray-600">로딩 중...</div>
-        </div>
-      </>
+      <div className="pt-16 flex items-center justify-center min-h-screen">
+        <div className="text-gray-600">로딩 중...</div>
+      </div>
     );
   }
 
-  const atcCount = incidents.filter(i => i.errorType === '관제사 오류').length;
-  const pilotCount = incidents.filter(i => i.errorType === '조종사 오류').length;
-  const noneCount = incidents.filter(i => i.errorType === '오류 미발생').length;
-  const total = incidents.length;
+  // DB에서 가져온 callsigns 데이터를 incidents 형태로 변환
+  const incidents = callsignsData?.data.map((cs) => ({
+    id: cs.id,
+    pair: cs.callsign_pair,
+    mine: cs.my_callsign,
+    other: cs.other_callsign,
+    airline: cs.airline_code,
+    errorType: cs.error_type || '오류 미발생',
+    subError: cs.sub_error || '',
+    risk: cs.risk_level || '낮음',
+    similarity: cs.similarity || '낮음',
+    count: cs.occurrence_count || 0,
+    lastDate: cs.last_occurred_at ? new Date(cs.last_occurred_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    dates: [], // 상세 날짜 이력은 별도 테이블 필요 시 추가
+  })) || [];
+
+  const startDateObj = startDate ? new Date(startDate) : null;
+  const endDateObj = endDate ? new Date(endDate) : null;
+
+  const filteredIncidents = incidents.filter((incident) => {
+    if (!startDateObj || !endDateObj) return true;
+    const incidentDate = new Date(incident.lastDate);
+    if (Number.isNaN(incidentDate.getTime())) return true;
+    return incidentDate >= startDateObj && incidentDate <= endDateObj;
+  });
+
+  // 조치 완료된 인시던트 필터링 (상태가 completed인 조치가 있는 인시던트 제외)
+  const completedActions = actionsData?.data.filter(action => action.status === 'completed') || [];
+  const completedCallsigns = new Set(
+    completedActions
+      .map(a => a.callsign?.callsign_pair)
+      .filter(Boolean)
+  );
+
+  const incidentsWithoutCompleted = filteredIncidents.filter((incident) => {
+    // 유사호출부호(pair)로 매칭
+    if (completedCallsigns.has(incident.pair)) {
+      return false;
+    }
+    return true;
+  });
+
+  // 통계는 조치 완료된 것을 제외한 인시던트 기준
+  const atcCount = incidentsWithoutCompleted.filter(i => i.errorType === '관제사 오류').length;
+  const pilotCount = incidentsWithoutCompleted.filter(i => i.errorType === '조종사 오류').length;
+  const noneCount = incidentsWithoutCompleted.filter(i => i.errorType === '오류 미발생').length;
+  const total = incidentsWithoutCompleted.length;
+
+  const visibleIncidents =
+    errorTypeFilter === 'all'
+      ? incidentsWithoutCompleted
+      : incidentsWithoutCompleted.filter((i) => i.errorType === errorTypeFilter);
+
+  const selectedErrorLabel =
+    errorTypeFilter === 'all' ? '전체' : errorTypeFilter;
+
+  const subTypeStats = [
+    {
+      key: '복창오류',
+      label: '복창오류',
+      count: visibleIncidents.filter((i) => i.subError === '복창오류').length,
+      color: '#6366f1',
+    },
+    {
+      key: '무응답/재호출',
+      label: '무응답/재호출',
+      count: visibleIncidents.filter((i) => i.subError === '무응답/재호출').length,
+      color: '#4f46e5',
+    },
+    {
+      key: '고도이탈',
+      label: '고도이탈',
+      count: visibleIncidents.filter((i) => i.subError === '고도이탈').length,
+      color: '#10b981',
+    },
+    {
+      key: '비행경로이탈',
+      label: '비행경로이탈',
+      count: visibleIncidents.filter((i) => i.subError === '비행경로이탈').length,
+      color: '#f97316',
+    },
+    {
+      key: '기타',
+      label: '기타',
+      count: visibleIncidents.filter(
+        (i) =>
+          i.subError &&
+          !['복창오류', '무응답/재호출', '고도이탈', '비행경로이탈'].includes(
+            i.subError,
+          ),
+      ).length,
+      color: '#6b7280',
+    },
+    {
+      key: '오류 미발생',
+      label: '오류 미발생',
+      count: visibleIncidents.filter((i) => i.errorType === '오류 미발생').length,
+      color: '#22c55e',
+    },
+  ];
+
+  const maxSubCount = Math.max(
+    ...subTypeStats.map((s) => s.count),
+    1,
+  );
 
   return (
     <>
-      <Header />
-      <div style={{ paddingTop: '64px', minHeight: '100vh', background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)' }}>
-        {/* 상단 정보 */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', padding: '24px 32px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span style={{ fontSize: '32px' }}>✈️</span>
-              <div>
-                <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1e3a5f', margin: '0 0 6px 0' }}>{airlineName} - 유사호출부호 경고시스템</h1>
-                <p style={{ fontSize: '13px', color: '#6b7280', margin: '0' }}>항공사 전용 · 사후분석 및 조치관리</p>
-              </div>
-            </div>
-            <div style={{ textAlign: 'right', color: '#6b7280', fontSize: '13px' }}>
-              {new Date().toLocaleDateString('ko-KR')}
+      <div
+        style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+        }}
+      >
+      {/* 상단 정보 */}
+      <div
+        style={{
+          background: '#ffffff',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '24px 32px',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+            }}
+          >
+            <span style={{ fontSize: '32px' }}>✈️</span>
+            <div>
+              <h1
+                style={{
+                  fontSize: '20px',
+                  fontWeight: 'bold',
+                  color: '#1e3a5f',
+                  margin: '0 0 6px 0',
+                }}
+              >
+                {airlineName} - 유사호출부호 경고시스템
+              </h1>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#6b7280',
+                  margin: '0',
+                }}
+              >
+                항공사 전용 · 사후분석 및 조치관리
+              </p>
             </div>
           </div>
+          <div
+            style={{
+              textAlign: 'right',
+              color: '#6b7280',
+              fontSize: '13px',
+            }}
+          >
+            {new Date().toLocaleDateString('ko-KR')}
+          </div>
         </div>
+      </div>
 
-        {/* 탭 네비게이션 */}
-        <div style={{ background: '#ffffff', borderBottom: '1px solid #e5e7eb', paddingLeft: '32px', paddingRight: '32px' }}>
-          <div style={{ display: 'flex', gap: '32px' }}>
+      {/* 탭 네비게이션 */}
+      <div
+        style={{
+          background: '#ffffff',
+          borderBottom: '1px solid #e5e7eb',
+          paddingLeft: '32px',
+          paddingRight: '32px',
+        }}
+      >
+        <div style={{ display: 'flex', gap: '32px' }}>
             <button
               onClick={() => setActiveTab('incidents')}
               style={{
@@ -155,7 +388,10 @@ export default function AirlinePage() {
               onClick={() => setActiveTab('actions')}
               style={{
                 padding: '16px 0',
-                borderBottom: activeTab === 'actions' ? '2px solid #2563eb' : '2px solid transparent',
+                borderBottom:
+                  activeTab === 'actions'
+                    ? '2px solid #2563eb'
+                    : '2px solid transparent',
                 fontSize: '14px',
                 fontWeight: '600',
                 color: activeTab === 'actions' ? '#2563eb' : '#6b7280',
@@ -174,70 +410,471 @@ export default function AirlinePage() {
         <div style={{ padding: '32px', maxWidth: '1400px', margin: '0 auto' }}>
           {activeTab === 'incidents' && (
             <>
-              {/* 통계 요약 섹션 */}
-              <div style={{ marginBottom: '32px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#1f2937', marginBottom: '16px' }}>
-                  🎯 오류유형 요약
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-                  <div style={{ background: '#fff5f5', border: '1px solid #fed7d7', borderRadius: '8px', padding: '20px' }}>
-                    <div style={{ fontSize: '13px', color: '#742a2a', fontWeight: '600', marginBottom: '8px' }}>관제사오류</div>
-                    <div style={{ fontSize: '32px', fontWeight: '700', color: '#dc2626' }}>{atcCount}</div>
-                    <div style={{ fontSize: '12px', color: '#a16061', marginTop: '6px' }}>전체의 {total > 0 ? Math.round((atcCount / total) * 100) : 0}%</div>
+              {/* 조회 기간 필터 */}
+              <div
+                style={{
+                  marginBottom: '24px',
+                  background: '#f9fafb',
+                  borderRadius: '12px',
+                  padding: '16px 20px',
+                  border: '1px solid #e5e7eb',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      minWidth: '120px',
+                    }}
+                  >
+                    <span style={{ fontSize: '18px' }}>📅</span>
+                    <span
+                      style={{
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        color: '#374151',
+                      }}
+                    >
+                      조회기간
+                    </span>
                   </div>
-                  <div style={{ background: '#fffbf0', border: '1px solid #fed7aa', borderRadius: '8px', padding: '20px' }}>
-                    <div style={{ fontSize: '13px', color: '#7c2d12', fontWeight: '600', marginBottom: '8px' }}>조종사오류</div>
-                    <div style={{ fontSize: '32px', fontWeight: '700', color: '#f97316' }}>{pilotCount}</div>
-                    <div style={{ fontSize: '12px', color: '#a16207', marginTop: '6px' }}>전체의 {total > 0 ? Math.round((pilotCount / total) * 100) : 0}%</div>
-                  </div>
-                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '20px' }}>
-                    <div style={{ fontSize: '13px', color: '#15803d', fontWeight: '600', marginBottom: '8px' }}>오류 미발생</div>
-                    <div style={{ fontSize: '32px', fontWeight: '700', color: '#16a34a' }}>{noneCount}</div>
-                    <div style={{ fontSize: '12px', color: '#4b7c5e', marginTop: '6px' }}>전체의 {total > 0 ? Math.round((noneCount / total) * 100) : 0}%</div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={handleStartDateChange}
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        border: '1px solid #d1d5db',
+                        fontSize: '13px',
+                        color: '#111827',
+                      }}
+                    />
+                    <span style={{ color: '#9ca3af' }}>~</span>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={handleEndDateChange}
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        border: '1px solid #d1d5db',
+                        fontSize: '13px',
+                        color: '#111827',
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => applyQuickRange('today')}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '999px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        border: '1px solid #d1d5db',
+                        backgroundColor:
+                          activeRange === 'today' ? '#2563eb' : '#ffffff',
+                        color: activeRange === 'today' ? '#ffffff' : '#4b5563',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      오늘
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyQuickRange('1w')}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '999px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        border: '1px solid #d1d5db',
+                        backgroundColor:
+                          activeRange === '1w' ? '#2563eb' : '#ffffff',
+                        color: activeRange === '1w' ? '#ffffff' : '#4b5563',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      최근 1주
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyQuickRange('2w')}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '999px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        border: '1px solid #d1d5db',
+                        backgroundColor:
+                          activeRange === '2w' ? '#2563eb' : '#ffffff',
+                        color: activeRange === '2w' ? '#ffffff' : '#4b5563',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      최근 2주
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyQuickRange('1m')}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '999px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        border: '1px solid #d1d5db',
+                        backgroundColor:
+                          activeRange === '1m' ? '#2563eb' : '#ffffff',
+                        color: activeRange === '1m' ? '#ffffff' : '#4b5563',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      최근 1개월
+                    </button>
                   </div>
                 </div>
               </div>
-
-              {/* 오류 분포 섹션 */}
+              {/* 오류유형 요약 + 세부오류유형 분포 레이아웃 */}
               {total > 0 && (
-                <div style={{ marginBottom: '32px', background: '#ffffff', borderRadius: '8px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#1f2937', marginBottom: '16px' }}>
-                    📊 세부오류유형 분포
-                  </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: '#8b5cf6' }}></div>
-                        <span style={{ fontSize: '13px', color: '#6b7280' }}>복창오류</span>
-                        <span style={{ fontSize: '13px', fontWeight: '600', color: '#1f2937' }}>{INC.filter(i => i.airline === airlineCode && i.subError === '복창오류').length}</span>
+                <div
+                  style={{
+                    marginBottom: '32px',
+                    display: 'grid',
+                    gridTemplateColumns: 'minmax(0, 1.15fr) minmax(0, 1.35fr)',
+                    gap: '24px',
+                  }}
+                >
+                  {/* 좌측: 오류유형 요약 */}
+                  <div
+                    style={{
+                      background: '#ffffff',
+                      borderRadius: '12px',
+                      padding: '20px 24px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                      border: '1px solid #e5e7eb',
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: '15px',
+                        fontWeight: 700,
+                        color: '#111827',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      오류유형 요약
+                    </h3>
+                    <div style={{ marginBottom: '18px' }}>
+                      <div
+                        style={{
+                          fontSize: '32px',
+                          fontWeight: 800,
+                          color: '#111827',
+                          lineHeight: 1,
+                          marginBottom: '4px',
+                        }}
+                      >
+                        {visibleIncidents.length}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: '#22c55e' }}></div>
-                        <span style={{ fontSize: '13px', color: '#6b7280' }}>고도이탈</span>
-                        <span style={{ fontSize: '13px', fontWeight: '600', color: '#1f2937' }}>{INC.filter(i => i.airline === airlineCode && i.subError === '고도이탈').length}</span>
+                      <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                        건 ({selectedErrorLabel === '전체' ? '전체' : selectedErrorLabel})
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: '#ef4444' }}></div>
-                        <span style={{ fontSize: '13px', color: '#6b7280' }}>무응답/재호출</span>
-                        <span style={{ fontSize: '13px', fontWeight: '600', color: '#1f2937' }}>{INC.filter(i => i.airline === airlineCode && i.subError === '무응답/재호출').length}</span>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                        gap: '12px',
+                      }}
+                    >
+                      <div
+                        onClick={() =>
+                          setErrorTypeFilter(
+                            errorTypeFilter === '관제사 오류' ? 'all' : '관제사 오류',
+                          )
+                        }
+                        style={{
+                          background: '#fff5f5',
+                          borderRadius: '10px',
+                          padding: '14px 12px',
+                          border:
+                            errorTypeFilter === '관제사 오류'
+                              ? '2px solid #f97373'
+                              : '1px solid #fed7d7',
+                          cursor: 'pointer',
+                          boxShadow:
+                            errorTypeFilter === '관제사 오류'
+                              ? '0 0 0 1px rgba(248,113,113,0.25)'
+                              : 'none',
+                          transition: 'box-shadow 0.15s, transform 0.15s',
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: '#b91c1c',
+                            fontWeight: 600,
+                            marginBottom: '6px',
+                          }}
+                        >
+                          관제사오류
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '22px',
+                            fontWeight: 700,
+                            color: '#dc2626',
+                            marginBottom: '2px',
+                          }}
+                        >
+                          {atcCount}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#a16061' }}>
+                          전체의{' '}
+                          {total > 0 ? Math.round((atcCount / total) * 100) : 0}%
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ width: '12px', height: '12px', borderRadius: '2px', background: '#f59e0b' }}></div>
-                        <span style={{ fontSize: '13px', color: '#6b7280' }}>비행경로이탈</span>
-                        <span style={{ fontSize: '13px', fontWeight: '600', color: '#1f2937' }}>{INC.filter(i => i.airline === airlineCode && i.subError === '비행경로이탈').length}</span>
+
+                      <div
+                        onClick={() =>
+                          setErrorTypeFilter(
+                            errorTypeFilter === '조종사 오류' ? 'all' : '조종사 오류',
+                          )
+                        }
+                        style={{
+                          background: '#fffbf0',
+                          borderRadius: '10px',
+                          padding: '14px 12px',
+                          border:
+                            errorTypeFilter === '조종사 오류'
+                              ? '2px solid #fdba74'
+                              : '1px solid #fed7aa',
+                          cursor: 'pointer',
+                          boxShadow:
+                            errorTypeFilter === '조종사 오류'
+                              ? '0 0 0 1px rgba(251,191,36,0.25)'
+                              : 'none',
+                          transition: 'box-shadow 0.15s, transform 0.15s',
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: '#b45309',
+                            fontWeight: 600,
+                            marginBottom: '6px',
+                          }}
+                        >
+                          조종사오류
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '22px',
+                            fontWeight: 700,
+                            color: '#f97316',
+                            marginBottom: '2px',
+                          }}
+                        >
+                          {pilotCount}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#a16207' }}>
+                          전체의{' '}
+                          {total > 0 ? Math.round((pilotCount / total) * 100) : 0}%
+                        </div>
                       </div>
+
+                      <div
+                        onClick={() =>
+                          setErrorTypeFilter(
+                            errorTypeFilter === '오류 미발생' ? 'all' : '오류 미발생',
+                          )
+                        }
+                        style={{
+                          background: '#f0fdf4',
+                          borderRadius: '10px',
+                          padding: '14px 12px',
+                          border:
+                            errorTypeFilter === '오류 미발생'
+                              ? '2px solid #4ade80'
+                              : '1px solid #bbf7d0',
+                          cursor: 'pointer',
+                          boxShadow:
+                            errorTypeFilter === '오류 미발생'
+                              ? '0 0 0 1px rgba(34,197,94,0.25)'
+                              : 'none',
+                          transition: 'box-shadow 0.15s, transform 0.15s',
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: '#15803d',
+                            fontWeight: 600,
+                            marginBottom: '6px',
+                          }}
+                        >
+                          오류 미발생
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '22px',
+                            fontWeight: 700,
+                            color: '#16a34a',
+                            marginBottom: '2px',
+                          }}
+                        >
+                          {noneCount}
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#4b7c5e' }}>
+                          전체의{' '}
+                          {total > 0 ? Math.round((noneCount / total) * 100) : 0}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 우측: 세부오류유형 분포 */}
+                  <div
+                    style={{
+                      background: '#ffffff',
+                      borderRadius: '12px',
+                      padding: '20px 24px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                      border: '1px solid #e5e7eb',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '16px',
+                        gap: '12px',
+                      }}
+                    >
+                      <div>
+                        <h3
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 700,
+                            color: '#111827',
+                            marginBottom: '4px',
+                          }}
+                        >
+                          세부오류유형 분포 — {selectedErrorLabel}
+                        </h3>
+                        <p
+                          style={{
+                            fontSize: '12px',
+                            color: '#6b7280',
+                            margin: 0,
+                          }}
+                        >
+                          선택된 오류유형 내 세부 분포입니다.
+                        </p>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          color: '#4b5563',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {visibleIncidents.length}건
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {subTypeStats.map((row) => {
+                        const width = row.count === 0 ? 4 : Math.round((row.count / maxSubCount) * 100);
+                        return (
+                          <div
+                            key={row.key}
+                            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
+                          >
+                            <div style={{ flex: 1 }}>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  fontSize: '12px',
+                                  color: '#6b7280',
+                                  marginBottom: '4px',
+                                }}
+                              >
+                                <span>{row.label}</span>
+                              </div>
+                              <div
+                                style={{
+                                  width: '100%',
+                                  height: '10px',
+                                  borderRadius: '999px',
+                                  background: '#f3f4f6',
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: `${width}%`,
+                                    height: '100%',
+                                    borderRadius: '999px',
+                                    background: row.color,
+                                    opacity: row.count === 0 ? 0.15 : 0.95,
+                                    transition: 'width 0.2s ease-out',
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            <div
+                              style={{
+                                width: '32px',
+                                textAlign: 'right',
+                                fontSize: '12px',
+                                color: '#111827',
+                              }}
+                            >
+                              {row.count}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
               )}
 
               {/* 인시던트 카드 */}
-              <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1f2937', marginBottom: '20px' }}>
-                ⚠️ 오류 발생 편명 ({total}건)
+              <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>
+                ⚠️ 오류 발생 편명 ({visibleIncidents.length}건)
               </h2>
+              {errorTypeFilter !== 'all' && (
+                <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '16px' }}>
+                  선택된 오류유형: <strong>{errorTypeFilter}</strong>
+                </p>
+              )}
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '24px' }}>
-                {incidents.map((incident: any) => (
+                {visibleIncidents.map((incident: any) => (
                   <div
                     key={incident.id}
                     style={{
@@ -260,6 +897,8 @@ export default function AirlinePage() {
                           <span style={{ color: '#dc2626', fontWeight: 'bold', fontSize: '18px' }}>{incident.other}</span>
                         </div>
                         <button
+                          type="button"
+                          onClick={() => handleOpenActionModal(incident)}
                           style={{
                             fontSize: '11px',
                             fontWeight: '600',
@@ -386,7 +1025,7 @@ export default function AirlinePage() {
                 ))}
               </div>
 
-              {incidents.length === 0 && (
+              {visibleIncidents.length === 0 && (
                 <div style={{ background: '#ffffff', borderRadius: '8px', padding: '48px', textAlign: 'center' }}>
                   <div style={{ fontSize: '40px', marginBottom: '16px' }}>✅</div>
                   <p style={{ color: '#6b7280' }}>등록된 유사호출부호 발생 이력이 없습니다</p>
@@ -396,15 +1035,320 @@ export default function AirlinePage() {
           )}
 
           {activeTab === 'actions' && (
-            <div style={{ background: '#ffffff', borderRadius: '8px', padding: '32px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-              <div style={{ textAlign: 'center', paddingTop: '48px', paddingBottom: '48px' }}>
-                <div style={{ fontSize: '40px', marginBottom: '16px' }}>📭</div>
-                <p style={{ color: '#6b7280' }}>조치 이력 관리 기능은 준비 중입니다</p>
+            <>
+              {/* 검색 및 필터 */}
+              <div style={{ marginBottom: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1', minWidth: '250px' }}>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      placeholder="유사호출부호, 조치유형, 담당자 검색..."
+                      value={actionSearchInput}
+                      onChange={(e) => setActionSearchInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setActionSearch(actionSearchInput);
+                          setActionPage(1);
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '9px 36px 9px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb',
+                        fontSize: '14px',
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        setActionSearch(actionSearchInput);
+                        setActionPage(1);
+                      }}
+                      style={{
+                        position: 'absolute',
+                        right: '4px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: '#2563eb',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '6px 12px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      🔍
+                    </button>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>표시 개수:</span>
+                  <select
+                    value={actionLimit}
+                    onChange={(e) => {
+                      setActionLimit(parseInt(e.target.value, 10));
+                      setActionPage(1);
+                    }}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                      fontWeight: '500',
+                    }}
+                  >
+                    <option value="10">10개</option>
+                    <option value="30">30개</option>
+                    <option value="50">50개</option>
+                    <option value="100">100개</option>
+                  </select>
+                </div>
               </div>
-            </div>
+
+              {/* 필터 및 액션 바 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => {
+                    setActionStatusFilter('all');
+                    setActionPage(1);
+                  }}
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    background: actionStatusFilter === 'all' ? '#2563eb' : '#ffffff',
+                    color: actionStatusFilter === 'all' ? '#ffffff' : '#5a6170',
+                    border: actionStatusFilter === 'all' ? 'none' : '1.5px solid #e2e5ea',
+                    cursor: 'pointer',
+                  }}
+                >
+                  전체
+                </button>
+                <button
+                  onClick={() => {
+                    setActionStatusFilter('pending');
+                    setActionPage(1);
+                  }}
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    background: actionStatusFilter === 'pending' ? '#2563eb' : '#ffffff',
+                    color: actionStatusFilter === 'pending' ? '#ffffff' : '#5a6170',
+                    border: actionStatusFilter === 'pending' ? 'none' : '1.5px solid #e2e5ea',
+                    cursor: 'pointer',
+                  }}
+                >
+                  대기중
+                </button>
+                <button
+                  onClick={() => {
+                    setActionStatusFilter('in_progress');
+                    setActionPage(1);
+                  }}
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    background: actionStatusFilter === 'in_progress' ? '#2563eb' : '#ffffff',
+                    color: actionStatusFilter === 'in_progress' ? '#ffffff' : '#5a6170',
+                    border: actionStatusFilter === 'in_progress' ? 'none' : '1.5px solid #e2e5ea',
+                    cursor: 'pointer',
+                  }}
+                >
+                  ⏳ 진행중
+                </button>
+                <button
+                  onClick={() => {
+                    setActionStatusFilter('completed');
+                    setActionPage(1);
+                  }}
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: '20px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    background: actionStatusFilter === 'completed' ? '#2563eb' : '#ffffff',
+                    color: actionStatusFilter === 'completed' ? '#ffffff' : '#5a6170',
+                    border: actionStatusFilter === 'completed' ? 'none' : '1.5px solid #e2e5ea',
+                    cursor: 'pointer',
+                  }}
+                >
+                  ✅ 완료
+                </button>
+                <div style={{ flex: '1' }}></div>
+                {actionsData && (
+                  <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '500' }}>
+                    총 {actionsData.pagination.total}건
+                  </div>
+                )}
+              </div>
+
+              {/* 조치 이력 테이블 */}
+              {actionsLoading ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>로딩 중...</div>
+              ) : actionsData && actionsData.data.length > 0 ? (
+                <div style={{ background: '#ffffff', border: '1px solid #e2e5ea', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                    <thead>
+                      <tr style={{ background: '#f8f9fb', borderBottom: '2px solid #e2e5ea' }}>
+                        <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: '700', color: '#5a6170', fontSize: '12px', whiteSpace: 'nowrap' }}>등록일</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: '700', color: '#5a6170', fontSize: '12px', whiteSpace: 'nowrap' }}>예정일</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: '700', color: '#5a6170', fontSize: '12px', whiteSpace: 'nowrap' }}>유사호출부호</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: '700', color: '#5a6170', fontSize: '12px', whiteSpace: 'nowrap' }}>조치유형</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: '700', color: '#5a6170', fontSize: '12px', whiteSpace: 'nowrap' }}>담당자</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'center', fontWeight: '700', color: '#5a6170', fontSize: '12px', whiteSpace: 'nowrap' }}>상태</th>
+                        <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: '700', color: '#5a6170', fontSize: '12px', whiteSpace: 'nowrap' }}>완료일</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {actionsData.data.map((action, idx) => {
+                        const statusLabel = action.status === 'pending' ? '대기중' : action.status === 'in_progress' ? '진행중' : '완료';
+                        const statusBg = action.status === 'pending' ? '#fef3c7' : action.status === 'in_progress' ? '#ecfeff' : '#f0fdf4';
+                        const statusColor = action.status === 'pending' ? '#ca8a04' : action.status === 'in_progress' ? '#0891b2' : '#16a34a';
+                        const registeredDate = action.registered_at ? new Date(action.registered_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '') : '-';
+                        const plannedDate = action.planned_due_date || '-';
+                        const completedDate = action.completed_at ? new Date(action.completed_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '') : '-';
+                        return (
+                          <tr key={action.id} style={{ borderBottom: idx < actionsData.data.length - 1 ? '1px solid #eef0f3' : 'none', background: idx % 2 === 1 ? '#f8f9fb' : '#ffffff' }}>
+                            <td style={{ padding: '10px 14px' }}>{registeredDate}</td>
+                            <td style={{ padding: '10px 14px' }}>{plannedDate}</td>
+                            <td style={{ padding: '10px 14px', fontWeight: '600' }}>{action.callsign?.callsign_pair || '-'}</td>
+                            <td style={{ padding: '10px 14px' }}>{action.action_type}</td>
+                            <td style={{ padding: '10px 14px' }}>{action.manager_name}</td>
+                            <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                              <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '12px', background: statusBg, color: statusColor }}>{statusLabel}</span>
+                            </td>
+                            <td style={{ padding: '10px 14px' }}>{completedDate}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+
+                  {/* 페이지네이션 */}
+                  {actionsData.pagination.totalPages > 1 && (
+                    <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', borderTop: '1px solid #e2e5ea' }}>
+                      <button
+                        onClick={() => setActionPage(1)}
+                        disabled={actionPage === 1}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #e5e7eb',
+                          background: actionPage === 1 ? '#f9fafb' : '#ffffff',
+                          color: actionPage === 1 ? '#9ca3af' : '#374151',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          cursor: actionPage === 1 ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        ««
+                      </button>
+                      <button
+                        onClick={() => setActionPage(actionPage - 1)}
+                        disabled={actionPage === 1}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #e5e7eb',
+                          background: actionPage === 1 ? '#f9fafb' : '#ffffff',
+                          color: actionPage === 1 ? '#9ca3af' : '#374151',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          cursor: actionPage === 1 ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        «
+                      </button>
+                      {Array.from({ length: Math.min(5, actionsData.pagination.totalPages) }, (_, i) => {
+                        const startPage = Math.max(1, Math.min(actionPage - 2, actionsData.pagination.totalPages - 4));
+                        const pageNum = startPage + i;
+                        if (pageNum > actionsData.pagination.totalPages) return null;
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setActionPage(pageNum)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              border: '1px solid #e5e7eb',
+                              background: pageNum === actionPage ? '#2563eb' : '#ffffff',
+                              color: pageNum === actionPage ? '#ffffff' : '#374151',
+                              fontSize: '13px',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                      <button
+                        onClick={() => setActionPage(actionPage + 1)}
+                        disabled={actionPage === actionsData.pagination.totalPages}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #e5e7eb',
+                          background: actionPage === actionsData.pagination.totalPages ? '#f9fafb' : '#ffffff',
+                          color: actionPage === actionsData.pagination.totalPages ? '#9ca3af' : '#374151',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          cursor: actionPage === actionsData.pagination.totalPages ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        »
+                      </button>
+                      <button
+                        onClick={() => setActionPage(actionsData.pagination.totalPages)}
+                        disabled={actionPage === actionsData.pagination.totalPages}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #e5e7eb',
+                          background: actionPage === actionsData.pagination.totalPages ? '#f9fafb' : '#ffffff',
+                          color: actionPage === actionsData.pagination.totalPages ? '#9ca3af' : '#374151',
+                          fontSize: '13px',
+                          fontWeight: '600',
+                          cursor: actionPage === actionsData.pagination.totalPages ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        »»
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280', background: '#ffffff', border: '1px solid #e2e5ea', borderRadius: '10px' }}>
+                  조치 이력이 없습니다.
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
+
+      {isActionModalOpen && selectedIncident && callsignsData && (
+        <ActionModal
+          airlineId={airlineId || ''}
+          callsigns={callsignsData.data}
+          selectedCallsign={callsignsData.data.find(
+            (cs) => cs.callsign_pair === selectedIncident.pair
+          )}
+          onClose={handleCloseActionModal}
+          onSuccess={() => {
+            // 조치 등록 성공 시 페이지 새로고침
+            window.location.reload();
+          }}
+        />
+      )}
     </>
   );
 }

@@ -56,6 +56,14 @@ async function activateUserAPI(userId: string) {
   return response.json();
 }
 
+async function deleteUserAPI(userId: string) {
+  const response = await apiFetch(`/api/admin/users/${userId}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error('Failed to delete user');
+  return response.json();
+}
+
 export function useUsers(status?: UserStatusFilter) {
   return useQuery({
     queryKey: ['admin', 'users', status],
@@ -94,5 +102,10 @@ export function useUserMutations() {
     onSuccess: invalidate,
   });
 
-  return { approve, reject, suspend, activate };
+  const deleteUser = useMutation({
+    mutationFn: deleteUserAPI,
+    onSuccess: invalidate,
+  });
+
+  return { approve, reject, suspend, activate, deleteUser };
 }

@@ -5,6 +5,9 @@
  * 요청 본문:
  *   - status: active|suspended
  *   - role: admin|user (선택사항)
+ *
+ * DELETE /api/admin/users/[id]
+ * 사용자 삭제 (관리자만)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -148,6 +151,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         role: user.role,
         airline_id: user.airline_id,
         airline,
+        // 날짜/로그인 필드: snake_case + camelCase 모두 포함
+        last_login_at: user.last_login_at,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
         lastLoginAt: user.last_login_at,
         createdAt: user.created_at,
         updatedAt: user.updated_at,
@@ -157,6 +164,71 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     console.error('사용자 상태 변경 오류:', error);
     return NextResponse.json(
       { error: '사용자 상태 변경 중 오류가 발생했습니다.' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: Params) {
+  try {
+    // 인증 확인
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const payload = verifyToken(token);
+
+    if (!payload || payload.role !== 'admin') {
+      return NextResponse.json(
+        { error: '관리자만 접근 가능합니다.' },
+        { status: 403 }
+      );
+    }
+
+    const userId = params.id;
+
+    // 관리자는 삭제 불가
+    const adminCheck = await query('SELECT role FROM users WHERE id = $1', [userId]);
+    if (adminCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: '사용자를 찾을 수 없습니다.' },
+        { status: 404 }
+      );
+    }
+
+    if (adminCheck.rows[0].role === 'admin') {
+      return NextResponse.json(
+        { error: '관리자는 삭제할 수 없습니다.' },
+        { status: 400 }
+      );
+    }
+
+    // 사용자 삭제
+    const deleteResult = await query('DELETE FROM users WHERE id = $1 RETURNING id, email', [userId]);
+
+    if (deleteResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: '사용자를 찾을 수 없습니다.' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      message: '사용자가 삭제되었습니다.',
+      user: {
+        id: deleteResult.rows[0].id,
+        email: deleteResult.rows[0].email,
+      },
+    });
+  } catch (error) {
+    console.error('사용자 삭제 오류:', error);
+    return NextResponse.json(
+      { error: '사용자 삭제 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

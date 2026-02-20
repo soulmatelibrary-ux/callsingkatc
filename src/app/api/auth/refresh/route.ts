@@ -1,11 +1,13 @@
 /**
  * POST /api/auth/refresh
- * 토큰 갱신 API
+ * 토큰 갱신 API (refreshToken 쿠키 기반)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyRefreshToken, generateAccessToken, generateRefreshToken } from '@/lib/jwt';
 import { query } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +23,10 @@ export async function POST(request: NextRequest) {
 
     // 리프레시 토큰 검증
     const payload = verifyRefreshToken(refreshToken);
+    console.log('[REFRESH] 토큰 검증 결과:', {
+      userId: payload?.userId,
+      refreshTokenExists: !!refreshToken,
+    });
     if (!payload) {
       return NextResponse.json(
         { error: '유효하지 않은 리프레시 토큰입니다.' },
@@ -55,6 +61,12 @@ export async function POST(request: NextRequest) {
     }
 
     const user = result.rows[0];
+    console.log('[REFRESH] 조회된 사용자:', {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    });
 
     const airline = user.airline_code
       ? {
@@ -88,28 +100,19 @@ export async function POST(request: NextRequest) {
       forceChangePassword: user.is_default_password === true,
     };
 
-    // 응답 생성
+    // 응답 생성 (user 쿠키 저장 제거)
     const response = NextResponse.json(
       {
-        accessToken: newAccessToken,
-        refreshToken: newRefreshToken,
         user: sanitizedUser,
+        accessToken: newAccessToken,
       },
       { status: 200 }
     );
 
-    // 새 refreshToken을 쿠키에 설정
+    // 새 refreshToken만 쿠키에 설정
     response.cookies.set('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60,
-      path: '/',
-    });
-
-    // user 쿠키도 최신 정보로 갱신
-    response.cookies.set('user', JSON.stringify(sanitizedUser), {
-      httpOnly: false,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60,
       path: '/',
