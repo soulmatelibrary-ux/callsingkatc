@@ -155,19 +155,19 @@ export default function Home() {
             left: 0,
             width: '60%',
             height: '100%',
-            opacity: 0.35,
+            opacity: 0.5,
             pointerEvents: 'none',
+            zIndex: 2,
           }}
           viewBox="0 0 400 500"
           preserveAspectRatio="xMinYMid slice"
         >
-          {/* 인천 FIR (Red border) - Main center region */}
+          {/* 인천 FIR (Red border) - Main center region - PROMINENT */}
           <path
             d="M 130 140 L 180 120 L 220 140 L 230 200 L 220 260 L 160 280 L 100 250 L 90 180 Z"
-            fill="rgba(220, 38, 38, 0.15)"
-            stroke="rgba(220, 38, 38, 0.6)"
-            strokeWidth="3"
-            strokeDasharray="5,3"
+            fill="rgba(220, 38, 38, 0.2)"
+            stroke="rgba(220, 38, 38, 0.85)"
+            strokeWidth="5"
           />
 
           {/* 심양 FIR (Blue border) - Upper right */}
@@ -237,45 +237,7 @@ export default function Home() {
             ICN
           </text>
         </svg>
-        {/* Enhanced Radar Rings */}
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '200px', height: '200px', border: '2px solid rgba(59, 130, 246, 0.15)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '400px', height: '400px', border: '1px solid rgba(59, 130, 246, 0.1)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '600px', height: '600px', border: '1px solid rgba(59, 130, 246, 0.08)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '800px', height: '800px', border: '1px solid rgba(59, 130, 246, 0.05)', borderRadius: '50%' }} />
 
-        {/* Animated Radar Sweep - Enhanced */}
-        <div
-          className="radar-sweep"
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: '200vmax',
-            height: '200vmax',
-            background: 'conic-gradient(from 0deg, transparent 0deg, rgba(59, 130, 246, 0.15) 20deg, transparent 40deg)',
-            transform: 'translate(-50%, -50%)',
-            animation: 'rotate 10s linear infinite',
-            zIndex: 1,
-            pointerEvents: 'none',
-            boxShadow: '0 0 80px rgba(59, 130, 246, 0.1)',
-          }}
-        />
-
-        {/* Secondary Radar Sweep */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: '200vmax',
-            height: '200vmax',
-            background: 'conic-gradient(from 180deg, transparent 0deg, rgba(16, 185, 129, 0.08) 20deg, transparent 40deg)',
-            transform: 'translate(-50%, -50%)',
-            animation: 'rotate 15s linear infinite reverse',
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        />
 
         {/* Aircraft Blips - All 11 Airlines */}
         {radarAircraft.map((aircraft, idx) => {
@@ -296,6 +258,7 @@ export default function Home() {
               color: aircraft.color,
               fontSize: '10px',
               pointerEvents: 'none',
+              zIndex: 3,
               animation: `${selectedAnimation} ${duration}s ease-in-out infinite ${delay}s, blink ${duration}s ease-in-out infinite ${delay}s`
             }}
           >
@@ -323,13 +286,6 @@ export default function Home() {
           );
         })}
 
-        {/* Compass Lines */}
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '600px', height: '600px', pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', top: '-100%', left: '50%', width: '2px', height: '100%', background: 'linear-gradient(to top, rgba(59, 130, 246, 0.2), transparent)', transform: 'translateX(-50%)' }} />
-          <div style={{ position: 'absolute', bottom: '-100%', left: '50%', width: '2px', height: '100%', background: 'linear-gradient(to bottom, rgba(59, 130, 246, 0.2), transparent)', transform: 'translateX(-50%)' }} />
-          <div style={{ position: 'absolute', left: '-100%', top: '50%', height: '2px', width: '100%', background: 'linear-gradient(to left, rgba(59, 130, 246, 0.2), transparent)', transform: 'translateY(-50%)' }} />
-          <div style={{ position: 'absolute', right: '-100%', top: '50%', height: '2px', width: '100%', background: 'linear-gradient(to right, rgba(59, 130, 246, 0.2), transparent)', transform: 'translateY(-50%)' }} />
-        </div>
       </div>
 
       <style jsx global>{`
