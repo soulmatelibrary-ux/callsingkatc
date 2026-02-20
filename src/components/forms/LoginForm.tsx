@@ -72,8 +72,12 @@ export function LoginForm() {
         // 첫 로그인 - 비밀번호 변경 필수
         router.push(ROUTES.CHANGE_PASSWORD);
       } else {
-        // 정상 로그인
-        router.push(ROUTES.DASHBOARD);
+        // 정상 로그인 - 역할에 따라 리다이렉트
+        if (result.user.role === 'admin') {
+          router.push(ROUTES.ADMIN);
+        } else {
+          router.push('/airline');
+        }
       }
     } catch (err: any) {
       setServerError(AUTH_ERRORS.UNKNOWN_ERROR);

@@ -5,59 +5,54 @@
 - **Auth**: JWT (1h access, 7d refresh httpOnly cookie) + bcryptjs
 - **State**: Zustand (client), pg.Pool (server)
 - **DB Init**: `scripts/init.sql` (4 tables: airlines, users, password_history, audit_logs)
-- **Airlines**: 11 Korean airlines hardcoded
+- **Airlines**: Design says 11, DB has 9 (ESR->EOK, ARK/APZ missing)
 
-## Key Findings (2026-02-19 v4.0 Post-P1-Fix) -- 90% TARGET ACHIEVED
-- Match Rate: 92% (78% -> 85% -> 92%, total +14%p across P0+P1 fixes)
-- All P0 (4) + P1 (4) issues resolved = 8 total fixes
-- Backend 95-98%, frontend 73% (up from 57%)
-- Design docs still have internal inconsistencies (needs ARCHITECTURE_DESIGN.md update)
-- 4 of 7 admin pages now implemented (was 1/7)
-- Audit logs table exists but no write logic
+## Key Findings (2026-02-20 v5.0 Extended Scope Analysis)
+- Extended Match Rate: 65% (expanded scope: routing + flows + filtering + admin)
+- Auth-only Match Rate: 92% (same as v4.0, no regression)
+- Critical discovery: TWO login entry points (/ and /login) with different behaviors
+- DB has NO pending status (only active/suspended) - design assumed pending workflow
+- callsign_warnings API/table not implemented - airline page uses hardcoded mockup data
+- Admin sidebar not implemented, 5 of 10 admin features missing
 
-## P1 Fixes Verified (2026-02-19 v4.0)
-1. apiFetch interceptor: 401 auto-refresh with singleton dedup (client.ts:20-113)
-2. POST /api/auth/forgot-password: temp password + email stub + enum attack defense (forgot-password/route.ts)
-3. /admin dashboard: stats API + 3 stat cards + recent logins table + system status (admin/page.tsx + api/admin/stats/route.ts)
-4. /admin/password-reset: user search + password reset + temp password display (admin/password-reset/page.tsx + api/admin/users/[id]/password-reset/route.ts)
+## v5.0 Score Breakdown (weighted)
+- Page Routing: 61% (11/18 pages)
+- Login Flow: 65% (dual entry point inconsistency)
+- Session Management: 95% (JWT + Zustand + interceptor solid)
+- Data Filtering: 35% (hardcoded mockup, no API, no server-side filter)
+- Admin Features: 55% (5/10 functions, no sidebar)
+- Data Model: 80% (pending removed, airline_id added, approved_at/by missing)
 
-## P0 Fixes Verified (2026-02-19 v3.0)
-1. SignupForm: airlineCode field + dropdown UI added
-2. signup API: airlineCode/airlineId both supported
-3. pending/page.tsx: Authorization Bearer header added
-4. StatusBadge: type narrowed to 'active'|'suspended'
-5. LoginForm: pending branch removed, only suspended check
+## Critical Gaps (P0)
+1. Airlines DB mismatch: init.sql has 9 (EOK), design/frontend has 11 (ESR/ARK/APZ)
+2. / page login doesn't use Zustand setAuth -> state lost on navigation
+3. /login (LoginForm) has no admin role redirect -> admin goes to /airline
 
-## Score Breakdown (v4.0)
-- API Endpoints: 95% (+5 from v3.0)
-- Database Schema: 85% (no change)
-- Frontend Pages: 73% (+13 from v3.0)
-- Auth Flow: 98% (+3 from v3.0)
-- Airlines Data: 95% (no change)
-- Password Policy: 95% (no change)
-- State Model: 92% (no change)
-- Architecture: 92% (+2 from v3.0)
+## Login Entry Points Architecture
+- `/` (page.tsx): Airline/Admin toggle, direct fetch, role-based routing, NO status/forceChange handling
+- `/login` (LoginForm.tsx): Zustand setAuth, status+forceChange handling, NO role-based routing
+- Middleware: refreshToken cookie + user cookie for route protection
 
-## Remaining P2/P3 Items (not blocking 90%)
-- P2: /admin/users/bulk-register, /admin/access-control, /admin/approval, /admin/audit-logs
-- P3: /admin/settings, /airline, /profile, Sidebar, audit_logs INSERT logic
-- P3: PasswordStrength lowercase rule display, response field naming, approved_at/by fields
+## Design Model Shift (Intentional)
+- Original: User self-signup -> pending -> admin approve -> active
+- Current: Admin pre-registration -> active immediately, forceChangePassword on first login
+- This means /pending page exists but DB can't produce pending users
+- ARCHITECTURE_DESIGN.md still documents the old model
 
-## Design Document Locations
-- `docs/02-design/ARCHITECTURE_DESIGN.md` - Main architecture (needs update)
-- `docs/02-design/SCREEN_STRUCTURE_DESIGN.md` - 14 pages + 7 admin
-- `docs/02-design/LOGIN_SYSTEM_DESIGN.md` - Login flow detail
-- `docs/02-design/AIRLINES_DATA.md` - 11 airlines spec
+## Admin Pages Status
+- Implemented: /admin, /admin/users, /admin/password-reset, /admin/airlines (5)
+- Missing: /admin/bulk-register, /admin/approval, /admin/access-control, /admin/audit-logs, /admin/settings (5)
 
-## Analysis Output
-- `docs/03-analysis/features/katc1-auth-gap.md` - Full gap report v4.0
+## Analysis Reports
+- `docs/03-analysis/features/katc1-auth-gap.md` - v4.0 auth-focused (92%)
+- `docs/03-analysis/features/katc1-full-gap-v5.md` - v5.0 full system (65%)
 
-## Implementation File Map (v4.0 additions)
+## Implementation File Map
+- `src/app/page.tsx` - Portal login (airline/admin toggle)
+- `src/app/(auth)/login/page.tsx` - Dedicated login page (uses LoginForm)
+- `src/app/(main)/airline/page.tsx` - Callsign warnings (hardcoded data)
+- `src/middleware.ts` - Route protection (refreshToken + user cookie)
+- `src/store/authStore.ts` - Zustand auth state
 - `src/lib/api/client.ts` - apiFetch with 401 interceptor
-- `src/lib/api/auth.ts` - forgotPasswordAPI, changePasswordAPI
-- `src/app/api/auth/forgot-password/route.ts` - Forgot password API
-- `src/app/api/admin/stats/route.ts` - Admin dashboard stats API
-- `src/app/api/admin/users/[id]/password-reset/route.ts` - Admin password reset API
-- `src/app/admin/page.tsx` - Admin dashboard page
-- `src/app/admin/password-reset/page.tsx` - Admin password reset page
-- `src/components/forms/ForgotPasswordForm.tsx` - Forgot password form
+- `src/lib/jwt.ts` - JWT generation/verification
+- `scripts/init.sql` - DB schema (9 airlines, no pending status)

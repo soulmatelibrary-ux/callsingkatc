@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
+async function handleLogout(request: NextRequest) {
   const response = NextResponse.json(
     { message: '로그아웃되었습니다.' },
     { status: 200 }
@@ -30,4 +30,12 @@ export async function POST(request: NextRequest) {
   });
 
   return response;
+}
+
+export async function POST(request: NextRequest) {
+  return handleLogout(request);
+}
+
+export async function GET(request: NextRequest) {
+  return handleLogout(request);
 }

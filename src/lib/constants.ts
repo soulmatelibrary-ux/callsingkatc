@@ -62,6 +62,7 @@ export const ROUTES = {
   ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',
   ADMIN_PASSWORD_RESET: '/admin/password-reset',
+  ADMIN_AIRLINES: '/admin/airlines',
 };
 
 /**
@@ -73,7 +74,7 @@ export const USER_STATUS = {
 } as const;
 
 /**
- * 국내 항공사 목록 (11개)
+ * 국내 항공사 목록 (9개)
  */
 export const AIRLINES = [
   { code: 'KAL', name_ko: '대한항공', name_en: 'Korean Air' },
@@ -83,10 +84,8 @@ export const AIRLINES = [
   { code: 'TWB', name_ko: '티웨이항공', name_en: 'T\'way Air' },
   { code: 'ABL', name_ko: '에어부산', name_en: 'Air Busan' },
   { code: 'ASV', name_ko: '에어서울', name_en: 'Air Seoul' },
-  { code: 'ESR', name_ko: '이스타항공', name_en: 'Eastar Jet' },
+  { code: 'EOK', name_ko: '이스타항공', name_en: 'Eastar Jet' },
   { code: 'FGW', name_ko: '플라이강원', name_en: 'Fly Gangwon' },
-  { code: 'ARK', name_ko: '에어로케이항공', name_en: 'Air Korea' },
-  { code: 'APZ', name_ko: '에어프레미아', name_en: 'Air Premia' },
 ] as const;
 
 /**

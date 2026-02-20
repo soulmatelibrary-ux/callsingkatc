@@ -10,8 +10,10 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
+import { parseJsonCookie } from '@/lib/cookies';
 
 function PlaneIcon() {
   return (
@@ -34,12 +36,29 @@ function PlaneIcon() {
 
 export function Header() {
   const router = useRouter();
-  const { user, isAuthenticated, isAdmin, logout } = useAuthStore((s) => ({
+  const { user, isAuthenticated, isAdmin, logout, setUser } = useAuthStore((s) => ({
     user: s.user,
     isAuthenticated: s.isAuthenticated(),
     isAdmin: s.isAdmin(),
     logout: s.logout,
+    setUser: s.setUser,
   }));
+
+  // 새로고침 후 쿠키에서 user 복원
+  useEffect(() => {
+    if (!user) {
+      const userCookie = document.cookie
+        .split(';')
+        .find(c => c.trim().startsWith('user='));
+
+      const parsed = parseJsonCookie<any>(userCookie);
+      if (parsed) {
+        setUser(parsed);
+      } else if (userCookie) {
+        console.error('Header: user cookie parse error');
+      }
+    }
+  }, [user, setUser]);
 
   async function handleLogout() {
     try {
@@ -93,7 +112,7 @@ export function Header() {
             {/* 관리자 전용 링크 */}
             {isAdmin && (
               <Link
-                href={ROUTES.ADMIN_USERS}
+                href={ROUTES.ADMIN}
                 className="px-3 py-1.5 text-white text-sm font-medium rounded-md bg-white/15 hover:bg-white/25 transition-colors"
               >
                 관리자 페이지

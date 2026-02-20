@@ -13,9 +13,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useUsers, useUserMutations } from '@/hooks/useUsers';
+import { useAirlines } from '@/hooks/useAirlines';
 import { User } from '@/types/user';
 import { useAuthStore } from '@/store/authStore';
-import { AIRLINES } from '@/lib/constants';
 import { CreateUserModal } from './CreateUserModal';
 
 type FilterStatus = 'all' | 'active' | 'suspended';
@@ -47,6 +47,7 @@ export function UserApprovalTable() {
     error,
   } = useUsers(filter === 'all' ? undefined : (filter as 'active' | 'suspended'));
 
+  const { data: airlines = [], isLoading: airlinesLoading } = useAirlines();
   const { approve, reject, suspend, activate } = useUserMutations();
 
   // 항공사 변경 함수
@@ -172,17 +173,17 @@ export function UserApprovalTable() {
                     <select
                       value={user.airline?.code || ''}
                       onChange={(e) => handleAirlineChange(user.id, e.target.value)}
-                      disabled={updatingAirline?.userId === user.id}
+                      disabled={updatingAirline?.userId === user.id || airlinesLoading}
                       className={[
                         'px-2 py-1 text-xs rounded border transition-colors',
                         'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-0',
-                        updatingAirline?.userId === user.id
+                        updatingAirline?.userId === user.id || airlinesLoading
                           ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
                           : 'bg-white text-gray-700 border-gray-300 hover:border-primary',
                       ].join(' ')}
                     >
                       <option value="">미지정</option>
-                      {AIRLINES.map((airline) => (
+                      {airlines.map((airline) => (
                         <option key={airline.code} value={airline.code}>
                           {airline.name_ko} ({airline.code})
                         </option>

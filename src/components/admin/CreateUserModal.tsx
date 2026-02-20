@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/store/authStore';
-import { AIRLINES } from '@/lib/constants';
+import { useAirlines } from '@/hooks/useAirlines';
 
 interface CreateUserModalProps {
   isOpen: boolean;
@@ -28,6 +28,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
   const [success, setSuccess] = useState(false);
   const queryClient = useQueryClient();
   const token = useAuthStore((s) => s.accessToken);
+  const { data: airlines = [], isLoading: airlinesLoading } = useAirlines();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -133,7 +134,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
               id="airlineCode"
               value={airlineCode}
               onChange={(e) => setAirlineCode(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || airlinesLoading}
               className={[
                 'px-3 py-2.5 text-sm rounded-lg border transition-colors',
                 'focus:outline-none focus:ring-2 focus:ring-offset-0',
@@ -144,7 +145,7 @@ export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
               required
             >
               <option value="">항공사를 선택하세요</option>
-              {AIRLINES.map((airline) => (
+              {airlines.map((airline) => (
                 <option key={airline.code} value={airline.code}>
                   {airline.name_ko} ({airline.code})
                 </option>

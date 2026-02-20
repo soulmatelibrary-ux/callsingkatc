@@ -86,22 +86,25 @@ export async function POST(request: NextRequest) {
         }
       : null;
 
+    const sanitizedUser = {
+      id: user.id,
+      email: user.email,
+      status: user.status,
+      role: user.role,
+      airline_id: user.airline_id,
+      airline,
+      is_default_password: user.is_default_password,
+      password_change_required: user.password_change_required,
+      forceChangePassword: user.is_default_password === true,
+    };
+
     // 응답 생성 (forceChangePassword 플래그 포함)
     const response = NextResponse.json(
       {
-        user: {
-          id: user.id,
-          email: user.email,
-          status: user.status,
-          role: user.role,
-          airline_id: user.airline_id,
-          airline,
-          is_default_password: user.is_default_password,
-          password_change_required: user.password_change_required,
-        },
+        user: sanitizedUser,
         accessToken,
         refreshToken,
-        forceChangePassword: user.is_default_password === true,
+        forceChangePassword: sanitizedUser.forceChangePassword,
       },
       { status: 200 }
     );
@@ -110,6 +113,14 @@ export async function POST(request: NextRequest) {
     response.cookies.set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60,
+      path: '/',
+    });
+
+    // user 정보를 일반 쿠키에도 저장 (클라이언트/미들웨어 접근용)
+    response.cookies.set('user', JSON.stringify(sanitizedUser), {
+      httpOnly: false,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60,
       path: '/',

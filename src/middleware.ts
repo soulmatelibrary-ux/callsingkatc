@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // 보호되는 라우트
-const protectedRoutes = ['/dashboard', '/admin'];
+const protectedRoutes = ['/airline', '/admin'];
 const authRoutes = ['/login', '/signup', '/forgot-password', '/change-password'];
 const changePasswordRoute = '/change-password';
 
@@ -46,19 +46,19 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // 2. 로그인 상태 + 인증 라우트 → /dashboard로 리다이렉트
+  // 2. 로그인 상태 + 인증 라우트 → /airline으로 리다이렉트
   // (단, /change-password는 제외 - 비밀번호 변경이 필요한 경우를 위함)
   if (isLoggedIn && isAuthRoute && !isChangePasswordRoute) {
-    console.log('[Middleware] 리다이렉트: 인증 라우트 → dashboard');
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    console.log('[Middleware] 리다이렉트: 인증 라우트 → airline');
+    return NextResponse.redirect(new URL('/airline', request.url));
   }
 
   // 3. 로그인 상태 + 역할 기반 접근 제어
   if (isLoggedIn && parsedUser) {
-    // 관리자 라우트 접근 제어 - role이 admin이 아니면 /dashboard로 리다이렉트
+    // 관리자 라우트 접근 제어 - role이 admin이 아니면 /airline으로 리다이렉트
     if (pathname.startsWith('/admin') && parsedUser.role !== 'admin') {
       console.log('[Middleware] 리다이렉트: 권한 없음');
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return NextResponse.redirect(new URL('/airline', request.url));
     }
 
     // 비밀번호 변경 필요 확인
@@ -78,7 +78,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // 보호 라우트
-    '/dashboard/:path*',
+    '/airline/:path*',
     '/admin/:path*',
     // 인증 라우트
     '/login',

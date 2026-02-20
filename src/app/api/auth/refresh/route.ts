@@ -30,7 +30,20 @@ export async function POST(request: NextRequest) {
 
     // DB에서 사용자 정보 조회 (airline_id 포함)
     const result = await query(
-      `SELECT id, email, status, role, airline_id FROM users WHERE id = $1`,
+      `SELECT
+         u.id,
+         u.email,
+         u.status,
+         u.role,
+         u.airline_id,
+         u.is_default_password,
+         u.password_change_required,
+         a.code as airline_code,
+         a.name_ko as airline_name_ko,
+         a.name_en as airline_name_en
+       FROM users u
+       LEFT JOIN airlines a ON u.airline_id = a.id
+       WHERE u.id = $1`,
       [payload.userId]
     );
 
@@ -43,6 +56,15 @@ export async function POST(request: NextRequest) {
 
     const user = result.rows[0];
 
+    const airline = user.airline_code
+      ? {
+          id: user.airline_id,
+          code: user.airline_code,
+          name_ko: user.airline_name_ko,
+          name_en: user.airline_name_en,
+        }
+      : null;
+
     // 새 토큰 생성 (airline_id 포함)
     const newAccessToken = generateAccessToken({
       userId: user.id,
@@ -54,11 +76,24 @@ export async function POST(request: NextRequest) {
 
     const newRefreshToken = generateRefreshToken(user.id);
 
+    const sanitizedUser = {
+      id: user.id,
+      email: user.email,
+      status: user.status,
+      role: user.role,
+      airline_id: user.airline_id,
+      airline,
+      is_default_password: user.is_default_password,
+      password_change_required: user.password_change_required,
+      forceChangePassword: user.is_default_password === true,
+    };
+
     // 응답 생성
     const response = NextResponse.json(
       {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
+        user: sanitizedUser,
       },
       { status: 200 }
     );
@@ -67,6 +102,14 @@ export async function POST(request: NextRequest) {
     response.cookies.set('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60,
+      path: '/',
+    });
+
+    // user 쿠키도 최신 정보로 갱신
+    response.cookies.set('user', JSON.stringify(sanitizedUser), {
+      httpOnly: false,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60,
       path: '/',

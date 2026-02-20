@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS airlines (
   code VARCHAR(10) UNIQUE NOT NULL,
   name_ko VARCHAR(100) NOT NULL,
   name_en VARCHAR(100),
+  display_order INT NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -63,19 +64,17 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
 
--- 국내 항공사 11개 데이터 삽입
-INSERT INTO airlines (code, name_ko, name_en) VALUES
-('KAL', '대한항공', 'Korean Air'),
-('AAR', '아시아나항공', 'Asiana Airlines'),
-('JJA', '제주항공', 'Jeju Air'),
-('JNA', '진에어', 'Jin Air'),
-('TWB', '티웨이항공', 'T''way Air'),
-('ABL', '에어부산', 'Air Busan'),
-('ASV', '에어서울', 'Air Seoul'),
-('ESR', '이스타항공', 'Eastar Jet'),
-('FGW', '플라이강원', 'Fly Gangwon'),
-('ARK', '에어로케이항공', 'Air Korea'),
-('APZ', '에어프레미아', 'Air Premia')
+-- 국내 항공사 9개 데이터 삽입 (display_order 포함)
+INSERT INTO airlines (code, name_ko, name_en, display_order) VALUES
+('KAL', '대한항공', 'Korean Air', 1),
+('AAR', '아시아나항공', 'Asiana Airlines', 2),
+('JJA', '제주항공', 'Jeju Air', 3),
+('JNA', '진에어', 'Jin Air', 4),
+('TWB', '티웨이항공', 'T''way Air', 5),
+('ABL', '에어부산', 'Air Busan', 6),
+('ASV', '에어서울', 'Air Seoul', 7),
+('EOK', '이스타항공', 'Eastar Jet', 8),
+('FGW', '플라이강원', 'Fly Gangwon', 9)
 ON CONFLICT (code) DO NOTHING;
 
 -- 기본 관리자 사용자 삽입 (비밀번호: Admin1234 - bcrypt hash)

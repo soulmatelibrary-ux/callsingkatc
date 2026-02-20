@@ -16,7 +16,7 @@ export default function AdminUsersPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-24 pb-10">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">사용자 관리</h1>
           <p className="mt-1 text-sm text-gray-500">
