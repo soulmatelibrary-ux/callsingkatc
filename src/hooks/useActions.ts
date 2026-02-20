@@ -19,8 +19,8 @@ import {
 } from '@/types/action';
 
 /**
- * 조치 목록 조회 (관리자만)
- * 필터: airlineId, status, search
+ * 조치 목록 조회 (항공사별)
+ * 필터: status, search
  * 페이지네이션 지원
  */
 export function useAirlineActions(filters?: {
@@ -35,28 +35,31 @@ export function useAirlineActions(filters?: {
   const limit = filters?.limit || 20;
 
   return useQuery({
-    queryKey: ['actions', filters?.airlineId, filters?.status, filters?.search, page, limit],
+    queryKey: ['airline-actions', filters?.airlineId, filters?.status, filters?.search, page, limit],
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('인증 토큰이 없습니다.');
       }
 
+      if (!filters?.airlineId) {
+        throw new Error('항공사 ID가 필요합니다.');
+      }
+
       const params = new URLSearchParams();
-      if (filters?.airlineId) params.append('airlineId', filters.airlineId);
       if (filters?.status) params.append('status', filters.status);
       if (filters?.search) params.append('search', filters.search);
       params.append('page', String(page));
       params.append('limit', String(limit));
 
-      const response = await fetch(`/api/actions?${params.toString()}`, {
+      const response = await fetch(`/api/airlines/${filters.airlineId}/actions?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
 
       if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          throw new Error('관리자 권한이 필요합니다.');
+        if (response.status === 401) {
+          throw new Error('인증이 필요합니다.');
         }
         throw new Error('조치 목록 조회 실패');
       }
@@ -64,7 +67,7 @@ export function useAirlineActions(filters?: {
       const data = (await response.json()) as ActionListResponse;
       return data;
     },
-    enabled: !!accessToken,
+    enabled: !!accessToken && !!filters?.airlineId,
     staleTime: 30 * 1000, // 30초
     gcTime: 5 * 60 * 1000, // 5분
   });
@@ -231,7 +234,7 @@ export function useCreateAction() {
     },
     onSuccess: () => {
       // 조치 목록 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['actions'] });
+      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
     },
   });
 }
