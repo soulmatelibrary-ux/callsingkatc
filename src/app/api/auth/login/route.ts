@@ -114,9 +114,25 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // refreshToken만 httpOnly 쿠키에 저장 (user 정보는 쿠키에서 제거)
+    // refreshToken은 httpOnly 쿠키에 저장
     response.cookies.set('refreshToken', refreshToken, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60,
+      path: '/',
+    });
+
+    // user 쿠키 설정 (라우트 보호 및 세션 확인용)
+    response.cookies.set('user', JSON.stringify({
+      id: sanitizedUser.id,
+      email: sanitizedUser.email,
+      role: sanitizedUser.role,
+      status: sanitizedUser.status,
+      airline_id: sanitizedUser.airline_id,
+      airline: sanitizedUser.airline,
+    }), {
+      httpOnly: false, // 클라이언트에서 접근 가능
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60,

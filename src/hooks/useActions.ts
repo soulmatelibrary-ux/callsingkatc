@@ -272,7 +272,7 @@ export function useUpdateAction() {
     },
     onSuccess: () => {
       // 조치 목록 및 상세 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['actions'] });
+      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
       queryClient.invalidateQueries({ queryKey: ['action'] });
     },
   });
@@ -307,7 +307,7 @@ export function useDeleteAction() {
     },
     onSuccess: () => {
       // 조치 목록 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['actions'] });
+      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
     },
   });
 }

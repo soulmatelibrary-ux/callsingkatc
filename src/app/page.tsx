@@ -21,19 +21,19 @@ const airlines = [
   { code: 'APZ', name: '에어프레미아 (APZ)' },
 ];
 
-// 배경에 표시할 항공기 데이터 (인천 FIR 내부)
+// 배경에 표시할 항공기 데이터 (인천 FIR 내부) - 실제 비행 방향 포함
 const radarAircraft = [
-  { airline: 'KAL', flight: 'KAL652', level: 'FL320', speed: '480kts', top: '30%', left: '35%', color: 'rgba(59, 130, 246, 0.7)', rotation: 35, size: 16 },
-  { airline: 'AAR', flight: 'AAR731', level: 'FL280', speed: '440kts', top: '50%', left: '28%', color: 'rgba(16, 185, 129, 0.6)', rotation: 210, size: 15 },
-  { airline: 'JJA', flight: 'JJA183', level: 'FL250', speed: '420kts', top: '40%', left: '40%', color: 'rgba(239, 68, 68, 0.5)', rotation: 120, size: 13 },
-  { airline: 'JNA', flight: 'JNA542', level: 'FL290', speed: '450kts', top: '35%', left: '45%', color: 'rgba(168, 85, 247, 0.6)', rotation: 90, size: 14 },
-  { airline: 'TWB', flight: 'TWB401', level: 'FL310', speed: '470kts', top: '55%', left: '35%', color: 'rgba(34, 197, 94, 0.55)', rotation: 180, size: 14 },
-  { airline: 'ABL', flight: 'ABL621', level: 'FL260', speed: '430kts', top: '45%', left: '50%', color: 'rgba(236, 72, 153, 0.5)', rotation: 45, size: 12 },
-  { airline: 'ASV', flight: 'ASV523', level: 'FL300', speed: '460kts', top: '25%', left: '42%', color: 'rgba(251, 146, 60, 0.6)', rotation: 270, size: 13 },
-  { airline: 'ESR', flight: 'ESR892', level: 'FL270', speed: '440kts', top: '60%', left: '40%', color: 'rgba(59, 130, 246, 0.55)', rotation: 150, size: 12 },
-  { airline: 'FGW', flight: 'FGW341', level: 'FL280', speed: '450kts', top: '32%', left: '48%', color: 'rgba(14, 165, 233, 0.6)', rotation: 60, size: 13 },
-  { airline: 'ARK', flight: 'ARK712', level: 'FL320', speed: '480kts', top: '52%', left: '33%', color: 'rgba(139, 92, 246, 0.5)', rotation: 225, size: 12 },
-  { airline: 'APZ', flight: 'APZ289', level: 'FL310', speed: '470kts', top: '38%', left: '38%', color: 'rgba(6, 182, 212, 0.6)', rotation: 315, size: 14 },
+  { airline: 'KAL', flight: 'KAL652', level: 'FL320', speed: '480kts', top: '30%', left: '35%', color: 'rgba(59, 130, 246, 0.7)', rotation: 45, size: 16 },      // 북동향
+  { airline: 'AAR', flight: 'AAR731', level: 'FL280', speed: '440kts', top: '50%', left: '28%', color: 'rgba(16, 185, 129, 0.6)', rotation: 90, size: 15 },     // 동향
+  { airline: 'JJA', flight: 'JJA183', level: 'FL250', speed: '420kts', top: '40%', left: '40%', color: 'rgba(239, 68, 68, 0.5)', rotation: 135, size: 13 },    // 남동향
+  { airline: 'JNA', flight: 'JNA542', level: 'FL290', speed: '450kts', top: '35%', left: '45%', color: 'rgba(168, 85, 247, 0.6)', rotation: 180, size: 14 },   // 남향
+  { airline: 'TWB', flight: 'TWB401', level: 'FL310', speed: '470kts', top: '55%', left: '35%', color: 'rgba(34, 197, 94, 0.55)', rotation: 225, size: 14 },   // 남서향
+  { airline: 'ABL', flight: 'ABL621', level: 'FL260', speed: '430kts', top: '45%', left: '50%', color: 'rgba(236, 72, 153, 0.5)', rotation: 270, size: 12 },   // 서향
+  { airline: 'ASV', flight: 'ASV523', level: 'FL300', speed: '460kts', top: '25%', left: '42%', color: 'rgba(251, 146, 60, 0.6)', rotation: 315, size: 13 },   // 북서향
+  { airline: 'ESR', flight: 'ESR892', level: 'FL270', speed: '440kts', top: '60%', left: '40%', color: 'rgba(59, 130, 246, 0.55)', rotation: 0, size: 12 },     // 북향
+  { airline: 'FGW', flight: 'FGW341', level: 'FL280', speed: '450kts', top: '32%', left: '48%', color: 'rgba(14, 165, 233, 0.6)', rotation: 30, size: 13 },    // 북북동향
+  { airline: 'ARK', flight: 'ARK712', level: 'FL320', speed: '480kts', top: '52%', left: '33%', color: 'rgba(139, 92, 246, 0.5)', rotation: 60, size: 12 },    // 동북동향
+  { airline: 'APZ', flight: 'APZ289', level: 'FL310', speed: '470kts', top: '38%', left: '38%', color: 'rgba(6, 182, 212, 0.6)', rotation: 150, size: 14 },   // 남남동향
 ];
 
 export default function Home() {
@@ -147,61 +147,105 @@ export default function Home() {
           backgroundSize: '100% 100%, 100% 100%, 50px 50px, 50px 50px',
         }}
       >
-        {/* Incheon FIR Map */}
+        {/* Incheon FIR Map with Korea Terrain */}
         <svg
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
-            width: '65%',
+            width: '70%',
             height: '100%',
-            opacity: 0.65,
+            opacity: 0.7,
             pointerEvents: 'none',
             zIndex: 2,
           }}
-          viewBox="0 0 450 550"
+          viewBox="0 0 500 700"
           preserveAspectRatio="xMinYMid slice"
         >
-          {/* 인천 FIR boundary - Actual boundary based on reference image */}
+          {/* Background - Other FIRs (very subtle gray) */}
+          <rect x="0" y="0" width="500" height="700" fill="rgba(200, 200, 200, 0.1)" />
+
+          {/* 심양 FIR outline (subtle gray) */}
           <path
-            d="M 80 80 L 240 80 L 320 120 Q 340 150 330 200 L 320 280 Q 310 320 280 350 L 200 380 L 120 370 Q 90 360 80 320 L 70 200 Q 75 140 80 80 Z"
-            fill="rgba(220, 38, 38, 0.12)"
-            stroke="rgba(220, 38, 38, 0.85)"
-            strokeWidth="5"
+            d="M 200 30 L 350 50 L 380 150 L 300 180 L 220 150 Z"
+            fill="rgba(180, 180, 180, 0.08)"
+            stroke="rgba(150, 150, 150, 0.3)"
+            strokeWidth="2"
+          />
+
+          {/* 평양 FIR outline (subtle gray) */}
+          <path
+            d="M 100 80 L 200 30 L 220 150 L 150 160 Z"
+            fill="rgba(180, 180, 180, 0.08)"
+            stroke="rgba(150, 150, 150, 0.3)"
+            strokeWidth="2"
+          />
+
+          {/* 서해 FIR outline (subtle gray) */}
+          <path
+            d="M 30 200 L 100 80 L 150 160 L 80 250 Z"
+            fill="rgba(180, 180, 180, 0.08)"
+            stroke="rgba(150, 150, 150, 0.3)"
+            strokeWidth="2"
+          />
+
+          {/* 제주 FIR outline (subtle gray) */}
+          <path
+            d="M 150 550 L 220 500 L 280 550 L 250 620 Z"
+            fill="rgba(180, 180, 180, 0.08)"
+            stroke="rgba(150, 150, 150, 0.3)"
+            strokeWidth="2"
+          />
+
+          {/* 후쿠오카 FIR outline (subtle gray) */}
+          <path
+            d="M 350 250 L 450 200 L 480 350 L 380 380 Z"
+            fill="rgba(180, 180, 180, 0.08)"
+            stroke="rgba(150, 150, 150, 0.3)"
+            strokeWidth="2"
+          />
+
+          {/* ====== INCHEON FIR (Main Focus) ====== */}
+          {/* Incheon FIR Fill - Pink/Purple */}
+          <path
+            d="M 120 150 L 280 120 L 350 180 Q 370 220 360 300 L 340 400 Q 320 450 260 480 L 150 500 Q 100 480 90 400 L 80 250 Q 90 180 120 150 Z"
+            fill="rgba(216, 100, 250, 0.25)"
+            stroke="rgba(168, 85, 247, 0.8)"
+            strokeWidth="6"
             strokeLinejoin="round"
             strokeLinecap="round"
           />
 
-          {/* Korea mainland silhouette (very subtle) */}
+          {/* Korea Mainland - Dark silhouette inside FIR */}
           <path
-            d="M 120 180 Q 140 200 150 220 Q 160 250 150 280 Q 140 300 120 310 L 120 180 Z"
-            fill="rgba(148, 163, 184, 0.15)"
-            stroke="none"
+            d="M 150 200 Q 160 220 170 240 Q 180 260 175 290 Q 170 320 160 340 Q 155 350 150 360 L 140 340 Q 135 310 140 280 Q 145 250 150 220 Z"
+            fill="rgba(80, 80, 100, 0.4)"
+            stroke="rgba(60, 60, 80, 0.6)"
+            strokeWidth="1.5"
           />
 
-          {/* Incheon Airport (ICN) - Center marker */}
-          <circle cx="170" cy="220" r="7" fill="rgba(220, 38, 38, 0.9)" />
-          <circle cx="170" cy="220" r="14" fill="none" stroke="rgba(220, 38, 38, 0.5)" strokeWidth="2" />
-          <text x="170" y="255" fontSize="12" fill="rgba(220, 38, 38, 0.85)" fontWeight="bold" textAnchor="middle" fontFamily="Arial, sans-serif">
-            ICN
+          {/* Jeju Island - Small silhouette inside FIR */}
+          <ellipse cx="200" cy="420" rx="12" ry="18" fill="rgba(80, 80, 100, 0.3)" stroke="rgba(60, 60, 80, 0.5)" strokeWidth="1" />
+
+          {/* Incheon Airport (ICN) - Purple marker */}
+          <circle cx="170" cy="260" r="8" fill="rgba(168, 85, 247, 1)" />
+          <circle cx="170" cy="260" r="16" fill="none" stroke="rgba(168, 85, 247, 0.4)" strokeWidth="2" />
+          <text x="170" y="310" fontSize="13" fill="rgba(168, 85, 247, 0.9)" fontWeight="bold" textAnchor="middle" fontFamily="Arial, sans-serif">
+            인천
           </text>
 
           {/* FIR Title */}
-          <text x="200" y="50" fontSize="32" fill="rgba(220, 38, 38, 0.9)" fontWeight="900" textAnchor="middle" fontFamily="Arial, sans-serif">
+          <text x="240" y="80" fontSize="36" fill="rgba(168, 85, 247, 0.95)" fontWeight="900" textAnchor="middle" fontFamily="Arial, sans-serif">
             인천 FIR
           </text>
 
-          {/* Coordinate grid (very subtle) */}
-          <line x1="80" y1="100" x2="340" y2="100" stroke="rgba(220, 38, 38, 0.08)" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="80" y1="150" x2="340" y2="150" stroke="rgba(220, 38, 38, 0.08)" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="80" y1="200" x2="340" y2="200" stroke="rgba(220, 38, 38, 0.08)" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="80" y1="250" x2="340" y2="250" stroke="rgba(220, 38, 38, 0.08)" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="80" y1="300" x2="340" y2="300" stroke="rgba(220, 38, 38, 0.08)" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="80" y1="350" x2="340" y2="350" stroke="rgba(220, 38, 38, 0.08)" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="120" y1="80" x2="120" y2="370" stroke="rgba(220, 38, 38, 0.08)" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="180" y1="80" x2="180" y2="370" stroke="rgba(220, 38, 38, 0.08)" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="240" y1="80" x2="240" y2="370" stroke="rgba(220, 38, 38, 0.08)" strokeWidth="1" strokeDasharray="4,4" />
-          <line x1="300" y1="80" x2="300" y2="370" stroke="rgba(220, 38, 38, 0.08)" strokeWidth="1" strokeDasharray="4,4" />
+          {/* Subtle grid */}
+          <line x1="120" y1="150" x2="120" y2="500" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
+          <line x1="200" y1="150" x2="200" y2="500" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
+          <line x1="280" y1="150" x2="280" y2="500" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
+          <line x1="120" y1="220" x2="360" y2="220" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
+          <line x1="120" y1="300" x2="360" y2="300" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
+          <line x1="120" y1="380" x2="360" y2="380" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
         </svg>
 
 
