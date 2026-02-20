@@ -187,25 +187,16 @@ export async function POST(request: NextRequest) {
 
           const airlineId = airlineResult.rows[0].id;
 
-          // UPSERT (존재하면 업데이트, 없으면 삽입)
-          const result = await query(
-            `INSERT INTO callsigns 
+          // Step 1: callsigns 테이블에 호출부호 쌍 저장 (없으면 생성, 있으면 유지)
+          const callsignResult = await query(
+            `INSERT INTO callsigns
               (airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
                other_airline_code, error_type, sub_error, risk_level, similarity,
-               occurrence_count, file_upload_id, uploaded_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+               file_upload_id, uploaded_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
              ON CONFLICT (airline_code, callsign_pair)
-             DO UPDATE SET
-               my_callsign = EXCLUDED.my_callsign,
-               other_callsign = EXCLUDED.other_callsign,
-               other_airline_code = EXCLUDED.other_airline_code,
-               error_type = EXCLUDED.error_type,
-               sub_error = EXCLUDED.sub_error,
-               risk_level = EXCLUDED.risk_level,
-               similarity = EXCLUDED.similarity,
-               occurrence_count = EXCLUDED.occurrence_count,
-               updated_at = NOW()
-             RETURNING (xmax = 0) AS inserted`,
+             DO UPDATE SET updated_at = NOW()
+             RETURNING id, (xmax = 0) AS inserted`,
             [
               airlineId,
               rowData.airline_code,
@@ -217,12 +208,41 @@ export async function POST(request: NextRequest) {
               rowData.sub_error,
               rowData.risk_level,
               rowData.similarity,
-              rowData.occurrence_count || 0,
               uploadId,
             ]
           );
 
-          if (result.rows[0].inserted) {
+          const callsignId = callsignResult.rows[0].id;
+          const isNewCallsign = callsignResult.rows[0].inserted;
+
+          // Step 2: 발생 날짜 추출 (시작일 row[0] 사용, 없으면 오늘)
+          const occurredDateStr = row[0] ? String(row[0]).trim() : new Date().toISOString().split('T')[0];
+          // 날짜 포맷 변환 (예: "2025-12-10" 또는 "12/10/2025")
+          let occurredDate = occurredDateStr;
+          if (occurredDateStr.includes('/')) {
+            const parts = occurredDateStr.split('/');
+            if (parts.length === 3) {
+              // "MM/DD/YYYY" -> "YYYY-MM-DD"
+              occurredDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+            }
+          }
+
+          // Step 3: callsign_occurrences 테이블에 발생 이력 저장
+          // 같은 callsign이 같은 날짜에 여러 번 나타나면 스킵 (UNIQUE constraint)
+          try {
+            await query(
+              `INSERT INTO callsign_occurrences
+                (callsign_id, occurred_date, error_type, sub_error, file_upload_id)
+               VALUES ($1, $2, $3, $4, $5)
+               ON CONFLICT (callsign_id, occurred_date) DO NOTHING`,
+              [callsignId, occurredDate, rowData.error_type, rowData.sub_error, uploadId]
+            );
+          } catch (occurrenceError) {
+            // 발생 이력 저장 실패해도 호출부호는 이미 저장되었으므로 진행
+            console.warn(`발생 이력 저장 실패 (callsignId: ${callsignId}, date: ${occurredDate}):`, occurrenceError);
+          }
+
+          if (isNewCallsign) {
             insertedCount++;
           } else {
             updatedCount++;

@@ -159,6 +159,34 @@ CREATE INDEX IF NOT EXISTS idx_callsigns_pair ON callsigns(callsign_pair);
 CREATE INDEX IF NOT EXISTS idx_callsigns_risk_level ON callsigns(risk_level);
 CREATE INDEX IF NOT EXISTS idx_callsigns_created_at ON callsigns(created_at DESC);
 
+-- 2-1. callsign_occurrences 테이블 (호출부호 쌍의 발생 이력)
+-- 같은 호출부호 쌍이 여러 날짜에 발생한 경우를 별도로 관리
+CREATE TABLE IF NOT EXISTS callsign_occurrences (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  callsign_id UUID NOT NULL REFERENCES callsigns(id) ON DELETE CASCADE,
+
+  -- 발생 날짜 및 정보
+  occurred_date DATE NOT NULL,                     -- 발생 날짜
+  occurred_time TIMESTAMP,                         -- 발생 시간 (선택사항)
+
+  -- 발생 상황 정보
+  error_type VARCHAR(30),                         -- "관제사 오류", "조종사 오류", "오류 미발생"
+  sub_error VARCHAR(30),                          -- "복창오류", "무응답/재호출" 등
+  location VARCHAR(100),                          -- 발생 위치 (공역, 공항 등)
+  flight_level VARCHAR(20),                       -- 비행 고도
+
+  -- 메타정보
+  file_upload_id UUID REFERENCES file_uploads(id) ON DELETE SET NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+  -- 제약조건: 같은 callsign에서 같은 날짜의 중복 방지
+  UNIQUE(callsign_id, occurred_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_callsign_occurrences_callsign_id ON callsign_occurrences(callsign_id);
+CREATE INDEX IF NOT EXISTS idx_callsign_occurrences_occurred_date ON callsign_occurrences(occurred_date DESC);
+
 -- 3. actions 테이블 (조치 이력 관리)
 CREATE TABLE IF NOT EXISTS actions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

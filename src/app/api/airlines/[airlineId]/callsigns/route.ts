@@ -58,15 +58,22 @@ export async function GET(
 
     // 쿼리 구성
     // 조치가 등록되지 않은 호출부호만 조회 (LEFT JOIN으로 조치 없는 것 필터링)
+    // callsign_occurrences와 JOIN하여 발생 건수 및 최근 발생일 집계
     let sql = `
       SELECT
         c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
         c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
-        c.occurrence_count, c.last_occurred_at, c.file_upload_id, c.uploaded_at,
-        c.created_at, c.updated_at
+        c.file_upload_id, c.uploaded_at,
+        c.created_at, c.updated_at,
+        COUNT(co.id) AS occurrence_count,
+        MAX(co.occurred_date) AS last_occurred_at
       FROM callsigns c
       LEFT JOIN actions a ON c.id = a.callsign_id
+      LEFT JOIN callsign_occurrences co ON c.id = co.callsign_id
       WHERE c.airline_id = $1 AND a.id IS NULL
+      GROUP BY c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
+               c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
+               c.file_upload_id, c.uploaded_at, c.created_at, c.updated_at
     `;
     const sqlParams: any[] = [airlineId];
 
@@ -82,11 +89,12 @@ export async function GET(
 
     const result = await query(sql, sqlParams);
 
-    // 전체 개수 조회
+    // 전체 개수 조회 (고유 호출부호 쌍의 개수)
     let countSql = `
-      SELECT COUNT(*) as total
+      SELECT COUNT(DISTINCT c.id) as total
       FROM callsigns c
       LEFT JOIN actions a ON c.id = a.callsign_id
+      LEFT JOIN callsign_occurrences co ON c.id = co.callsign_id
       WHERE c.airline_id = $1 AND a.id IS NULL
     `;
     const countSqlParams: any[] = [airlineId];
