@@ -515,13 +515,28 @@ export default function AirlinePage() {
                   <div className="overflow-x-auto flex-1">
                     <div className="divide-y divide-gray-50">
                       {visibleIncidents.map((incident: any) => {
-                        // 호출부호 숫자 색상 처리 (일치하는 자리 파란색, 다른 자리 주황색)
+                        // 호출부호 숫자 색상 처리: 같은 숫자끼리 같은 색
                         const renderColoredCallsign = (callsignPair: string) => {
                           const parts = callsignPair.split('↔');
                           if (parts.length !== 2) return callsignPair;
 
                           const [my, other] = [parts[0].trim(), parts[1].trim()];
-                          const minLen = Math.min(my.length, other.length);
+
+                          // 모든 숫자 추출 및 색상 할당 (숫자별로 일관된 색상)
+                          const colorMap: Record<string, string> = {};
+                          const colors = [
+                            'text-blue-600', 'text-rose-600', 'text-amber-600', 'text-emerald-600',
+                            'text-cyan-600', 'text-purple-600', 'text-indigo-600', 'text-pink-600',
+                            'text-lime-600', 'text-teal-600'
+                          ];
+
+                          // 숫자별 색상 맵핑 (0-9)
+                          Array.from(new Set((my + other).split(''))).forEach((char, idx) => {
+                            if (char >= '0' && char <= '9') {
+                              const digitIdx = parseInt(char, 10);
+                              colorMap[char] = colors[digitIdx % colors.length];
+                            }
+                          });
 
                           return (
                             <div className="flex items-center gap-1">
@@ -529,22 +544,18 @@ export default function AirlinePage() {
                                 <span
                                   key={`my-${idx}`}
                                   className={`font-black text-sm ${
-                                    idx < minLen && my[idx] === other[idx]
-                                      ? 'text-blue-600'
-                                      : 'text-amber-600'
+                                    char >= '0' && char <= '9' ? colorMap[char] : 'text-gray-900'
                                   }`}
                                 >
                                   {char}
                                 </span>
                               ))}
-                              <span className="text-gray-400 font-bold">↔</span>
+                              <span className="text-gray-300 font-bold">↔</span>
                               {Array.from(other).map((char, idx) => (
                                 <span
                                   key={`other-${idx}`}
                                   className={`font-black text-sm ${
-                                    idx < minLen && my[idx] === other[idx]
-                                      ? 'text-blue-600'
-                                      : 'text-amber-600'
+                                    char >= '0' && char <= '9' ? colorMap[char] : 'text-gray-900'
                                   }`}
                                 >
                                   {char}
@@ -555,9 +566,9 @@ export default function AirlinePage() {
                         };
 
                         return (
-                          <div key={incident.id} className="border-b border-gray-50 last:border-b-0">
+                          <div key={incident.id} className="border-b-2 border-gray-100 last:border-b-0">
                             {/* 첫 번째 행: 호출부호, 오류 유형, 조치 등록 버튼 */}
-                            <div className="px-8 py-5 flex items-center justify-between gap-6 group hover:bg-primary/[0.02] transition-colors">
+                            <div className="px-8 py-5 flex items-center justify-between gap-6 group hover:bg-primary/[0.02] transition-colors border-b border-gray-50">
                               <div className="flex-1 min-w-0">
                                 {renderColoredCallsign(incident.pair)}
                               </div>
