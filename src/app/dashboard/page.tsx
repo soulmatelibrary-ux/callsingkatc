@@ -5,16 +5,17 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
 import { Header } from '@/components/layout/Header';
-import { useAirlineCallsigns, useAirlineActions } from '@/hooks/useActions';
+import { useAirlineCallsigns, useAirlineActions, useDeleteAction } from '@/hooks/useActions';
 import { ActionDetailModal } from '@/components/actions/ActionDetailModal';
 import { Action } from '@/types/action';
 import * as XLSX from 'xlsx';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore((s) => ({
+  const { user, isAuthenticated, isAdmin } = useAuthStore((s) => ({
     user: s.user,
     isAuthenticated: s.isAuthenticated(),
+    isAdmin: s.isAdmin(),
   }));
 
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -30,10 +31,22 @@ export default function DashboardPage() {
   const [riskLevelFilter, setRiskLevelFilter] = useState<string>('');
   const [callsignPage, setCallsignPage] = useState(1);
 
-  // 조치 이력 필터
+  // 조치 이력 필터 (기본값: 1개월)
+  const getDefaultDateFrom = () => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    return date.toISOString().split('T')[0];
+  };
+
   const [actionStatusFilter, setActionStatusFilter] = useState<'pending' | 'in_progress' | 'completed' | ''>('');
+  const [actionDateFrom, setActionDateFrom] = useState(getDefaultDateFrom());
+  const [actionDateTo, setActionDateTo] = useState(new Date().toISOString().split('T')[0]);
   const [actionPage, setActionPage] = useState(1);
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
+  const [deletingActionId, setDeletingActionId] = useState<string | null>(null);
+
+  // 조치 삭제
+  const deleteActionMutation = useDeleteAction();
 
   // 호출부호 목록 조회 (사용자의 항공사별)
   const callsignsQuery = useAirlineCallsigns(user?.airline_id, {
@@ -42,10 +55,12 @@ export default function DashboardPage() {
     limit: 20,
   });
 
-  // 조치 이력 조회 (사용자의 항공사별)
+  // 조치 이력 조회 (사용자의 항공사별, 기본값 1개월)
   const actionsQuery = useAirlineActions({
     airlineId: user?.airline_id,
     status: actionStatusFilter as any,
+    dateFrom: actionDateFrom || undefined,
+    dateTo: actionDateTo || undefined,
     page: actionPage,
     limit: 20,
   });
@@ -114,6 +129,20 @@ export default function DashboardPage() {
       });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDeleteAction = async (actionId: string) => {
+    if (!confirm('이 조치를 삭제하시겠습니까?')) {
+      return;
+    }
+
+    setDeletingActionId(actionId);
+    try {
+      await deleteActionMutation.mutateAsync(actionId);
+      await actionsQuery.refetch();
+    } finally {
+      setDeletingActionId(null);
     }
   };
 
@@ -388,6 +417,50 @@ export default function DashboardPage() {
             </button>
           </div>
 
+          {/* 날짜 필터 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                시작일
+              </label>
+              <input
+                type="date"
+                value={actionDateFrom}
+                onChange={(e) => {
+                  setActionDateFrom(e.target.value);
+                  setActionPage(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                종료일
+              </label>
+              <input
+                type="date"
+                value={actionDateTo}
+                onChange={(e) => {
+                  setActionDateTo(e.target.value);
+                  setActionPage(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setActionDateFrom(getDefaultDateFrom());
+                  setActionDateTo(new Date().toISOString().split('T')[0]);
+                  setActionPage(1);
+                }}
+                className="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
+              >
+                초기화
+              </button>
+            </div>
+          </div>
+
           {/* 조치 이력 테이블 */}
           {actionsQuery.isLoading ? (
             <div className="p-8 text-center text-gray-600">로딩 중...</div>
@@ -422,6 +495,11 @@ export default function DashboardPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                       상세
                     </th>
+                    {isAdmin && (
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                        삭제
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -492,6 +570,17 @@ export default function DashboardPage() {
                           상세보기
                         </button>
                       </td>
+                      {isAdmin && (
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => handleDeleteAction(action.id)}
+                            disabled={deletingActionId === action.id || deleteActionMutation.isPending}
+                            className="px-3 py-1 text-red-600 hover:text-red-800 font-medium text-sm border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {deletingActionId === action.id ? '삭제 중...' : '삭제'}
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

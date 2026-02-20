@@ -5,6 +5,8 @@
  * 쿼리 파라미터:
  *   - status: pending|in_progress|completed
  *   - search: 검색어 (유사호출부호, 조치유형, 담당자)
+ *   - dateFrom: 시작 날짜 (YYYY-MM-DD)
+ *   - dateTo: 종료 날짜 (YYYY-MM-DD)
  *   - page: 페이지 번호 (기본값: 1)
  *   - limit: 페이지 크기 (기본값: 20, 최대: 100)
  *
@@ -57,6 +59,8 @@ export async function GET(
     // 필터 파라미터
     const status = request.nextUrl.searchParams.get('status');
     const search = request.nextUrl.searchParams.get('search');
+    const dateFrom = request.nextUrl.searchParams.get('dateFrom');
+    const dateTo = request.nextUrl.searchParams.get('dateTo');
     const page = Math.max(1, parseInt(request.nextUrl.searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
@@ -96,6 +100,17 @@ export async function GET(
       queryParams.push(`%${search.trim()}%`);
     }
 
+    // 날짜 필터 조건
+    if (dateFrom) {
+      sql += ` AND a.registered_at::date >= $${queryParams.length + 1}::date`;
+      queryParams.push(dateFrom);
+    }
+
+    if (dateTo) {
+      sql += ` AND a.registered_at::date <= $${queryParams.length + 1}::date`;
+      queryParams.push(dateTo);
+    }
+
     // 페이지네이션
     sql += ` ORDER BY a.registered_at DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
     queryParams.push(limit);
@@ -122,6 +137,17 @@ export async function GET(
       countParams.push(`%${search.trim()}%`);
       countParams.push(`%${search.trim()}%`);
       countParams.push(`%${search.trim()}%`);
+    }
+
+    // 날짜 필터 조건
+    if (dateFrom) {
+      countSql += ` AND a.registered_at::date >= $${countParams.length + 1}::date`;
+      countParams.push(dateFrom);
+    }
+
+    if (dateTo) {
+      countSql += ` AND a.registered_at::date <= $${countParams.length + 1}::date`;
+      countParams.push(dateTo);
     }
 
     const countResult = await query(countSql, countParams);

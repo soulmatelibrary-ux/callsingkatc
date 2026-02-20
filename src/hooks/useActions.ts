@@ -76,13 +76,15 @@ export function useAllActions(filters?: {
 
 /**
  * 조치 목록 조회 (항공사별)
- * 필터: status, search
+ * 필터: status, search, dateFrom, dateTo
  * 페이지네이션 지원
  */
 export function useAirlineActions(filters?: {
   airlineId?: string;
   status?: 'pending' | 'in_progress' | 'completed';
   search?: string;
+  dateFrom?: string;
+  dateTo?: string;
   page?: number;
   limit?: number;
 }) {
@@ -91,7 +93,7 @@ export function useAirlineActions(filters?: {
   const limit = filters?.limit || 20;
 
   return useQuery({
-    queryKey: ['airline-actions', filters?.airlineId, filters?.status, filters?.search, page, limit],
+    queryKey: ['airline-actions', filters?.airlineId, filters?.status, filters?.search, filters?.dateFrom, filters?.dateTo, page, limit],
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('인증 토큰이 없습니다.');
@@ -104,6 +106,8 @@ export function useAirlineActions(filters?: {
       const params = new URLSearchParams();
       if (filters?.status) params.append('status', filters.status);
       if (filters?.search) params.append('search', filters.search);
+      if (filters?.dateFrom) params.append('dateFrom', filters.dateFrom);
+      if (filters?.dateTo) params.append('dateTo', filters.dateTo);
       params.append('page', String(page));
       params.append('limit', String(limit));
 

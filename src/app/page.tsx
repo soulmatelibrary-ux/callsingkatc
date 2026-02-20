@@ -21,19 +21,34 @@ const airlines = [
   { code: 'APZ', name: '에어프레미아 (APZ)' },
 ];
 
-// 배경에 표시할 항공기 데이터 (인천 FIR 내부) - 실제 비행 방향 포함
+// 배경에 표시할 항공기 데이터 - 항로 기반 애니메이션
 const radarAircraft = [
-  { airline: 'KAL', flight: 'KAL652', level: 'FL320', speed: '480kts', top: '30%', left: '35%', color: 'rgba(59, 130, 246, 0.7)', rotation: 45, size: 16 },      // 북동향
-  { airline: 'AAR', flight: 'AAR731', level: 'FL280', speed: '440kts', top: '50%', left: '28%', color: 'rgba(16, 185, 129, 0.6)', rotation: 90, size: 15 },     // 동향
-  { airline: 'JJA', flight: 'JJA183', level: 'FL250', speed: '420kts', top: '40%', left: '40%', color: 'rgba(239, 68, 68, 0.5)', rotation: 135, size: 13 },    // 남동향
-  { airline: 'JNA', flight: 'JNA542', level: 'FL290', speed: '450kts', top: '35%', left: '45%', color: 'rgba(168, 85, 247, 0.6)', rotation: 180, size: 14 },   // 남향
-  { airline: 'TWB', flight: 'TWB401', level: 'FL310', speed: '470kts', top: '55%', left: '35%', color: 'rgba(34, 197, 94, 0.55)', rotation: 225, size: 14 },   // 남서향
-  { airline: 'ABL', flight: 'ABL621', level: 'FL260', speed: '430kts', top: '45%', left: '50%', color: 'rgba(236, 72, 153, 0.5)', rotation: 270, size: 12 },   // 서향
-  { airline: 'ASV', flight: 'ASV523', level: 'FL300', speed: '460kts', top: '25%', left: '42%', color: 'rgba(251, 146, 60, 0.6)', rotation: 315, size: 13 },   // 북서향
-  { airline: 'ESR', flight: 'ESR892', level: 'FL270', speed: '440kts', top: '60%', left: '40%', color: 'rgba(59, 130, 246, 0.55)', rotation: 0, size: 12 },     // 북향
-  { airline: 'FGW', flight: 'FGW341', level: 'FL280', speed: '450kts', top: '32%', left: '48%', color: 'rgba(14, 165, 233, 0.6)', rotation: 30, size: 13 },    // 북북동향
-  { airline: 'ARK', flight: 'ARK712', level: 'FL320', speed: '480kts', top: '52%', left: '33%', color: 'rgba(139, 92, 246, 0.5)', rotation: 60, size: 12 },    // 동북동향
-  { airline: 'APZ', flight: 'APZ289', level: 'FL310', speed: '470kts', top: '38%', left: '38%', color: 'rgba(6, 182, 212, 0.6)', rotation: 150, size: 14 },   // 남남동향
+  { airline: 'KAL', flight: 'KAL652', level: 'FL320', speed: '480kts', color: 'rgba(59, 130, 246, 0.7)', pathId: 'path1', size: 16 },
+  { airline: 'AAR', flight: 'AAR731', level: 'FL280', speed: '440kts', color: 'rgba(16, 185, 129, 0.6)', pathId: 'path2', size: 15 },
+  { airline: 'JJA', flight: 'JJA183', level: 'FL250', speed: '420kts', color: 'rgba(239, 68, 68, 0.5)', pathId: 'path3', size: 13 },
+  { airline: 'JNA', flight: 'JNA542', level: 'FL290', speed: '450kts', color: 'rgba(168, 85, 247, 0.6)', pathId: 'path4', size: 14 },
+  { airline: 'TWB', flight: 'TWB401', level: 'FL310', speed: '470kts', color: 'rgba(34, 197, 94, 0.55)', pathId: 'path5', size: 14 },
+  { airline: 'ABL', flight: 'ABL621', level: 'FL260', speed: '430kts', color: 'rgba(236, 72, 153, 0.5)', pathId: 'path6', size: 12 },
+  { airline: 'ASV', flight: 'ASV523', level: 'FL300', speed: '460kts', color: 'rgba(251, 146, 60, 0.6)', pathId: 'path7', size: 13 },
+  { airline: 'ESR', flight: 'ESR892', level: 'FL270', speed: '440kts', color: 'rgba(59, 130, 246, 0.55)', pathId: 'path8', size: 12 },
+  { airline: 'FGW', flight: 'FGW341', level: 'FL280', speed: '450kts', color: 'rgba(14, 165, 233, 0.6)', pathId: 'path9', size: 13 },
+  { airline: 'ARK', flight: 'ARK712', level: 'FL320', speed: '480kts', color: 'rgba(139, 92, 246, 0.5)', pathId: 'path10', size: 12 },
+  { airline: 'APZ', flight: 'APZ289', level: 'FL310', speed: '470kts', color: 'rgba(6, 182, 212, 0.6)', pathId: 'path11', size: 14 },
+];
+
+// 항로 경로 데이터 (cubic bezier curves)
+const flightRoutes = [
+  { id: 'path1', pathD: 'M 10,80 Q 35,20 70,50 T 95,90', duration: 24 },
+  { id: 'path2', pathD: 'M 85,10 Q 75,45 50,70 Q 25,85 15,60', duration: 22 },
+  { id: 'path3', pathD: 'M 5,45 L 50,20 Q 80,40 60,85 L 25,75', duration: 20 },
+  { id: 'path4', pathD: 'M 90,75 Q 65,50 40,55 Q 20,60 15,40', duration: 21 },
+  { id: 'path5', pathD: 'M 30,90 Q 55,65 80,70 T 95,30', duration: 23 },
+  { id: 'path6', pathD: 'M 100,50 L 75,15 Q 45,35 35,80 L 80,95', duration: 25 },
+  { id: 'path7', pathD: 'M 20,20 Q 50,10 85,45 Q 70,75 35,70', duration: 19 },
+  { id: 'path8', pathD: 'M 75,85 Q 50,70 25,50 L 20,15 L 55,25', duration: 22 },
+  { id: 'path9', pathD: 'M 40,10 Q 65,30 70,70 Q 45,80 20,65', duration: 21 },
+  { id: 'path10', pathD: 'M 95,20 L 70,45 Q 40,60 15,50 L 25,25', duration: 24 },
+  { id: 'path11', pathD: 'M 10,30 Q 40,15 75,35 Q 85,65 50,85', duration: 20 },
 ];
 
 export default function Home() {
@@ -129,7 +144,7 @@ export default function Home() {
         overflow: 'hidden',
       }}
     >
-      {/* Incheon FIR Map Background */}
+      {/* Flight Routes Background */}
       <div
         style={{
           position: 'absolute',
@@ -147,162 +162,85 @@ export default function Home() {
           backgroundSize: '100% 100%, 100% 100%, 50px 50px, 50px 50px',
         }}
       >
-        {/* Incheon FIR Map with Korea Terrain */}
+        {/* SVG Flight Routes */}
         <svg
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
-            width: '70%',
+            width: '100%',
             height: '100%',
-            opacity: 0.7,
+            opacity: 0.5,
             pointerEvents: 'none',
-            zIndex: 2,
+            zIndex: 1,
           }}
-          viewBox="0 0 500 700"
-          preserveAspectRatio="xMinYMid slice"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
         >
-          {/* Background - Other FIRs (very subtle gray) */}
-          <rect x="0" y="0" width="500" height="700" fill="rgba(200, 200, 200, 0.1)" />
-
-          {/* 심양 FIR outline (subtle gray) */}
-          <path
-            d="M 200 30 L 350 50 L 380 150 L 300 180 L 220 150 Z"
-            fill="rgba(180, 180, 180, 0.08)"
-            stroke="rgba(150, 150, 150, 0.3)"
-            strokeWidth="2"
-          />
-
-          {/* 평양 FIR outline (subtle gray) */}
-          <path
-            d="M 100 80 L 200 30 L 220 150 L 150 160 Z"
-            fill="rgba(180, 180, 180, 0.08)"
-            stroke="rgba(150, 150, 150, 0.3)"
-            strokeWidth="2"
-          />
-
-          {/* 서해 FIR outline (subtle gray) */}
-          <path
-            d="M 30 200 L 100 80 L 150 160 L 80 250 Z"
-            fill="rgba(180, 180, 180, 0.08)"
-            stroke="rgba(150, 150, 150, 0.3)"
-            strokeWidth="2"
-          />
-
-          {/* 제주 FIR outline (subtle gray) */}
-          <path
-            d="M 150 550 L 220 500 L 280 550 L 250 620 Z"
-            fill="rgba(180, 180, 180, 0.08)"
-            stroke="rgba(150, 150, 150, 0.3)"
-            strokeWidth="2"
-          />
-
-          {/* 후쿠오카 FIR outline (subtle gray) */}
-          <path
-            d="M 350 250 L 450 200 L 480 350 L 380 380 Z"
-            fill="rgba(180, 180, 180, 0.08)"
-            stroke="rgba(150, 150, 150, 0.3)"
-            strokeWidth="2"
-          />
-
-          {/* ====== INCHEON FIR (Main Focus) ====== */}
-          {/* Incheon FIR Fill - Pink/Purple */}
-          <path
-            d="M 120 150 L 280 120 L 350 180 Q 370 220 360 300 L 340 400 Q 320 450 260 480 L 150 500 Q 100 480 90 400 L 80 250 Q 90 180 120 150 Z"
-            fill="rgba(216, 100, 250, 0.25)"
-            stroke="rgba(168, 85, 247, 0.8)"
-            strokeWidth="6"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-
-          {/* Korea Mainland - Dark silhouette inside FIR */}
-          <path
-            d="M 150 200 Q 160 220 170 240 Q 180 260 175 290 Q 170 320 160 340 Q 155 350 150 360 L 140 340 Q 135 310 140 280 Q 145 250 150 220 Z"
-            fill="rgba(80, 80, 100, 0.4)"
-            stroke="rgba(60, 60, 80, 0.6)"
-            strokeWidth="1.5"
-          />
-
-          {/* Jeju Island - Small silhouette inside FIR */}
-          <ellipse cx="200" cy="420" rx="12" ry="18" fill="rgba(80, 80, 100, 0.3)" stroke="rgba(60, 60, 80, 0.5)" strokeWidth="1" />
-
-          {/* Incheon Airport (ICN) - Purple marker */}
-          <circle cx="170" cy="260" r="8" fill="rgba(168, 85, 247, 1)" />
-          <circle cx="170" cy="260" r="16" fill="none" stroke="rgba(168, 85, 247, 0.4)" strokeWidth="2" />
-          <text x="170" y="310" fontSize="13" fill="rgba(168, 85, 247, 0.9)" fontWeight="bold" textAnchor="middle" fontFamily="Arial, sans-serif">
-            인천
-          </text>
-
-          {/* FIR Title */}
-          <text x="240" y="80" fontSize="36" fill="rgba(168, 85, 247, 0.95)" fontWeight="900" textAnchor="middle" fontFamily="Arial, sans-serif">
-            인천 FIR
-          </text>
-
-          {/* Subtle grid */}
-          <line x1="120" y1="150" x2="120" y2="500" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
-          <line x1="200" y1="150" x2="200" y2="500" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
-          <line x1="280" y1="150" x2="280" y2="500" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
-          <line x1="120" y1="220" x2="360" y2="220" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
-          <line x1="120" y1="300" x2="360" y2="300" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
-          <line x1="120" y1="380" x2="360" y2="380" stroke="rgba(168, 85, 247, 0.06)" strokeWidth="1" strokeDasharray="5,5" />
+          {/* Flight route paths */}
+          {flightRoutes.map((route) => (
+            <path
+              key={route.id}
+              d={route.pathD}
+              stroke="rgba(148, 163, 184, 0.3)"
+              strokeWidth="0.5"
+              fill="none"
+              vectorEffect="non-scaling-stroke"
+            />
+          ))}
         </svg>
-
 
         {/* Aircraft Blips - All 11 Airlines */}
         {radarAircraft.map((aircraft, idx) => {
-          // Assign different movement animations to create natural flight patterns
-          const animations = ['moveX', 'moveY', 'moveXReverse', 'moveYReverse'];
-          const selectedAnimation = animations[idx % animations.length];
-          const duration = 2.5 + idx * 0.3;
-          const delay = idx * 0.2;
+          const route = flightRoutes[idx];
+          const duration = route?.duration || 20;
 
           return (
-          <div
-            key={idx}
-            className="plane-blip"
-            style={{
-              position: 'absolute',
-              top: aircraft.top,
-              left: aircraft.left,
-              color: aircraft.color,
-              fontSize: '10px',
-              pointerEvents: 'none',
-              zIndex: 3,
-              animation: `${selectedAnimation} ${duration}s ease-in-out infinite ${delay}s, blink ${duration}s ease-in-out infinite ${delay}s`
-            }}
-          >
-            <Plane
-              size={aircraft.size}
+            <div
+              key={idx}
+              className="plane-blip"
               style={{
-                transform: `rotate(${aircraft.rotation}deg)`,
-                filter: `drop-shadow(0 0 ${6 + idx}px ${aircraft.color.replace('0.', '0.').slice(0, -1)}1))`,
-                transition: 'transform 0.3s ease'
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                pointerEvents: 'none',
+                zIndex: 3,
+                animation: `followRoute${idx} ${duration}s linear infinite`,
               }}
-            />
-            <div style={{
-              position: 'absolute',
-              left: `${18 + idx}px`,
-              top: '0',
-              width: `${90 + idx * 5}px`,
-              lineHeight: '1.3',
-              color: 'rgba(229, 231, 235, 0.9)',
-              fontSize: '9px'
-            }}>
-              <span style={{ display: 'block', fontWeight: '900' }}>{aircraft.flight}</span>
-              <span style={{ display: 'block', opacity: '0.7', fontSize: '8px' }}>{aircraft.level} {aircraft.speed}</span>
+            >
+              <div style={{
+                position: 'relative',
+                transform: 'translate(-50%, -50%)',
+              }}>
+                <Plane
+                  size={aircraft.size}
+                  style={{
+                    color: aircraft.color,
+                    filter: `drop-shadow(0 0 8px ${aircraft.color.replace('0.', '0.').slice(0, -1)}1))`,
+                    transition: 'transform 0.3s ease'
+                  }}
+                />
+              </div>
+              <div style={{
+                position: 'absolute',
+                left: '20px',
+                top: '-10px',
+                width: '120px',
+                lineHeight: '1.3',
+                color: 'rgba(229, 231, 235, 0.9)',
+                fontSize: '9px',
+                whiteSpace: 'nowrap',
+              }}>
+                <span style={{ display: 'block', fontWeight: '900' }}>{aircraft.flight}</span>
+                <span style={{ display: 'block', opacity: '0.7', fontSize: '8px' }}>{aircraft.level} {aircraft.speed}</span>
+              </div>
             </div>
-          </div>
           );
         })}
 
       </div>
 
       <style jsx global>{`
-        @keyframes rotate {
-          from { transform: translate(-50%, -50%) rotate(0deg); }
-          to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -311,26 +249,86 @@ export default function Home() {
           0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
           50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.5); }
         }
-        @keyframes moveX {
-          0% { transform: translateX(-50px); opacity: 0.5; }
-          50% { opacity: 1; }
-          100% { transform: translateX(50px); opacity: 0.5; }
+
+        /* Flight route animations for each aircraft */
+        @keyframes followRoute0 {
+          0% { left: 10%; top: 80%; }
+          25% { left: 35%; top: 20%; }
+          50% { left: 70%; top: 50%; }
+          75% { left: 85%; top: 80%; }
+          100% { left: 10%; top: 80%; }
         }
-        @keyframes moveXReverse {
-          0% { transform: translateX(50px); opacity: 0.5; }
-          50% { opacity: 1; }
-          100% { transform: translateX(-50px); opacity: 0.5; }
+        @keyframes followRoute1 {
+          0% { left: 85%; top: 10%; }
+          25% { left: 75%; top: 45%; }
+          50% { left: 50%; top: 70%; }
+          75% { left: 25%; top: 85%; }
+          100% { left: 85%; top: 10%; }
         }
-        @keyframes moveY {
-          0% { transform: translateY(-40px); opacity: 0.5; }
-          50% { opacity: 1; }
-          100% { transform: translateY(40px); opacity: 0.5; }
+        @keyframes followRoute2 {
+          0% { left: 5%; top: 45%; }
+          25% { left: 35%; top: 20%; }
+          50% { left: 70%; top: 45%; }
+          75% { left: 75%; top: 85%; }
+          100% { left: 5%; top: 45%; }
         }
-        @keyframes moveYReverse {
-          0% { transform: translateY(40px); opacity: 0.5; }
-          50% { opacity: 1; }
-          100% { transform: translateY(-40px); opacity: 0.5; }
+        @keyframes followRoute3 {
+          0% { left: 90%; top: 75%; }
+          25% { left: 65%; top: 50%; }
+          50% { left: 40%; top: 55%; }
+          75% { left: 20%; top: 60%; }
+          100% { left: 90%; top: 75%; }
         }
+        @keyframes followRoute4 {
+          0% { left: 30%; top: 90%; }
+          25% { left: 55%; top: 65%; }
+          50% { left: 80%; top: 70%; }
+          75% { left: 95%; top: 35%; }
+          100% { left: 30%; top: 90%; }
+        }
+        @keyframes followRoute5 {
+          0% { left: 100%; top: 50%; }
+          25% { left: 75%; top: 20%; }
+          50% { left: 45%; top: 35%; }
+          75% { left: 35%; top: 80%; }
+          100% { left: 100%; top: 50%; }
+        }
+        @keyframes followRoute6 {
+          0% { left: 20%; top: 20%; }
+          25% { left: 50%; top: 15%; }
+          50% { left: 70%; top: 70%; }
+          75% { left: 45%; top: 75%; }
+          100% { left: 20%; top: 20%; }
+        }
+        @keyframes followRoute7 {
+          0% { left: 75%; top: 85%; }
+          25% { left: 50%; top: 70%; }
+          50% { left: 25%; top: 50%; }
+          75% { left: 20%; top: 20%; }
+          100% { left: 75%; top: 85%; }
+        }
+        @keyframes followRoute8 {
+          0% { left: 40%; top: 10%; }
+          25% { left: 65%; top: 30%; }
+          50% { left: 70%; top: 70%; }
+          75% { left: 45%; top: 80%; }
+          100% { left: 40%; top: 10%; }
+        }
+        @keyframes followRoute9 {
+          0% { left: 95%; top: 20%; }
+          25% { left: 70%; top: 45%; }
+          50% { left: 40%; top: 60%; }
+          75% { left: 25%; top: 25%; }
+          100% { left: 95%; top: 20%; }
+        }
+        @keyframes followRoute10 {
+          0% { left: 10%; top: 30%; }
+          25% { left: 40%; top: 20%; }
+          50% { left: 75%; top: 35%; }
+          75% { left: 85%; top: 65%; }
+          100% { left: 10%; top: 30%; }
+        }
+
         .glass-card {
           backdrop-filter: blur(32px) saturate(180%);
           -webkit-backdrop-filter: blur(32px) saturate(180%);
@@ -340,10 +338,6 @@ export default function Home() {
         }
         .plane-blip {
           filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.4));
-        }
-        @keyframes blink {
-          0%, 100% { transform: scale(0.95); }
-          50% { transform: scale(1.1); }
         }
       `}</style>
 

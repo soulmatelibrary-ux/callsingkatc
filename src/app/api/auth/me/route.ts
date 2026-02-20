@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/jwt';
+import { verifyToken, verifyRefreshToken } from '@/lib/jwt';
 import { query } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -12,26 +12,40 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     // 토큰 추출: 1) Authorization 헤더 2) refreshToken 쿠키
-    let token = null;
+    let userId: string | null = null;
     const authHeader = request.headers.get('Authorization');
 
     if (authHeader?.startsWith('Bearer ')) {
-      token = authHeader.substring(7);
+      // accessToken 검증
+      const token = authHeader.substring(7);
+      const payload = verifyToken(token);
+      if (!payload) {
+        return NextResponse.json(
+          { error: '유효하지 않은 토큰입니다.' },
+          { status: 401 }
+        );
+      }
+      userId = payload.userId;
     } else {
-      // 클라이언트 새로고침: refreshToken 쿠키로 세션 복원
-      token = request.cookies.get('refreshToken')?.value;
+      // refreshToken 쿠키 검증
+      const refreshToken = request.cookies.get('refreshToken')?.value;
+      if (!refreshToken) {
+        return NextResponse.json(
+          { error: '인증 토큰이 필요합니다.' },
+          { status: 401 }
+        );
+      }
+      const payload = verifyRefreshToken(refreshToken);
+      if (!payload) {
+        return NextResponse.json(
+          { error: '유효하지 않은 토큰입니다.' },
+          { status: 401 }
+        );
+      }
+      userId = payload.userId;
     }
 
-    if (!token) {
-      return NextResponse.json(
-        { error: '인증 토큰이 필요합니다.' },
-        { status: 401 }
-      );
-    }
-
-    // 토큰 검증
-    const payload = verifyToken(token);
-    if (!payload) {
+    if (!userId) {
       return NextResponse.json(
         { error: '유효하지 않은 토큰입니다.' },
         { status: 401 }
@@ -47,7 +61,7 @@ export async function GET(request: NextRequest) {
        FROM users u
        LEFT JOIN airlines a ON u.airline_id = a.id
        WHERE u.id = $1`,
-      [payload.userId]
+      [userId]
     );
 
     if (result.rows.length === 0) {
