@@ -297,7 +297,7 @@ export default function AirlinePage() {
     <>
       <main className="flex min-h-screen bg-gray-50">
         {/* 왼쪽 사이드바 */}
-        <aside className="w-56 bg-white border-r border-gray-100 flex flex-col sticky top-0 h-screen">
+        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col sticky top-0 h-screen">
           {/* 사이드바 헤더 */}
           <div className="px-6 py-8 border-b border-gray-100">
             <div className="flex items-center gap-2 mb-3">
