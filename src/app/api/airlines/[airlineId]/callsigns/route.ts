@@ -57,20 +57,22 @@ export async function GET(
     const offset = (page - 1) * limit;
 
     // 쿼리 구성
+    // 조치가 등록되지 않은 호출부호만 조회 (LEFT JOIN으로 조치 없는 것 필터링)
     let sql = `
       SELECT
-        id, airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
-        other_airline_code, error_type, sub_error, risk_level, similarity,
-        occurrence_count, last_occurred_at, file_upload_id, uploaded_at,
-        created_at, updated_at
-      FROM callsigns
-      WHERE airline_id = $1
+        c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
+        c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
+        c.occurrence_count, c.last_occurred_at, c.file_upload_id, c.uploaded_at,
+        c.created_at, c.updated_at
+      FROM callsigns c
+      LEFT JOIN actions a ON c.id = a.callsign_id
+      WHERE c.airline_id = $1 AND a.id IS NULL
     `;
     const sqlParams: any[] = [airlineId];
 
     // 위험도 필터
     if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
-      sql += ` AND risk_level = $${sqlParams.length + 1}`;
+      sql += ` AND c.risk_level = $${sqlParams.length + 1}`;
       sqlParams.push(riskLevel);
     }
 
@@ -81,11 +83,16 @@ export async function GET(
     const result = await query(sql, sqlParams);
 
     // 전체 개수 조회
-    let countSql = `SELECT COUNT(*) as total FROM callsigns WHERE airline_id = $1`;
+    let countSql = `
+      SELECT COUNT(*) as total
+      FROM callsigns c
+      LEFT JOIN actions a ON c.id = a.callsign_id
+      WHERE c.airline_id = $1 AND a.id IS NULL
+    `;
     const countSqlParams: any[] = [airlineId];
 
     if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
-      countSql += ` AND risk_level = $${countSqlParams.length + 1}`;
+      countSql += ` AND c.risk_level = $${countSqlParams.length + 1}`;
       countSqlParams.push(riskLevel);
     }
 

@@ -48,11 +48,11 @@ export default function DashboardPage() {
   // 조치 삭제
   const deleteActionMutation = useDeleteAction();
 
-  // 호출부호 목록 조회 (사용자의 항공사별)
+  // 호출부호 목록 조회 (조치가 안된 것만, 사용자의 항공사별)
   const callsignsQuery = useAirlineCallsigns(user?.airline_id, {
     riskLevel: riskLevelFilter || undefined,
     page: callsignPage,
-    limit: 20,
+    limit: 50,  // 페이지당 50개 (데이터가 많으면 페이징)
   });
 
   // 조치 이력 조회 (사용자의 항공사별, 기본값 1개월)
