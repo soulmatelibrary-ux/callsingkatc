@@ -265,7 +265,7 @@ export function useAction(actionId: string | undefined) {
 }
 
 /**
- * 조치 등록 (관리자만)
+ * 조치 등록 (인증된 사용자 모두)
  */
 export function useCreateAction() {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -289,8 +289,15 @@ export function useCreateAction() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || '조치 등록 실패');
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          const error = await response.json();
+          throw new Error(error.error || '조치 등록 실패');
+        } else {
+          const text = await response.text();
+          console.error('API 응답 오류:', text);
+          throw new Error('조치 등록 실패: 서버 오류');
+        }
       }
 
       return (await response.json()) as Action;
@@ -327,15 +334,23 @@ export function useUpdateAction() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || '조치 업데이트 실패');
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          const error = await response.json();
+          throw new Error(error.error || '조치 업데이트 실패');
+        } else {
+          const text = await response.text();
+          console.error('API 응답 오류:', text);
+          throw new Error('조치 업데이트 실패: 서버 오류');
+        }
       }
 
       return (await response.json()) as Action;
     },
     onSuccess: () => {
-      // 조치 목록 및 상세 캐시 무효화
+      // 조치 목록, 호출부호 목록, 상세 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
       queryClient.invalidateQueries({ queryKey: ['action'] });
     },
   });
@@ -362,15 +377,23 @@ export function useDeleteAction() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || '조치 삭제 실패');
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          const error = await response.json();
+          throw new Error(error.error || '조치 삭제 실패');
+        } else {
+          const text = await response.text();
+          console.error('API 응답 오류:', text);
+          throw new Error('조치 삭제 실패: 서버 오류');
+        }
       }
 
       return response.json();
     },
     onSuccess: () => {
-      // 조치 목록 캐시 무효화
+      // 조치 목록, 호출부호 목록 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
     },
   });
 }

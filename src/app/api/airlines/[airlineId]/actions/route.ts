@@ -196,8 +196,6 @@ export async function GET(
         action_type: row.action_type,
         description: row.description,
         manager_name: row.manager_name,
-        manager_email: row.manager_email,
-        responsible_staff: row.responsible_staff,
         planned_due_date: row.planned_due_date,
         status: row.status,
         result_detail: row.result_detail,
@@ -213,8 +211,6 @@ export async function GET(
         callsignId: row.callsign_id || row.cs_id,
         actionType: row.action_type,
         managerName: row.manager_name,
-        managerEmail: row.manager_email,
-        responsibleStaff: row.responsible_staff,
         plannedDueDate: row.planned_due_date,
         resultDetail: row.result_detail,
         completedAt: row.completed_at,
@@ -274,8 +270,6 @@ export async function POST(
       action_type: actionType,
       description,
       manager_name: managerName,
-      manager_email: managerEmail,
-      responsible_staff: responsibleStaff,
       planned_due_date: plannedDueDate,
     } = body;
 
@@ -318,9 +312,9 @@ export async function POST(
       return trx(
         `INSERT INTO actions (
           airline_id, callsign_id, action_type, description,
-          manager_name, manager_email, responsible_staff, planned_due_date,
+          manager_name, planned_due_date,
           status, registered_by, registered_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *`,
         [
           airlineId,
@@ -328,8 +322,6 @@ export async function POST(
           actionType,
           description || null,
           managerName || null,
-          managerEmail || null,
-          responsibleStaff || null,
           plannedDueDate || null,
           'pending',
           payload.userId, // 현재 관리자 ID
@@ -356,8 +348,6 @@ export async function POST(
         action_type: action.action_type,
         description: action.description,
         manager_name: action.manager_name,
-        manager_email: action.manager_email,
-        responsible_staff: action.responsible_staff,
         planned_due_date: action.planned_due_date,
         status: action.status,
         registered_by: action.registered_by,
@@ -368,8 +358,9 @@ export async function POST(
     );
   } catch (error) {
     console.error('조치 생성 오류:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: '조치 생성 중 오류가 발생했습니다.' },
+      { error: `조치 생성 중 오류가 발생했습니다: ${errorMessage}` },
       { status: 500 }
     );
   }

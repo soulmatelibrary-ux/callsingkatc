@@ -43,7 +43,7 @@ export default function AirlinePage() {
   const [airlineCode, setAirlineCode] = useState<string>('');
   const [airlineName, setAirlineName] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'incidents' | 'analysis' | 'actions'>('incidents');
+  const [activeTab, setActiveTab] = useState<'incidents' | 'actions'>('incidents');
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState<any | null>(null);
   const [startDate, setStartDate] = useState<string>(() => {
@@ -64,6 +64,8 @@ export default function AirlinePage() {
   const [actionSearchInput, setActionSearchInput] = useState('');
   const [actionStatusFilter, setActionStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
   const [airlineId, setAirlineId] = useState<string | undefined>(undefined);
+  const [selectedAction, setSelectedAction] = useState<any | null>(null);
+  const [isActionDetailModalOpen, setIsActionDetailModalOpen] = useState(false);
 
   const accessToken = useAuthStore((s) => s.accessToken);
 
@@ -322,19 +324,6 @@ export default function AirlinePage() {
               <span>발생현황</span>
             </button>
 
-            {activeTab !== 'actions' && (
-              <button
-                onClick={() => setActiveTab('analysis')}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black tracking-tight transition-all text-left ${activeTab === 'analysis'
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                  : 'text-gray-500 hover:bg-gray-100'
-                  }`}
-              >
-                <span className="text-lg">📈</span>
-                <span>세부오류분석</span>
-              </button>
-            )}
-
             <button
               onClick={() => setActiveTab('actions')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black tracking-tight transition-all text-left ${activeTab === 'actions'
@@ -512,7 +501,7 @@ export default function AirlinePage() {
                 </div>
               )}
 
-              {/* 발생현황 테이블 */}
+              {/* 발생현황 테이블 - 2단계 구조 */}
               <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                   <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
                     <div>
@@ -524,66 +513,120 @@ export default function AirlinePage() {
                   </div>
 
                   <div className="overflow-x-auto flex-1">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="bg-white">
-                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Callsign Pair</th>
-                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Error Type</th>
-                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Risk</th>
-                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Sim. %</th>
-                          <th className="px-8 py-4 text-right text-[11px] font-black text-gray-400 uppercase tracking-widest">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-50">
-                        {visibleIncidents.map((incident: any) => (
-                          <tr key={incident.id} className="group hover:bg-primary/[0.02] transition-colors">
-                            <td className="px-8 py-5">
-                              <div className="flex flex-col">
-                                <span className="font-extrabold text-gray-900 tracking-tight">{incident.pair}</span>
-                                <span className="text-[10px] font-bold text-gray-400 uppercase">
-                                  {new Date(incident.occurred_at).toLocaleString('ko-KR')}
+                    <div className="divide-y divide-gray-50">
+                      {visibleIncidents.map((incident: any) => {
+                        // 호출부호 숫자 색상 처리 (일치하는 자리 파란색, 다른 자리 주황색)
+                        const renderColoredCallsign = (callsignPair: string) => {
+                          const parts = callsignPair.split('↔');
+                          if (parts.length !== 2) return callsignPair;
+
+                          const [my, other] = [parts[0].trim(), parts[1].trim()];
+                          const minLen = Math.min(my.length, other.length);
+
+                          return (
+                            <div className="flex items-center gap-1">
+                              {Array.from(my).map((char, idx) => (
+                                <span
+                                  key={`my-${idx}`}
+                                  className={`font-black text-sm ${
+                                    idx < minLen && my[idx] === other[idx]
+                                      ? 'text-blue-600'
+                                      : 'text-amber-600'
+                                  }`}
+                                >
+                                  {char}
+                                </span>
+                              ))}
+                              <span className="text-gray-400 font-bold">↔</span>
+                              {Array.from(other).map((char, idx) => (
+                                <span
+                                  key={`other-${idx}`}
+                                  className={`font-black text-sm ${
+                                    idx < minLen && my[idx] === other[idx]
+                                      ? 'text-blue-600'
+                                      : 'text-amber-600'
+                                  }`}
+                                >
+                                  {char}
+                                </span>
+                              ))}
+                            </div>
+                          );
+                        };
+
+                        return (
+                          <div key={incident.id} className="border-b border-gray-50 last:border-b-0">
+                            {/* 첫 번째 행: 호출부호, 오류 유형, 조치 등록 버튼 */}
+                            <div className="px-8 py-5 flex items-center justify-between gap-6 group hover:bg-primary/[0.02] transition-colors">
+                              <div className="flex-1 min-w-0">
+                                {renderColoredCallsign(incident.pair)}
+                              </div>
+
+                              <div className="flex-shrink-0">
+                                <span className={`inline-block text-[12px] font-bold px-3 py-1 rounded-lg ${
+                                  incident.error_type === '관제사 오류' ? 'text-rose-600 bg-rose-50' :
+                                  incident.error_type === '조종사 오류' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'
+                                }`}>
+                                  {incident.error_type}
                                 </span>
                               </div>
-                            </td>
-                            <td className="px-8 py-5">
-                              <span className={`text-[12px] font-bold ${incident.error_type === '관제사 오류' ? 'text-rose-600' :
-                                incident.error_type === '조종사 오류' ? 'text-amber-600' : 'text-emerald-600'
-                                }`}>
-                                {incident.error_type}
-                              </span>
-                            </td>
-                            <td className="px-8 py-5">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${incident.risk === '매우높음' ? 'bg-rose-500 text-white' :
-                                incident.risk === '높음' ? 'bg-amber-400 text-white' : 'bg-emerald-400 text-white'
-                                }`}>
-                                {incident.risk}
-                              </span>
-                            </td>
-                            <td className="px-8 py-5">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-black text-gray-700">{incident.similarity}%</span>
-                                <div className="w-12 h-1 bg-gray-100 rounded-full overflow-hidden hidden md:block">
-                                  <div
-                                    className={`h-full ${incident.similarity > 90 ? 'bg-rose-500' :
-                                      incident.similarity > 70 ? 'bg-amber-400' : 'bg-emerald-400'
-                                      }`}
-                                    style={{ width: `${incident.similarity}%` }}
-                                  />
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-8 py-5 text-right">
+
                               <button
                                 onClick={() => handleOpenActionModal(incident)}
-                                className="px-4 py-2 bg-primary text-white text-[11px] font-black rounded-xl shadow-md shadow-primary/20 hover:scale-[1.05] active:scale-[0.95] transition-all uppercase tracking-widest"
+                                className="flex-shrink-0 px-4 py-2 bg-primary text-white text-[11px] font-black rounded-xl shadow-md shadow-primary/20 hover:scale-[1.05] active:scale-[0.95] transition-all uppercase tracking-widest"
                               >
                                 조치 등록
                               </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                            </div>
+
+                            {/* 두 번째 행: 상세 정보 - 4개 컬럼 그리드 */}
+                            <div className="px-8 py-5 bg-gray-50/40 grid grid-cols-4 gap-6">
+                              {/* 발생건수 */}
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">발생건수</span>
+                                <span className="text-lg font-black text-gray-900 mt-1">{incident.occurrence_count || '0'}건</span>
+                              </div>
+
+                              {/* 최근 발생일 */}
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">최근 발생일</span>
+                                <span className="text-lg font-black text-gray-900 mt-1">
+                                  {incident.occurred_at
+                                    ? new Date(incident.occurred_at).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
+                                    : '-'
+                                  }
+                                </span>
+                              </div>
+
+                              {/* 유사성 */}
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">유사성</span>
+                                <div className="mt-1 flex items-center gap-2">
+                                  <span className={`text-lg font-black ${
+                                    incident.similarity > 90 ? 'text-rose-600' :
+                                    incident.similarity > 70 ? 'text-amber-600' : 'text-emerald-600'
+                                  }`}>
+                                    {incident.similarity > 90 ? '높음' : incident.similarity > 70 ? '중간' : '낮음'}
+                                  </span>
+                                  <span className="text-xs font-bold text-gray-400">({incident.similarity}%)</span>
+                                </div>
+                              </div>
+
+                              {/* 오류가능성 */}
+                              <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">오류가능성</span>
+                                <span className={`text-lg font-black mt-1 ${
+                                  incident.risk === '매우높음' ? 'text-rose-600' :
+                                  incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
+                                }`}>
+                                  {incident.risk}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
@@ -593,97 +636,6 @@ export default function AirlinePage() {
                     <p className="text-gray-500 font-bold">등록된 유사호출부호 발생 이력이 없습니다</p>
                   </div>
                 )}
-              </>
-            )}
-
-            {activeTab === 'analysis' && (
-              <>
-                {/* 세부오류분석 전체 화면 */}
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
-                  <div className="flex items-center gap-2 mb-8">
-                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">세부 오류 분석</h2>
-                  </div>
-
-                  <div className="mb-12">
-                    <div className="bg-gray-50 rounded-2xl p-8">
-                      <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">오류 타입 필터</p>
-                      <div className="flex flex-wrap gap-3">
-                        <button
-                          onClick={() => setErrorTypeFilter('all')}
-                          className={`px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${errorTypeFilter === 'all'
-                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                            : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
-                            }`}
-                        >
-                          전체
-                        </button>
-                        <button
-                          onClick={() => setErrorTypeFilter('관제사 오류')}
-                          className={`px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${errorTypeFilter === '관제사 오류'
-                            ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20'
-                            : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
-                            }`}
-                        >
-                          관제사 오류
-                        </button>
-                        <button
-                          onClick={() => setErrorTypeFilter('조종사 오류')}
-                          className={`px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${errorTypeFilter === '조종사 오류'
-                            ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20'
-                            : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
-                            }`}
-                        >
-                          조종사 오류
-                        </button>
-                        <button
-                          onClick={() => setErrorTypeFilter('오류 미발생')}
-                          className={`px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${errorTypeFilter === '오류 미발생'
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                            : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
-                            }`}
-                        >
-                          오류 미발생
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    {subTypeStats.map((row, i) => {
-                      const width = row.count === 0 ? 0 : Math.round((row.count / maxSubCount) * 100);
-                      return (
-                        <div key={row.key} className="space-y-3">
-                          <div className="flex justify-between items-end">
-                            <span className="text-lg font-black text-gray-700 tracking-tight">{row.label}</span>
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-3xl font-black text-gray-900 leading-none">{row.count}</span>
-                              <span className="text-xs font-bold text-gray-400 uppercase tracking-tighter">Cases</span>
-                            </div>
-                          </div>
-                          <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-                            <div
-                              className="h-full transition-all duration-1000 ease-out shadow-sm"
-                              style={{
-                                width: `${width}%`,
-                                backgroundColor: row.color,
-                                transitionDelay: `${i * 100}ms`
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-primary/5 to-transparent border border-primary/20">
-                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Analysis Insight</p>
-                    <p className="text-sm font-bold text-gray-700 leading-relaxed">
-                      {selectedErrorLabel} 유형 내에서 가장 높은 비율을 차지하는 항목은 <span className="text-primary font-black">{subTypeStats[0]?.label || '-'}</span>입니다.
-                      이는 조종사와 관제사 간의 커뮤니케이션 및 유사 호출부호 식별 개선이 필요함을 시사합니다.
-                    </p>
-                  </div>
-                </div>
               </>
             )}
 
@@ -749,15 +701,22 @@ export default function AirlinePage() {
                     전체
                   </button>
                   <button
+                    onClick={() => { setActionStatusFilter('pending'); setActionPage(1); }}
+                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                      }`}
+                  >
+                    대기중
+                  </button>
+                  <button
                     onClick={() => { setActionStatusFilter('in_progress'); setActionPage(1); }}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     진행중
                   </button>
                   <button
                     onClick={() => { setActionStatusFilter('completed'); setActionPage(1); }}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'completed' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'completed' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     완료
@@ -784,7 +743,7 @@ export default function AirlinePage() {
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Type</th>
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Manager</th>
                             <th className="px-8 py-4 text-center text-[11px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                            <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Completed</th>
+                            <th className="px-8 py-4 text-center text-[11px] font-black text-gray-400 uppercase tracking-widest">Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -794,12 +753,20 @@ export default function AirlinePage() {
                               action.status === 'pending' ? 'text-amber-600 bg-amber-50' :
                                 action.status === 'in_progress' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50';
                             const registeredDate = action.registered_at ? new Date(action.registered_at).toLocaleDateString('ko-KR') : '-';
-                            const completedDate = action.completed_at ? new Date(action.completed_at).toLocaleDateString('ko-KR') : '-';
+                            const dueDate = action.planned_due_date ? (() => {
+                              const d = new Date(action.planned_due_date);
+                              const year = d.getFullYear();
+                              const month = String(d.getMonth() + 1).padStart(2, '0');
+                              const day = String(d.getDate()).padStart(2, '0');
+                              const hour = String(d.getHours()).padStart(2, '0');
+                              const minute = String(d.getMinutes()).padStart(2, '0');
+                              return `${year}-${month}-${day} ${hour}:${minute}`;
+                            })() : '-';
 
                             return (
                               <tr key={action.id} className="group hover:bg-primary/[0.02] transition-colors">
                                 <td className="px-8 py-5 text-sm font-bold text-gray-500">{registeredDate}</td>
-                                <td className="px-8 py-5 text-sm font-bold text-gray-500">{action.planned_due_date || '-'}</td>
+                                <td className="px-8 py-5 text-sm font-bold text-gray-500">{dueDate}</td>
                                 <td className="px-8 py-5 text-sm font-black text-gray-900 tracking-tight">{action.callsign?.callsign_pair || '-'}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.action_type}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.manager_name}</td>
@@ -808,7 +775,17 @@ export default function AirlinePage() {
                                     {statusLabel}
                                   </span>
                                 </td>
-                                <td className="px-8 py-5 text-sm font-bold text-gray-500">{completedDate}</td>
+                                <td className="px-8 py-5 text-center">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedAction(action);
+                                      setIsActionDetailModalOpen(true);
+                                    }}
+                                    className="px-3 py-1.5 bg-primary text-white text-[9px] font-black rounded-lg shadow-md shadow-primary/20 hover:scale-[1.05] active:scale-[0.95] transition-all uppercase tracking-wider"
+                                  >
+                                    상세보기
+                                  </button>
+                                </td>
                               </tr>
                             );
                           })}
@@ -887,6 +864,30 @@ export default function AirlinePage() {
         />
       )
       }
+
+      {isActionDetailModalOpen && selectedAction && callsignsData && (
+        <ActionModal
+          airlineId={airlineId || ''}
+          callsigns={callsignsData.data}
+          selectedCallsign={callsignsData.data.find(
+            (cs) => cs.id === selectedAction.callsign_id
+          )}
+          actionId={selectedAction.id}
+          initialData={{
+            actionType: selectedAction.action_type,
+            managerName: selectedAction.manager_name,
+            description: selectedAction.description,
+            plannedDueDate: selectedAction.planned_due_date,
+            status: selectedAction.status || 'in_progress',
+          }}
+          onClose={() => setIsActionDetailModalOpen(false)}
+          onSuccess={() => {
+            setIsActionDetailModalOpen(false);
+            setActionStatusFilter('all');
+            setActionPage(1);
+          }}
+        />
+      )}
     </>
   );
 }

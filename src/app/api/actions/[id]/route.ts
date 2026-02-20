@@ -3,7 +3,7 @@
  * 조치 상세 조회
  *
  * PATCH /api/actions/[id]
- * 조치 상태 업데이트 (관리자만)
+ * 조치 상태 업데이트 (인증된 사용자)
  *
  * DELETE /api/actions/[id]
  * 조치 삭제 (관리자만)
@@ -42,7 +42,7 @@ export async function GET(
     const result = await query(
       `SELECT
         a.id, a.airline_id, a.callsign_id, a.action_type, a.description,
-        a.manager_name, a.manager_email, a.responsible_staff, a.planned_due_date,
+        a.manager_name, a.planned_due_date,
         a.status, a.result_detail, a.completed_at,
         a.registered_by, a.registered_at, a.updated_at,
         a.reviewed_by, a.reviewed_at, a.review_comment,
@@ -88,7 +88,6 @@ export async function GET(
       action_type: action.action_type,
       description: action.description,
       manager_name: action.manager_name,
-      manager_email: action.manager_email,
       planned_due_date: action.planned_due_date,
       status: action.status,
       result_detail: action.result_detail,
@@ -128,10 +127,10 @@ export async function PATCH(
     const token = authHeader.substring(7);
     const payload = verifyToken(token);
 
-    if (!payload || payload.role !== 'admin') {
+    if (!payload) {
       return NextResponse.json(
-        { error: '관리자만 접근 가능합니다.' },
-        { status: 403 }
+        { error: '유효하지 않은 토큰입니다.' },
+        { status: 401 }
       );
     }
 
@@ -140,8 +139,6 @@ export async function PATCH(
       status,
       description,
       manager_name,
-      manager_email,
-      responsible_staff,
       planned_due_date,
       result_detail,
       completed_at,
@@ -186,14 +183,6 @@ export async function PATCH(
     if (manager_name !== undefined) {
       fields.push(`manager_name = $${paramIndex++}`);
       values.push(manager_name);
-    }
-    if (manager_email !== undefined) {
-      fields.push(`manager_email = $${paramIndex++}`);
-      values.push(manager_email);
-    }
-    if (responsible_staff !== undefined) {
-      fields.push(`responsible_staff = $${paramIndex++}`);
-      values.push(responsible_staff);
     }
     if (planned_due_date !== undefined) {
       fields.push(`planned_due_date = $${paramIndex++}`);
@@ -245,7 +234,6 @@ export async function PATCH(
       action_type: updatedAction.action_type,
       description: updatedAction.description,
       manager_name: updatedAction.manager_name,
-      manager_email: updatedAction.manager_email,
       planned_due_date: updatedAction.planned_due_date,
       status: updatedAction.status,
       result_detail: updatedAction.result_detail,

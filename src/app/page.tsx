@@ -410,7 +410,7 @@ export default function Home() {
             marginBottom: '24px',
           }}
         >
-          Similar Callsign Warning System
+          유사호출부호 경고시스템
         </p>
 
         <form onSubmit={handleLogin}>

@@ -83,11 +83,19 @@ export function Header() {
           >
             KATC
           </Link>
-          <span className="text-white/70 text-[10px] font-bold uppercase tracking-[0.2em]">
-            Warning System
+          <span className="text-white/70 text-[10px] font-bold tracking-[0.2em]">
+            유사호출부호 경고시스템
           </span>
         </div>
       </div>
+
+      {/* 항공사 정보 */}
+      {isAuthenticated && user && user.airline?.name_ko && (
+        <div className="flex flex-col items-center absolute left-1/2 transform -translate-x-1/2">
+          <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider">AIRLINE</span>
+          <span className="text-white font-bold text-sm tracking-tight">{user.airline.name_ko}</span>
+        </div>
+      )}
 
       {/* 우측 영역 */}
       <nav className="flex items-center gap-3" aria-label="사용자 네비게이션">
