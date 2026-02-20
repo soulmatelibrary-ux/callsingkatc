@@ -6,6 +6,8 @@ import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
 import { Header } from '@/components/layout/Header';
 import { useAirlineCallsigns, useAirlineActions } from '@/hooks/useActions';
+import { ActionDetailModal } from '@/components/actions/ActionDetailModal';
+import { Action } from '@/types/action';
 import * as XLSX from 'xlsx';
 
 export default function DashboardPage() {
@@ -31,6 +33,7 @@ export default function DashboardPage() {
   // 조치 이력 필터
   const [actionStatusFilter, setActionStatusFilter] = useState<'pending' | 'in_progress' | 'completed' | ''>('');
   const [actionPage, setActionPage] = useState(1);
+  const [selectedAction, setSelectedAction] = useState<Action | null>(null);
 
   // 호출부호 목록 조회 (사용자의 항공사별)
   const callsignsQuery = useAirlineCallsigns(user?.airline_id, {
@@ -416,6 +419,9 @@ export default function DashboardPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                       등록일
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      상세
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -477,6 +483,14 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {new Date(action.registered_at).toLocaleDateString('ko-KR')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => setSelectedAction(action)}
+                          className="px-3 py-1 text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-600 rounded hover:bg-blue-50"
+                        >
+                          상세보기
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -631,6 +645,17 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* 조치 상세 모달 */}
+        {selectedAction && (
+          <ActionDetailModal
+            action={selectedAction}
+            onClose={() => setSelectedAction(null)}
+            onSuccess={() => {
+              actionsQuery.refetch();
+            }}
+          />
         )}
       </main>
     </div>
