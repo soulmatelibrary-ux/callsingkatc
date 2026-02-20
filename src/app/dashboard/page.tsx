@@ -146,6 +146,22 @@ export default function DashboardPage() {
     }
   };
 
+  // 날짜 범위 설정 함수
+  const setDateRange = (days: number | 'today') => {
+    const to = new Date();
+    const from = new Date();
+
+    if (days === 'today') {
+      from.setHours(0, 0, 0, 0);
+    } else {
+      from.setDate(from.getDate() - days);
+    }
+
+    setActionDateFrom(from.toISOString().split('T')[0]);
+    setActionDateTo(to.toISOString().split('T')[0]);
+    setActionPage(1);
+  };
+
   const riskColors: Record<string, string> = {
     '매우높음': '#dc2626',
     '높음': '#f59e0b',
@@ -459,6 +475,34 @@ export default function DashboardPage() {
                 초기화
               </button>
             </div>
+          </div>
+
+          {/* 날짜 범위 단축 버튼 */}
+          <div className="flex gap-2 mb-6 flex-wrap">
+            <button
+              onClick={() => setDateRange('today')}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
+            >
+              오늘
+            </button>
+            <button
+              onClick={() => setDateRange(7)}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
+            >
+              최근1주
+            </button>
+            <button
+              onClick={() => setDateRange(14)}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
+            >
+              최근2주
+            </button>
+            <button
+              onClick={() => setDateRange(30)}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
+            >
+              최근1개월
+            </button>
           </div>
 
           {/* 조치 이력 테이블 */}
