@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { parseJsonCookie } from '@/lib/cookies';
 import { ROUTES } from '@/lib/constants';
 import { useAirlineActions, useAirlineCallsigns } from '@/hooks/useActions';
@@ -40,6 +41,7 @@ function formatDateInput(date: Date): string {
 
 export default function AirlinePage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [airlineCode, setAirlineCode] = useState<string>('');
   const [airlineName, setAirlineName] = useState<string>('');
   const [loading, setLoading] = useState(true);
