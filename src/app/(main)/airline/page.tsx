@@ -789,7 +789,7 @@ export default function AirlinePage() {
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {actionsData.data.map((action) => {
-                            const statusLabel = action.status === 'pending' ? 'PENDING' : action.status === 'in_progress' ? 'IN PROGRESS' : 'COMPLETED';
+                            const statusLabel = action.status === 'pending' ? '대기중' : action.status === 'in_progress' ? '진행중' : '완료';
                             const statusStyles =
                               action.status === 'pending' ? 'text-amber-600 bg-amber-50' :
                                 action.status === 'in_progress' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50';
@@ -878,9 +878,11 @@ export default function AirlinePage() {
           )}
           onClose={handleCloseActionModal}
           onSuccess={() => {
-            // 조치 등록 성공 시 모달 닫기
-            // TanStack Query가 자동으로 캐시를 무효화하여 목록이 갱신됨
+            // 조치 등록 성공 시 모달 닫기 + 조치이력 탭으로 전환
             handleCloseActionModal();
+            setActiveTab('actions');
+            setActionStatusFilter('all');
+            setActionPage(1);
           }}
         />
       )
