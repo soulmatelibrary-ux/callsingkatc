@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
 import { Header } from '@/components/layout/Header';
-import { useAirlineCallsigns } from '@/hooks/useActions';
+import { useAirlineCallsigns, useAirlineActions } from '@/hooks/useActions';
 import * as XLSX from 'xlsx';
 
 export default function DashboardPage() {
@@ -28,10 +28,22 @@ export default function DashboardPage() {
   const [riskLevelFilter, setRiskLevelFilter] = useState<string>('');
   const [callsignPage, setCallsignPage] = useState(1);
 
+  // 조치 이력 필터
+  const [actionStatusFilter, setActionStatusFilter] = useState<'pending' | 'in_progress' | 'completed' | ''>('');
+  const [actionPage, setActionPage] = useState(1);
+
   // 호출부호 목록 조회 (사용자의 항공사별)
   const callsignsQuery = useAirlineCallsigns(user?.airline_id, {
     riskLevel: riskLevelFilter || undefined,
     page: callsignPage,
+    limit: 20,
+  });
+
+  // 조치 이력 조회 (사용자의 항공사별)
+  const actionsQuery = useAirlineActions({
+    airlineId: user?.airline_id,
+    status: actionStatusFilter as any,
+    page: actionPage,
     limit: 20,
   });
 
@@ -106,6 +118,18 @@ export default function DashboardPage() {
     '매우높음': '#dc2626',
     '높음': '#f59e0b',
     '낮음': '#16a34a',
+  };
+
+  const statusColors: Record<string, string> = {
+    pending: '#f59e0b',
+    in_progress: '#3b82f6',
+    completed: '#10b981',
+  };
+
+  const statusLabels: Record<string, string> = {
+    pending: '대기중',
+    in_progress: '진행중',
+    completed: '완료',
   };
 
   return (
@@ -290,6 +314,168 @@ export default function DashboardPage() {
                       )
                     }
                     disabled={callsignPage === callsignsQuery.data.pagination.totalPages}
+                    className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    다음
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* 조치 이력 섹션 */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          {/* 헤더 */}
+          <h2 className="text-xl font-bold text-gray-900 mb-6">조치 이력</h2>
+
+          {/* 상태별 탭 */}
+          <div className="flex gap-2 mb-6 border-b border-gray-200">
+            <button
+              onClick={() => {
+                setActionStatusFilter('');
+                setActionPage(1);
+              }}
+              className={`px-4 py-3 font-medium transition-colors ${
+                actionStatusFilter === ''
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              전체
+            </button>
+            <button
+              onClick={() => {
+                setActionStatusFilter('pending');
+                setActionPage(1);
+              }}
+              className={`px-4 py-3 font-medium transition-colors ${
+                actionStatusFilter === 'pending'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              대기중
+            </button>
+            <button
+              onClick={() => {
+                setActionStatusFilter('in_progress');
+                setActionPage(1);
+              }}
+              className={`px-4 py-3 font-medium transition-colors ${
+                actionStatusFilter === 'in_progress'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              진행중
+            </button>
+            <button
+              onClick={() => {
+                setActionStatusFilter('completed');
+                setActionPage(1);
+              }}
+              className={`px-4 py-3 font-medium transition-colors ${
+                actionStatusFilter === 'completed'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              완료
+            </button>
+          </div>
+
+          {/* 조치 이력 테이블 */}
+          {actionsQuery.isLoading ? (
+            <div className="p-8 text-center text-gray-600">로딩 중...</div>
+          ) : actionsQuery.error ? (
+            <div className="p-8 text-center text-red-600">
+              {actionsQuery.error instanceof Error
+                ? actionsQuery.error.message
+                : '조치 이력 조회 실패'}
+            </div>
+          ) : (actionsQuery.data?.data.length ?? 0) === 0 ? (
+            <div className="p-8 text-center text-gray-600">조치 이력이 없습니다.</div>
+          ) : (
+            <>
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      호출부호
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      조치 유형
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      담당자
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      상태
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                      등록일
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {actionsQuery.data?.data.map((action) => (
+                    <tr key={action.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                        <div className="font-medium">{action.callsign?.callsign_pair}</div>
+                        <div className="text-xs text-gray-500">
+                          위험도:{' '}
+                          <span style={{ color: riskColors[action.callsign?.risk_level || '낮음'] }}>
+                            {action.callsign?.risk_level}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {action.action_type}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {action.manager_name || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          style={{
+                            backgroundColor: statusColors[action.status],
+                            color: '#ffffff',
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {statusLabels[action.status]}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {new Date(action.registered_at).toLocaleDateString('ko-KR')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* 페이지네이션 */}
+              {actionsQuery.data && actionsQuery.data.pagination.totalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between mt-4">
+                  <button
+                    onClick={() => setActionPage(Math.max(1, actionPage - 1))}
+                    disabled={actionPage === 1}
+                    className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    이전
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    {actionPage} / {actionsQuery.data.pagination.totalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setActionPage(Math.min(actionsQuery.data.pagination.totalPages, actionPage + 1))
+                    }
+                    disabled={actionPage === actionsQuery.data.pagination.totalPages}
                     className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     다음
