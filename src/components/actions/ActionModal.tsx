@@ -33,12 +33,6 @@ export function ActionModal({
   const [actionType, setActionType] = useState(initialData?.actionType || '');
   const [managerName, setManagerName] = useState(initialData?.managerName || '');
   const [description, setDescription] = useState(initialData?.description || '');
-
-  // 조치 예정일 기본값을 오늘로 설정
-  const today = new Date().toISOString().split('T')[0];
-  const [plannedDueDate, setPlannedDueDate] = useState(
-    initialData?.plannedDueDate || today
-  );
   const [status, setStatus] = useState<'in_progress' | 'completed'>(
     initialData?.status || 'in_progress'
   );
@@ -74,7 +68,6 @@ export function ActionModal({
           id: actionId,
           description: description || undefined,
           manager_name: managerName,
-          planned_due_date: plannedDueDate || undefined,
           status: status,
         });
       } else {
@@ -85,7 +78,6 @@ export function ActionModal({
           action_type: actionType,
           description: description || undefined,
           manager_name: managerName,
-          planned_due_date: plannedDueDate || undefined,
         });
       }
 
@@ -258,35 +250,6 @@ export function ActionModal({
               placeholder="담당자 이름"
               value={managerName}
               onChange={(e) => setManagerName(e.target.value)}
-              disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                fontSize: '14px',
-                opacity: isLoading ? 0.6 : 1,
-              }}
-            />
-          </div>
-
-          {/* 조치 예정일 */}
-          <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '13px',
-                fontWeight: 600,
-                color: '#4b5563',
-                marginBottom: '6px',
-              }}
-            >
-              조치 예정일
-            </label>
-            <input
-              type="date"
-              value={plannedDueDate}
-              onChange={(e) => setPlannedDueDate(e.target.value)}
               disabled={isLoading}
               style={{
                 width: '100%',

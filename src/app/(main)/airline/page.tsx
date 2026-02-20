@@ -62,7 +62,7 @@ export default function AirlinePage() {
   const [actionLimit, setActionLimit] = useState(30);
   const [actionSearch, setActionSearch] = useState('');
   const [actionSearchInput, setActionSearchInput] = useState('');
-  const [actionStatusFilter, setActionStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
+  const [actionStatusFilter, setActionStatusFilter] = useState<'all' | 'in_progress' | 'completed'>('all');
   const [airlineId, setAirlineId] = useState<string | undefined>(undefined);
   const [selectedAction, setSelectedAction] = useState<any | null>(null);
   const [isActionDetailModalOpen, setIsActionDetailModalOpen] = useState(false);
@@ -299,20 +299,20 @@ export default function AirlinePage() {
     <>
       <main className="flex min-h-screen bg-gray-50">
         {/* 왼쪽 사이드바 */}
-        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col sticky top-0 h-screen">
+        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-4">
           {/* 사이드바 헤더 */}
-          <div className="px-6 py-8 border-b border-gray-100">
+          <div className="px-6 py-4 border-b border-gray-100">
             <div className="flex items-center gap-2 mb-3">
               <span className="w-6 h-1 bg-primary rounded-full" />
-              <span className="text-primary font-bold text-[10px] tracking-widest uppercase">Portal</span>
+              <span className="text-primary font-bold text-[10px] tracking-widest uppercase">&nbsp;</span>
             </div>
-            <h2 className="text-lg font-black text-gray-900 tracking-tight">{airlineName}</h2>
-            <p className="text-[10px] text-gray-400 font-bold mt-1">항공사 전용</p>
-            <p className="text-[10px] text-gray-400 font-medium mt-2">{new Date().toLocaleDateString('ko-KR')}</p>
+            <h2 className="text-lg font-black text-gray-900 tracking-tight">&nbsp;</h2>
+            <p className="text-[10px] text-gray-400 font-bold mt-1">&nbsp;</p>
+            <p className="text-[10px] text-gray-400 font-medium mt-2">&nbsp;</p>
           </div>
 
           {/* 사이드바 네비게이션 */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
+          <nav className="flex-1 px-4 py-4 space-y-2">
             <button
               onClick={() => setActiveTab('incidents')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black tracking-tight transition-all text-left ${activeTab === 'incidents'
@@ -721,13 +721,6 @@ export default function AirlinePage() {
                     전체
                   </button>
                   <button
-                    onClick={() => { setActionStatusFilter('pending'); setActionPage(1); }}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'pending' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                      }`}
-                  >
-                    대기중
-                  </button>
-                  <button
                     onClick={() => { setActionStatusFilter('in_progress'); setActionPage(1); }}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
@@ -758,7 +751,6 @@ export default function AirlinePage() {
                         <thead>
                           <tr className="bg-gray-50/30">
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Registered</th>
-                            <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Due Date</th>
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Callsign Pair</th>
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Type</th>
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Manager</th>
@@ -768,25 +760,14 @@ export default function AirlinePage() {
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {actionsData.data.map((action) => {
-                            const statusLabel = action.status === 'pending' ? '대기중' : action.status === 'in_progress' ? '진행중' : '완료';
+                            const statusLabel = action.status === 'in_progress' ? '진행중' : '완료';
                             const statusStyles =
-                              action.status === 'pending' ? 'text-amber-600 bg-amber-50' :
-                                action.status === 'in_progress' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50';
+                              action.status === 'in_progress' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50';
                             const registeredDate = action.registered_at ? new Date(action.registered_at).toLocaleDateString('ko-KR') : '-';
-                            const dueDate = action.planned_due_date ? (() => {
-                              const d = new Date(action.planned_due_date);
-                              const year = d.getFullYear();
-                              const month = String(d.getMonth() + 1).padStart(2, '0');
-                              const day = String(d.getDate()).padStart(2, '0');
-                              const hour = String(d.getHours()).padStart(2, '0');
-                              const minute = String(d.getMinutes()).padStart(2, '0');
-                              return `${year}-${month}-${day} ${hour}:${minute}`;
-                            })() : '-';
 
                             return (
                               <tr key={action.id} className="group hover:bg-primary/[0.02] transition-colors">
                                 <td className="px-8 py-5 text-sm font-bold text-gray-500">{registeredDate}</td>
-                                <td className="px-8 py-5 text-sm font-bold text-gray-500">{dueDate}</td>
                                 <td className="px-8 py-5 text-sm font-black text-gray-900 tracking-tight">{action.callsign?.callsign_pair || '-'}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.action_type}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.manager_name}</td>
@@ -903,7 +884,7 @@ export default function AirlinePage() {
           onClose={() => setIsActionDetailModalOpen(false)}
           onSuccess={() => {
             setIsActionDetailModalOpen(false);
-            setActionStatusFilter('all');
+            // 현재 필터 유지: 상태 변경 시 API에서 자동으로 필터링됨
             setActionPage(1);
           }}
         />
