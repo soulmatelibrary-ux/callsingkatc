@@ -65,59 +65,62 @@ export function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 flex items-center justify-between px-6 py-3"
+      className="sticky top-0 z-50 flex items-center justify-between px-8 py-5" // py-3 -> py-5
       style={{
-        background: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+        background: 'linear-gradient(135deg, #1a2e4a 0%, #2563eb 50%, #3b82f6 100%)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
       }}
     >
       {/* 로고 + 시스템명 */}
-      <div className="flex items-center gap-2">
-        <span className="text-white" aria-hidden="true">
+      <div className="flex items-center gap-3">
+        <span className="text-white p-2 bg-white/10 rounded-lg shadow-inner" aria-hidden="true">
           <PlaneIcon />
         </span>
-        <Link
-          href={ROUTES.HOME}
-          className="text-white font-bold text-base tracking-tight hover:opacity-90 transition-opacity"
-        >
-          KATC 유사호출부호 경고시스템
-        </Link>
+        <div className="flex flex-col">
+          <Link
+            href={ROUTES.HOME}
+            className="text-white font-extrabold text-lg leading-tight tracking-tight hover:opacity-90 transition-opacity"
+          >
+            KATC
+          </Link>
+          <span className="text-white/70 text-[10px] font-bold uppercase tracking-[0.2em]">
+            Warning System
+          </span>
+        </div>
       </div>
 
       {/* 우측 영역 */}
-      <nav className="flex items-center gap-2" aria-label="사용자 네비게이션">
+      <nav className="flex items-center gap-3" aria-label="사용자 네비게이션">
         {isAuthenticated && user ? (
           <>
             {/* 사용자 이메일 표시 */}
-            <span className="hidden sm:inline-block text-white/80 text-xs px-3 py-1 rounded-full bg-white/10">
+            <span className="hidden md:inline-block text-white/90 text-[11px] font-bold px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/5">
               {user.email}
             </span>
 
-            {/* 대시보드 링크
-                - 관리자: /dashboard (관리자 대시보드)
-                - 일반 사용자: /airline (항공사 메인 대시보드)
-            */}
-            <Link
-              href={isAdmin ? ROUTES.DASHBOARD : ROUTES.AIRLINE}
-              className="px-3 py-1.5 text-white text-sm font-medium rounded-md bg-white/15 hover:bg-white/25 transition-colors"
-            >
-              대시보드
-            </Link>
-
-            {/* 관리자 전용 링크: 현재 관리자 메인 페이지 */}
-            {isAdmin && (
+            <div className="flex bg-black/10 p-1 rounded-xl backdrop-blur-sm">
               <Link
-                href={ROUTES.ADMIN}
-                className="px-3 py-1.5 text-white text-sm font-medium rounded-md bg-white/15 hover:bg-white/25 transition-colors"
+                href={isAdmin ? ROUTES.DASHBOARD : ROUTES.AIRLINE}
+                className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${isAdmin ? 'text-white/70 hover:text-white' : 'bg-white/20 text-white shadow-sm'
+                  }`}
               >
-                관리자 페이지
+                대시보드
               </Link>
-            )}
+
+              {isAdmin && (
+                <Link
+                  href={ROUTES.ADMIN}
+                  className="px-4 py-2 bg-white/20 text-white text-sm font-extrabold rounded-lg shadow-sm"
+                >
+                  관리자 페이지
+                </Link>
+              )}
+            </div>
 
             {/* 로그아웃 */}
             <button
               onClick={handleLogout}
-              className="px-3 py-1.5 text-white text-sm font-medium rounded-md bg-red-500/30 hover:bg-red-500/50 transition-colors"
+              className="px-4 py-2 text-white/90 text-sm font-bold rounded-xl bg-red-500/20 hover:bg-red-500/40 border border-red-500/20 transition-all ml-1"
               type="button"
             >
               로그아웃
@@ -126,7 +129,7 @@ export function Header() {
         ) : (
           <Link
             href={ROUTES.LOGIN}
-            className="px-4 py-1.5 text-white text-sm font-semibold rounded-md bg-white/15 hover:bg-white/25 transition-colors border border-white/20"
+            className="px-6 py-2 text-white text-sm font-extrabold rounded-xl bg-white/10 hover:bg-white/20 transition-all border border-white/20 backdrop-blur-md shadow-lg"
           >
             로그인
           </Link>

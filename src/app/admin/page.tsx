@@ -42,19 +42,51 @@ interface DashboardData {
   systemStatus: SystemStatus;
 }
 
-function StatCard({
+function PremiumStatCard({
   label,
   value,
   color,
+  icon,
 }: {
   label: string;
   value: number;
   color: string;
+  icon?: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-      <p className="text-sm font-medium text-gray-500">{label}</p>
-      <p className={`mt-2 text-3xl font-bold ${color}`}>{value.toLocaleString()}</p>
+    <div className="group relative bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+      <div
+        className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-5 group-hover:opacity-10 transition-opacity ${color
+          .replace('text-', 'bg-')
+          .replace('-900', '-500')
+          .replace('-700', '-500')}`}
+      />
+
+      <div className="relative flex justify-between items-start">
+        <div>
+          <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">
+            {label}
+          </p>
+          <p className={`text-4xl font-black ${color} tracking-tighter`}>
+            {value.toLocaleString()}
+          </p>
+        </div>
+        {icon && (
+          <div
+            className={`p-3 rounded-xl ${color
+              .replace('text-', 'bg-')
+              .replace('-700', '-50')
+              .replace('-900', '-50')} transition-colors`}
+          >
+            {icon}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 flex items-center gap-1">
+        <span className="text-[10px] font-bold text-gray-400">Total System Users</span>
+        <div className="h-[1px] flex-1 bg-gray-100" />
+      </div>
     </div>
   );
 }
@@ -62,18 +94,16 @@ function StatCard({
 function SystemStatusIndicator({ status }: { status: 'ok' | 'error' }) {
   const isOk = status === 'ok';
   return (
-    <span className="flex items-center gap-1.5">
+    <span className="flex items-center gap-2">
       <span
-        className={`inline-block w-2.5 h-2.5 rounded-full ${
-          isOk ? 'bg-green-500' : 'bg-red-500'
-        }`}
+        className={`inline-block w-2.5 h-2.5 rounded-full ${isOk ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+          }`}
       />
       <span
-        className={`text-sm font-semibold ${
-          isOk ? 'text-green-700' : 'text-red-700'
-        }`}
+        className={`text-xs font-black uppercase tracking-widest ${isOk ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'
+          } px-2 py-1 rounded-md`}
       >
-        {isOk ? '정상' : '오류'}
+        {isOk ? 'Normal' : 'Error'}
       </span>
     </span>
   );
@@ -81,9 +111,6 @@ function SystemStatusIndicator({ status }: { status: 'ok' | 'error' }) {
 
 function formatDate(isoString: string) {
   return new Date(isoString).toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -93,6 +120,7 @@ export default function AdminDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -107,6 +135,7 @@ export default function AdminDashboardPage() {
         const result: DashboardData = await response.json();
         if (!cancelled) {
           setData(result);
+          setTimeout(() => setIsLoaded(true), 100);
         }
       } catch (err) {
         if (!cancelled) {
@@ -126,41 +155,57 @@ export default function AdminDashboardPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] selection:bg-primary/10">
       <Header />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-16 pb-10 space-y-6">
-        {/* 페이지 제목 */}
-        <div className="flex items-center justify-between">
+      <main
+        className={`flex-1 max-w-7xl w-full mx-auto px-6 py-10 space-y-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          }`}
+      >
+        {/* 페이지 제목 섹션 */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-200 pb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">관리자 대시보드</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              KATC 유사호출부호 경고시스템 현황
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-8 h-1 bg-primary rounded-full" />
+              <span className="text-primary font-bold text-sm tracking-widest uppercase">
+                System Management
+              </span>
+            </div>
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight">관리자 대시보드</h1>
+            <p className="mt-2 text-gray-500 font-medium">
+              KATC 유사호출부호 경고시스템 데이터 및 서비스 현황
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Link
               href="/admin/users?tab=users"
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+              className="group flex items-center gap-2 px-6 py-3.5 bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all text-sm"
             >
               사용자 관리
+              <svg
+                className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
             </Link>
             <Link
               href="/admin/users?tab=airlines"
-              className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-6 py-3.5 bg-white text-gray-700 border border-gray-200 rounded-2xl font-bold shadow-sm hover:bg-gray-50 transition-all text-sm"
             >
               항공사 관리
             </Link>
             <Link
               href="/admin/users?tab=password"
-              className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-6 py-3.5 bg-white text-gray-700 border border-gray-200 rounded-2xl font-bold shadow-sm hover:bg-gray-50 transition-all text-sm"
             >
               비밀번호 초기화
-            </Link>
-            <Link
-              href="/admin/actions"
-              className="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
-            >
-              조치 관리
             </Link>
           </div>
         </div>
@@ -169,17 +214,26 @@ export default function AdminDashboardPage() {
         {error && (
           <div
             role="alert"
-            className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700"
+            className="px-6 py-4 rounded-2xl bg-red-50 border border-red-100 text-sm text-red-700 font-bold shadow-sm flex items-center gap-3 animate-bounce"
           >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
             {error}
           </div>
         )}
 
         {/* 로딩 */}
         {isLoading && (
-          <div className="py-16 text-center">
-            <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="mt-3 text-sm text-gray-500">대시보드 데이터 로딩 중...</p>
+          <div className="py-20 text-center">
+            <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="mt-4 text-sm font-bold text-gray-400 uppercase tracking-widest">
+              Data Synchronizing...
+            </p>
           </div>
         )}
 
@@ -187,72 +241,115 @@ export default function AdminDashboardPage() {
         {data && (
           <>
             <section aria-label="사용자 통계">
-              <h2 className="sr-only">사용자 통계</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <StatCard
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <PremiumStatCard
                   label="전체 사용자"
                   value={data.users.total}
                   color="text-gray-900"
+                  icon={
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                      />
+                    </svg>
+                  }
                 />
-                <StatCard
+                <PremiumStatCard
                   label="활성 사용자"
                   value={data.users.active}
-                  color="text-green-700"
+                  color="text-emerald-600"
+                  icon={
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  }
                 />
-                <StatCard
+                <PremiumStatCard
                   label="정지 사용자"
                   value={data.users.suspended}
-                  color="text-red-700"
+                  color="text-rose-600"
+                  icon={
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  }
                 />
               </div>
             </section>
 
-            {/* 최근 로그인 */}
-            <Card>
-              <CardHeader
-                title="최근 로그인"
-                description="최근 로그인한 사용자 5명"
-              />
-              <CardBody className="p-0">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* 최근 로그인 */}
+              <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
+                  <div>
+                    <h3 className="text-xl font-black text-gray-900 tracking-tight">최근 로그인</h3>
+                    <p className="text-[10px] font-black text-gray-400 mt-1 uppercase tracking-widest">
+                      Recent Access Logs
+                    </p>
+                  </div>
+                </div>
+
                 {data.recentLogins.length === 0 ? (
-                  <p className="px-6 py-8 text-center text-sm text-gray-500">
-                    최근 로그인 기록이 없습니다.
-                  </p>
+                  <div className="px-8 py-12 text-center">
+                    <p className="text-sm font-bold text-gray-400 uppercase">No Recent Records</p>
+                  </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">
-                            이메일
+                        <tr className="bg-white">
+                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                            Email Detail
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">
-                            상태
+                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                            Status
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">
-                            역할
+                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                            Privilege
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wide">
-                            최근 로그인
+                          <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                            Access Time
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-gray-50">
                         {data.recentLogins.map((user) => (
-                          <tr
-                            key={user.id}
-                            className="hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-6 py-3 font-medium text-gray-900">
-                              {user.email}
+                          <tr key={user.id} className="group hover:bg-primary/[0.02] transition-all">
+                            <td className="px-8 py-5">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                  {user.email[0].toUpperCase()}
+                                </div>
+                                <span className="font-bold text-gray-700">{user.email}</span>
+                              </div>
                             </td>
-                            <td className="px-6 py-3">
-                              <StatusBadge status={user.status} />
+                            <td className="px-8 py-5">
+                              <span
+                                className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${user.status === 'active'
+                                  ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                  : 'bg-rose-50 text-rose-600 border border-rose-100'
+                                  }`}
+                              >
+                                {user.status}
+                              </span>
                             </td>
-                            <td className="px-6 py-3 text-gray-600">
+                            <td className="px-8 py-5 font-bold text-gray-600">
                               {user.role === 'admin' ? '관리자' : '사용자'}
                             </td>
-                            <td className="px-6 py-3 text-gray-500">
+                            <td className="px-8 py-5 text-gray-400 font-medium">
                               {formatDate(user.lastLoginAt)}
                             </td>
                           </tr>
@@ -261,28 +358,62 @@ export default function AdminDashboardPage() {
                     </table>
                   </div>
                 )}
-              </CardBody>
-            </Card>
+              </div>
 
-            {/* 시스템 상태 */}
-            <Card>
-              <CardHeader
-                title="시스템 상태"
-                description="주요 서비스 상태 확인"
-              />
-              <CardBody>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-gray-50">
-                    <span className="text-sm font-medium text-gray-700">데이터베이스</span>
-                    <SystemStatusIndicator status={data.systemStatus.db} />
+              {/* 시스템 상태 */}
+              <div className="space-y-6">
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <h3 className="text-xl font-black text-gray-900 tracking-tight">시스템 상태</h3>
                   </div>
-                  <div className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-gray-50">
-                    <span className="text-sm font-medium text-gray-700">API 서버</span>
-                    <SystemStatusIndicator status={data.systemStatus.api} />
+
+                  <div className="space-y-4">
+                    <div className="flex flex-col gap-2 p-5 rounded-2xl bg-gray-50/50 border border-gray-100 group hover:border-emerald-200 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold text-gray-800">Database Engine</span>
+                        <SystemStatusIndicator status={data.systemStatus.db} />
+                      </div>
+                      <div className="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-1000 ${data.systemStatus.db === 'ok' ? 'bg-emerald-500 w-full' : 'bg-red-500 w-1/4'
+                            }`}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 p-5 rounded-2xl bg-gray-50/50 border border-gray-100 group hover:border-emerald-200 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold text-gray-800">API Server</span>
+                        <SystemStatusIndicator status={data.systemStatus.api} />
+                      </div>
+                      <div className="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-1000 ${data.systemStatus.api === 'ok' ? 'bg-emerald-500 w-full' : 'bg-red-500 w-1/4'
+                            }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 p-6 rounded-2xl bg-navy text-white relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform">
+                      <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                      </svg>
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-1">
+                      Maintenance
+                    </p>
+                    <h4 className="font-bold text-sm mb-2">실시간 서비스 활성 상태</h4>
+                    <p className="text-xs text-white/70 leading-relaxed">
+                      모든 백엔드 모듈이 정상적으로 응답 중이며 실시간 유사호출부호 감시가 활성화되어
+                      있습니다.
+                    </p>
                   </div>
                 </div>
-              </CardBody>
-            </Card>
+              </div>
+            </div>
           </>
         )}
       </main>

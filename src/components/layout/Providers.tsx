@@ -20,7 +20,7 @@ function AuthInitializer({ children }: ProvidersProps) {
   const authStore = useAuthStore();
 
   useEffect(() => {
-    // 페이지 로드 시 세션 복원 (refreshToken 쿠키 → 새로운 accessToken)
+    // 페이지 로드 시 한 번만 세션 복원 (refreshToken 쿠키 → 새로운 accessToken)
     async function initializeAuth() {
       try {
         // refreshToken 쿠키로부터 새로운 accessToken 생성
@@ -33,22 +33,17 @@ function AuthInitializer({ children }: ProvidersProps) {
           const data = await response.json();
           // accessToken과 user 정보 동시에 저장
           authStore.setAuth(data.user, data.accessToken);
-          console.log('✅ 세션 복원 성공');
-        } else {
-          // 토큰 갱신 실패 (refreshToken 만료 등)
-          authStore.logout();
         }
+        // 토큰 갱신 실패 또는 성공 → 초기화 완료 (로그인 상태 아님)
       } catch (error) {
         console.error('세션 복원 실패:', error);
-        // 토큰 복원 실패 → 로그인 상태 아님
-        authStore.logout();
       } finally {
         setIsInitialized(true);
       }
     }
 
     initializeAuth();
-  }, [authStore]);
+  }, []); // ✅ 페이지 로드 시 한 번만 실행
 
   // 초기화 전 children 렌더링 (UX 개선: 로딩 상태 표시 필요하면 여기서 처리)
   return <>{children}</>;

@@ -59,6 +59,17 @@ export async function GET(
     // 쿼리 구성
     // 조치가 등록되지 않은 호출부호만 조회 (LEFT JOIN으로 조치 없는 것 필터링)
     // callsign_occurrences와 JOIN하여 발생 건수 및 최근 발생일 집계
+    const sqlParams: any[] = [airlineId];
+
+    // WHERE 조건 구성 (GROUP BY 전에)
+    let whereCondition = 'WHERE c.airline_id = $1 AND a.id IS NULL';
+
+    // 위험도 필터 (WHERE에 추가)
+    if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
+      whereCondition += ` AND c.risk_level = $${sqlParams.length + 1}`;
+      sqlParams.push(riskLevel);
+    }
+
     let sql = `
       SELECT
         c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
@@ -70,39 +81,34 @@ export async function GET(
       FROM callsigns c
       LEFT JOIN actions a ON c.id = a.callsign_id
       LEFT JOIN callsign_occurrences co ON c.id = co.callsign_id
-      WHERE c.airline_id = $1 AND a.id IS NULL
+      ${whereCondition}
       GROUP BY c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
                c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
                c.file_upload_id, c.uploaded_at, c.created_at, c.updated_at
     `;
-    const sqlParams: any[] = [airlineId];
 
-    // 위험도 필터
-    if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
-      sql += ` AND c.risk_level = $${sqlParams.length + 1}`;
-      sqlParams.push(riskLevel);
-    }
-
-    // 정렬 및 페이지네이션
-    sql += ` ORDER BY created_at DESC LIMIT $${sqlParams.length + 1} OFFSET $${sqlParams.length + 2}`;
+    // 정렬 및 페이지네이션 (발생건수 많은 순, 동일시 최근 발생일 순)
+    sql += ` ORDER BY occurrence_count DESC, last_occurred_at DESC LIMIT $${sqlParams.length + 1} OFFSET $${sqlParams.length + 2}`;
     sqlParams.push(limit, offset);
 
     const result = await query(sql, sqlParams);
 
     // 전체 개수 조회 (고유 호출부호 쌍의 개수)
+    const countSqlParams: any[] = [airlineId];
+
+    let countWhereCondition = 'WHERE c.airline_id = $1 AND a.id IS NULL';
+
+    if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
+      countWhereCondition += ` AND c.risk_level = $${countSqlParams.length + 1}`;
+      countSqlParams.push(riskLevel);
+    }
+
     let countSql = `
       SELECT COUNT(DISTINCT c.id) as total
       FROM callsigns c
       LEFT JOIN actions a ON c.id = a.callsign_id
-      LEFT JOIN callsign_occurrences co ON c.id = co.callsign_id
-      WHERE c.airline_id = $1 AND a.id IS NULL
+      ${countWhereCondition}
     `;
-    const countSqlParams: any[] = [airlineId];
-
-    if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
-      countSql += ` AND c.risk_level = $${countSqlParams.length + 1}`;
-      countSqlParams.push(riskLevel);
-    }
 
     const countResult = await query(countSql, countSqlParams);
     const total = parseInt(countResult.rows[0].total, 10);

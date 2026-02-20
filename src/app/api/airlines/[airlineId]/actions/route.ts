@@ -65,20 +65,21 @@ export async function GET(
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 기본 쿼리
+    // 기본 쿼리 (모든 호출부호와 그들의 조치 이력을 조회)
     let sql = `
       SELECT
         a.id, a.airline_id, a.callsign_id, a.action_type, a.description,
-        a.manager_name, a.manager_email, a.planned_due_date,
+        a.manager_name, a.manager_email, a.responsible_staff, a.planned_due_date,
         a.status, a.result_detail, a.completed_at,
         a.registered_by, a.registered_at, a.updated_at,
         a.reviewed_by, a.reviewed_at, a.review_comment,
         al.code as airline_code, al.name_ko as airline_name_ko,
-        cs.callsign_pair, cs.my_callsign, cs.other_callsign, cs.risk_level
-      FROM actions a
+        cs.id as cs_id, cs.callsign_pair, cs.my_callsign, cs.other_callsign, cs.risk_level,
+        cs.occurrence_count, cs.error_type, cs.sub_error, cs.similarity
+      FROM callsigns cs
+      LEFT JOIN actions a ON cs.id = a.callsign_id
       LEFT JOIN airlines al ON a.airline_id = al.id
-      LEFT JOIN callsigns cs ON a.callsign_id = cs.id
-      WHERE a.airline_id = $1
+      WHERE cs.airline_id = $1
     `;
     const queryParams: any[] = [airlineId];
 
@@ -119,8 +120,14 @@ export async function GET(
     // 데이터 조회
     const result = await query(sql, queryParams);
 
-    // 전체 개수 조회
-    let countSql = `SELECT COUNT(*) as total FROM actions a LEFT JOIN callsigns cs ON a.callsign_id = cs.id WHERE a.airline_id = $1`;
+    // 전체 개수 조회 (각 조치 행을 개별 계산)
+    let countSql = `
+      SELECT COUNT(*) as total FROM (
+        SELECT a.id FROM callsigns cs
+        LEFT JOIN actions a ON cs.id = a.callsign_id
+        WHERE cs.airline_id = $1
+      ) as t
+    `;
     const countParams: any[] = [airlineId];
 
     if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
@@ -154,50 +161,57 @@ export async function GET(
     const total = parseInt(countResult.rows[0].total, 10);
 
     return NextResponse.json({
-      data: result.rows.map((action: any) => ({
-        id: action.id,
-        airline_id: action.airline_id,
-        airline: action.airline_code ? {
-          id: action.airline_id,
-          code: action.airline_code,
-          name_ko: action.airline_name_ko,
+      data: result.rows.map((row: any) => ({
+        // 조치 정보 (있는 경우)
+        id: row.id,
+        airline_id: row.airline_id,
+        airline: row.airline_code ? {
+          id: row.airline_id,
+          code: row.airline_code,
+          name_ko: row.airline_name_ko,
         } : null,
-        callsign_id: action.callsign_id,
-        callsign: action.callsign_pair ? {
-          callsign_pair: action.callsign_pair,
-          my_callsign: action.my_callsign,
-          other_callsign: action.other_callsign,
-          risk_level: action.risk_level,
+        callsign_id: row.callsign_id || row.cs_id,
+        callsign: row.callsign_pair ? {
+          callsign_pair: row.callsign_pair,
+          my_callsign: row.my_callsign,
+          other_callsign: row.other_callsign,
+          risk_level: row.risk_level,
+          occurrence_count: row.occurrence_count,
+          error_type: row.error_type,
+          sub_error: row.sub_error,
+          similarity: row.similarity,
         } : null,
-        action_type: action.action_type,
-        description: action.description,
-        manager_name: action.manager_name,
-        manager_email: action.manager_email,
-        planned_due_date: action.planned_due_date,
-        status: action.status,
-        result_detail: action.result_detail,
-        completed_at: action.completed_at,
-        registered_by: action.registered_by,
-        registered_at: action.registered_at,
-        updated_at: action.updated_at,
-        reviewed_by: action.reviewed_by,
-        reviewed_at: action.reviewed_at,
-        review_comment: action.review_comment,
+        action_type: row.action_type,
+        description: row.description,
+        manager_name: row.manager_name,
+        manager_email: row.manager_email,
+        responsible_staff: row.responsible_staff,
+        planned_due_date: row.planned_due_date,
+        status: row.status,
+        result_detail: row.result_detail,
+        completed_at: row.completed_at,
+        registered_by: row.registered_by,
+        registered_at: row.registered_at,
+        updated_at: row.updated_at,
+        reviewed_by: row.reviewed_by,
+        reviewed_at: row.reviewed_at,
+        review_comment: row.review_comment,
         // camelCase 별칭
-        airlineId: action.airline_id,
-        callsignId: action.callsign_id,
-        actionType: action.action_type,
-        managerName: action.manager_name,
-        managerEmail: action.manager_email,
-        plannedDueDate: action.planned_due_date,
-        resultDetail: action.result_detail,
-        completedAt: action.completed_at,
-        registeredBy: action.registered_by,
-        registeredAt: action.registered_at,
-        updatedAt: action.updated_at,
-        reviewedBy: action.reviewed_by,
-        reviewedAt: action.reviewed_at,
-        reviewComment: action.review_comment,
+        airlineId: row.airline_id,
+        callsignId: row.callsign_id || row.cs_id,
+        actionType: row.action_type,
+        managerName: row.manager_name,
+        managerEmail: row.manager_email,
+        responsibleStaff: row.responsible_staff,
+        plannedDueDate: row.planned_due_date,
+        resultDetail: row.result_detail,
+        completedAt: row.completed_at,
+        registeredBy: row.registered_by,
+        registeredAt: row.registered_at,
+        updatedAt: row.updated_at,
+        reviewedBy: row.reviewed_by,
+        reviewedAt: row.reviewed_at,
+        reviewComment: row.review_comment,
       })),
       pagination: {
         page,
@@ -248,6 +262,7 @@ export async function POST(
       description,
       managerName,
       managerEmail,
+      responsibleStaff,
       plannedDueDate,
     } = await request.json();
 
@@ -290,9 +305,9 @@ export async function POST(
       return trx(
         `INSERT INTO actions (
           airline_id, callsign_id, action_type, description,
-          manager_name, manager_email, planned_due_date,
+          manager_name, manager_email, responsible_staff, planned_due_date,
           status, registered_by, registered_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING *`,
         [
           airlineId,
@@ -301,6 +316,7 @@ export async function POST(
           description || null,
           managerName || null,
           managerEmail || null,
+          responsibleStaff || null,
           plannedDueDate || null,
           'pending',
           payload.userId, // 현재 관리자 ID
@@ -328,6 +344,7 @@ export async function POST(
         description: action.description,
         manager_name: action.manager_name,
         manager_email: action.manager_email,
+        responsible_staff: action.responsible_staff,
         planned_due_date: action.planned_due_date,
         status: action.status,
         registered_by: action.registered_by,

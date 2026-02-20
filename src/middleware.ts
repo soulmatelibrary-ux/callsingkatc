@@ -18,6 +18,7 @@ export function middleware(request: NextRequest) {
 
   // refreshToken 쿠키만 확인 (단순화)
   const refreshToken = request.cookies.get('refreshToken')?.value;
+  const userCookie = request.cookies.get('user')?.value;
 
   console.log('[Middleware] refreshToken exists:', !!refreshToken);
   
@@ -32,6 +33,18 @@ export function middleware(request: NextRequest) {
   const isLoggedIn = !!refreshToken && isValidFormat;
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+
+  let userRole: string | null = null;
+  if (userCookie) {
+    try {
+      const parsed = JSON.parse(decodeURIComponent(userCookie));
+      userRole = parsed?.role || null;
+    } catch (error) {
+      console.warn('[Middleware] 사용자 쿠키 파싱 실패:', error);
+    }
+  }
+
+  const defaultRedirect = userRole === 'admin' ? '/dashboard' : '/airline';
 
   console.log('[Middleware] isLoggedIn:', isLoggedIn, 'isProtectedRoute:', isProtectedRoute, 'isAuthRoute:', isAuthRoute);
 
@@ -48,10 +61,16 @@ export function middleware(request: NextRequest) {
     return redirectResponse;
   }
 
-  // 2. 로그인 상태 + 인증 라우트 → /airline으로 리다이렉트
+  // 2. 로그인 상태 + 인증 라우트 → 역할별 기본 페이지로 리다이렉트
   if (isLoggedIn && isAuthRoute) {
-    console.log('[Middleware] 리다이렉트: 인증 라우트 → airline');
-    return NextResponse.redirect(new URL('/airline', request.url));
+    console.log('[Middleware] 리다이렉트: 인증 라우트 →', defaultRedirect);
+    return NextResponse.redirect(new URL(defaultRedirect, request.url));
+  }
+
+  // 3. 로그인 상태 + 홈(/) 접속 → 역할별 기본 페이지로 리다이렉트
+  if (isLoggedIn && pathname === '/') {
+    console.log('[Middleware] 리다이렉트: 홈 →', defaultRedirect);
+    return NextResponse.redirect(new URL(defaultRedirect, request.url));
   }
 
   return NextResponse.next();

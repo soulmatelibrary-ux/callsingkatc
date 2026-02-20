@@ -13,6 +13,7 @@ interface ActionModalProps {
     actionType?: string;
     managerName?: string;
     managerEmail?: string;
+    responsibleStaff?: string; // 항공사 담당자명
     description?: string;
     plannedDueDate?: string;
   };
@@ -33,8 +34,9 @@ export function ActionModal({
   const [actionType, setActionType] = useState(initialData?.actionType || '');
   const [managerName, setManagerName] = useState(initialData?.managerName || '');
   const [managerEmail, setManagerEmail] = useState(initialData?.managerEmail || '');
+  const [responsibleStaff, setResponsibleStaff] = useState(initialData?.responsibleStaff || '');
   const [description, setDescription] = useState(initialData?.description || '');
-  
+
   // 조치 예정일 기본값을 오늘로 설정
   const today = new Date().toISOString().split('T')[0];
   const [plannedDueDate, setPlannedDueDate] = useState(
@@ -73,6 +75,7 @@ export function ActionModal({
           description: description || undefined,
           manager_name: managerName,
           manager_email: managerEmail || undefined,
+          responsible_staff: responsibleStaff || undefined,
           planned_due_date: plannedDueDate || undefined,
         });
       } else {
@@ -84,6 +87,7 @@ export function ActionModal({
           description: description || undefined,
           manager_name: managerName,
           manager_email: managerEmail || undefined,
+          responsible_staff: responsibleStaff || undefined,
           planned_due_date: plannedDueDate || undefined,
         });
       }
@@ -287,6 +291,36 @@ export function ActionModal({
               placeholder="이메일 주소"
               value={managerEmail}
               onChange={(e) => setManagerEmail(e.target.value)}
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                fontSize: '14px',
+                opacity: isLoading ? 0.6 : 1,
+              }}
+            />
+          </div>
+
+          {/* 항공사 담당자명 */}
+          <div>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '13px',
+                fontWeight: 600,
+                color: '#4b5563',
+                marginBottom: '6px',
+              }}
+            >
+              항공사 담당자명
+            </label>
+            <input
+              type="text"
+              placeholder="항공사에서 담당하는 담당자명"
+              value={responsibleStaff}
+              onChange={(e) => setResponsibleStaff(e.target.value)}
               disabled={isLoading}
               style={{
                 width: '100%',

@@ -42,7 +42,7 @@ export async function GET(
     const result = await query(
       `SELECT
         a.id, a.airline_id, a.callsign_id, a.action_type, a.description,
-        a.manager_name, a.manager_email, a.planned_due_date,
+        a.manager_name, a.manager_email, a.responsible_staff, a.planned_due_date,
         a.status, a.result_detail, a.completed_at,
         a.registered_by, a.registered_at, a.updated_at,
         a.reviewed_by, a.reviewed_at, a.review_comment,
@@ -141,6 +141,7 @@ export async function PATCH(
       description,
       manager_name,
       manager_email,
+      responsible_staff,
       planned_due_date,
       result_detail,
       completed_at,
@@ -189,6 +190,10 @@ export async function PATCH(
     if (manager_email !== undefined) {
       fields.push(`manager_email = $${paramIndex++}`);
       values.push(manager_email);
+    }
+    if (responsible_staff !== undefined) {
+      fields.push(`responsible_staff = $${paramIndex++}`);
+      values.push(responsible_staff);
     }
     if (planned_due_date !== undefined) {
       fields.push(`planned_due_date = $${paramIndex++}`);

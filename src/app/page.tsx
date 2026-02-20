@@ -21,19 +21,19 @@ const airlines = [
   { code: 'APZ', name: '에어프레미아 (APZ)' },
 ];
 
-// 배경에 표시할 항공기 데이터 - 항로 기반 애니메이션
+// 배경에 표시할 항공기 데이터 - 고정된 위치
 const radarAircraft = [
-  { airline: 'KAL', flight: 'KAL652', level: 'FL320', speed: '480kts', color: 'rgba(59, 130, 246, 0.7)', pathId: 'path1', size: 16 },
-  { airline: 'AAR', flight: 'AAR731', level: 'FL280', speed: '440kts', color: 'rgba(16, 185, 129, 0.6)', pathId: 'path2', size: 15 },
-  { airline: 'JJA', flight: 'JJA183', level: 'FL250', speed: '420kts', color: 'rgba(239, 68, 68, 0.5)', pathId: 'path3', size: 13 },
-  { airline: 'JNA', flight: 'JNA542', level: 'FL290', speed: '450kts', color: 'rgba(168, 85, 247, 0.6)', pathId: 'path4', size: 14 },
-  { airline: 'TWB', flight: 'TWB401', level: 'FL310', speed: '470kts', color: 'rgba(34, 197, 94, 0.55)', pathId: 'path5', size: 14 },
-  { airline: 'ABL', flight: 'ABL621', level: 'FL260', speed: '430kts', color: 'rgba(236, 72, 153, 0.5)', pathId: 'path6', size: 12 },
-  { airline: 'ASV', flight: 'ASV523', level: 'FL300', speed: '460kts', color: 'rgba(251, 146, 60, 0.6)', pathId: 'path7', size: 13 },
-  { airline: 'ESR', flight: 'ESR892', level: 'FL270', speed: '440kts', color: 'rgba(59, 130, 246, 0.55)', pathId: 'path8', size: 12 },
-  { airline: 'FGW', flight: 'FGW341', level: 'FL280', speed: '450kts', color: 'rgba(14, 165, 233, 0.6)', pathId: 'path9', size: 13 },
-  { airline: 'ARK', flight: 'ARK712', level: 'FL320', speed: '480kts', color: 'rgba(139, 92, 246, 0.5)', pathId: 'path10', size: 12 },
-  { airline: 'APZ', flight: 'APZ289', level: 'FL310', speed: '470kts', color: 'rgba(6, 182, 212, 0.6)', pathId: 'path11', size: 14 },
+  { airline: 'KAL', flight: 'KAL652', level: 'FL320', speed: '480kts', color: 'rgba(59, 130, 246, 0.7)', top: '10%', left: '10%', size: 16 },
+  { airline: 'AAR', flight: 'AAR731', level: 'FL280', speed: '440kts', color: 'rgba(16, 185, 129, 0.6)', top: '35%', left: '15%', size: 15 },
+  { airline: 'JJA', flight: 'JJA183', level: 'FL250', speed: '420kts', color: 'rgba(239, 68, 68, 0.5)', top: '25%', left: '25%', size: 13 },
+  { airline: 'JNA', flight: 'JNA542', level: 'FL290', speed: '450kts', color: 'rgba(168, 85, 247, 0.6)', top: '55%', left: '20%', size: 14 },
+  { airline: 'TWB', flight: 'TWB401', level: 'FL310', speed: '470kts', color: 'rgba(34, 197, 94, 0.55)', top: '60%', left: '35%', size: 14 },
+  { airline: 'ABL', flight: 'ABL621', level: 'FL260', speed: '430kts', color: 'rgba(236, 72, 153, 0.5)', top: '40%', left: '50%', size: 12 },
+  { airline: 'ASV', flight: 'ASV523', level: 'FL300', speed: '460kts', color: 'rgba(251, 146, 60, 0.6)', top: '5%', left: '45%', size: 13 },
+  { airline: 'ESR', flight: 'ESR892', level: 'FL270', speed: '440kts', color: 'rgba(59, 130, 246, 0.55)', top: '70%', left: '40%', size: 12 },
+  { airline: 'FGW', flight: 'FGW341', level: 'FL280', speed: '450kts', color: 'rgba(14, 165, 233, 0.6)', top: '15%', left: '55%', size: 13 },
+  { airline: 'ARK', flight: 'ARK712', level: 'FL320', speed: '480kts', color: 'rgba(139, 92, 246, 0.5)', top: '50%', left: '25%', size: 12 },
+  { airline: 'APZ', flight: 'APZ289', level: 'FL310', speed: '470kts', color: 'rgba(6, 182, 212, 0.6)', top: '20%', left: '30%', size: 14 },
 ];
 
 // 항로 경로 데이터 (cubic bezier curves)
@@ -54,6 +54,7 @@ const flightRoutes = [
 export default function Home() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const setUser = useAuthStore((s) => s.setUser);
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedAirline, setSelectedAirline] = useState<string>('KAL');
   const [email, setEmail] = useState('');
@@ -63,13 +64,37 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const hasToken = document.cookie.includes('refreshToken=');
-    if (hasToken) {
-      router.push('/airline');
-    } else {
+    const checkSession = async () => {
+      const hasToken = document.cookie.includes('refreshToken=');
+      if (!hasToken) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            setUser(data.user);
+            const target = data.user.role === 'admin' ? ROUTES.DASHBOARD : ROUTES.AIRLINE;
+            router.replace(target);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('세션 확인 실패:', error);
+      }
+
       setLoading(false);
-    }
-  }, [router]);
+    };
+
+    checkSession();
+  }, [router, setUser]);
 
   if (loading) {
     return null;
@@ -112,8 +137,8 @@ export default function Home() {
           setIsSubmitting(false);
           return;
         }
-        // 관리자 첫 페이지는 관리자 대시보드
-        router.push('/admin');
+        // 관리자 첫 페이지는 대시보드
+        router.push(ROUTES.DASHBOARD);
       } else {
         // 항공사 로그인
         if (result.user.role === 'admin') {
@@ -190,22 +215,18 @@ export default function Home() {
           ))}
         </svg>
 
-        {/* Aircraft Blips - All 11 Airlines */}
+        {/* Aircraft Blips - All 11 Airlines (Fixed Positions) */}
         {radarAircraft.map((aircraft, idx) => {
-          const route = flightRoutes[idx];
-          const duration = route?.duration || 20;
-
           return (
             <div
               key={idx}
               className="plane-blip"
               style={{
                 position: 'absolute',
-                left: 0,
-                top: 0,
+                left: aircraft.left,
+                top: aircraft.top,
                 pointerEvents: 'none',
                 zIndex: 3,
-                animation: `followRoute${idx} ${duration}s linear infinite`,
               }}
             >
               <div style={{
@@ -217,7 +238,6 @@ export default function Home() {
                   style={{
                     color: aircraft.color,
                     filter: `drop-shadow(0 0 8px ${aircraft.color.replace('0.', '0.').slice(0, -1)}1))`,
-                    transition: 'transform 0.3s ease'
                   }}
                 />
               </div>

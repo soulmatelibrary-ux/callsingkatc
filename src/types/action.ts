@@ -92,8 +92,9 @@ export interface Action {
   // 조치 정보
   action_type: string; // "편명 변경", "브리핑 시행", "모니터링 강화" 등
   description?: string;
-  manager_name?: string;
+  manager_name?: string; // 관리자 담당자
   manager_email?: string;
+  responsible_staff?: string; // 항공사 담당자명
   planned_due_date?: string;
 
   // 상태 추적
@@ -122,6 +123,7 @@ export interface Action {
   actionType?: string;
   managerName?: string;
   managerEmail?: string;
+  responsibleStaff?: string; // 항공사 담당자명 (camelCase)
   plannedDueDate?: string;
   resultDetail?: string;
   completedAt?: string;
@@ -165,6 +167,7 @@ export interface CreateActionRequest {
   description?: string;
   manager_name?: string;
   manager_email?: string;
+  responsible_staff?: string; // 항공사 담당자명
   planned_due_date?: string;
 }
 
@@ -173,6 +176,7 @@ export interface UpdateActionRequest {
   description?: string;
   manager_name?: string;
   manager_email?: string;
+  responsible_staff?: string; // 항공사 담당자명
   planned_due_date?: string;
   result_detail?: string;
   completed_at?: string;

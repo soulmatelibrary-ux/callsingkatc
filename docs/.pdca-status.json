@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-20T09:07:06.531Z",
+  "lastUpdated": "2026-02-20T11:18:23.000Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -42,9 +42,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:37:49.180Z",
-        "lastUpdated": "2026-02-20T07:52:17.640Z"
+        "lastUpdated": "2026-02-20T11:05:22.564Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/page.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/types/action.ts"
     },
     "api": {
       "phase": "do",
@@ -94,9 +94,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:41:18.945Z",
-        "lastUpdated": "2026-02-20T09:00:36.149Z"
+        "lastUpdated": "2026-02-20T09:18:22.111Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/layout/Header.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/components/layout/Providers.tsx"
     },
     "forms": {
       "phase": "do",
@@ -107,7 +107,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:41:49.609Z",
-        "lastUpdated": "2026-02-20T06:41:34.284Z"
+        "lastUpdated": "2026-02-20T10:51:35.562Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/components/forms/LoginForm.tsx"
     },
@@ -120,7 +120,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:43:18.371Z",
-        "lastUpdated": "2026-02-20T04:30:49.890Z"
+        "lastUpdated": "2026-02-20T11:04:30.570Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/page.tsx"
     },
@@ -224,7 +224,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:44:52.743Z",
-        "lastUpdated": "2026-02-20T08:56:20.856Z"
+        "lastUpdated": "2026-02-20T11:13:50.654Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/dashboard/page.tsx"
     },
@@ -289,7 +289,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-20T04:22:33.332Z"
+        "lastUpdated": "2026-02-20T11:08:56.331Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/actions/[id]/route.ts"
     },
@@ -367,7 +367,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:32.683Z",
-        "lastUpdated": "2026-02-20T07:50:31.091Z"
+        "lastUpdated": "2026-02-20T11:18:23.000Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/airlines/[airlineId]/actions/route.ts"
     },
@@ -380,7 +380,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:58.733Z",
-        "lastUpdated": "2026-02-20T09:07:06.531Z"
+        "lastUpdated": "2026-02-20T10:49:18.589Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/airlines/[airlineId]/callsigns/route.ts"
     },
@@ -393,7 +393,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T09:06:56.111Z",
-        "lastUpdated": "2026-02-20T09:06:56.111Z"
+        "lastUpdated": "2026-02-20T09:34:04.336Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/upload-callsigns/route.ts"
     }
@@ -406,7 +406,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-20T09:07:06.531Z"
+    "lastActivity": "2026-02-20T11:18:23.000Z"
   },
   "history": [
     {
@@ -2866,6 +2866,192 @@
     {
       "timestamp": "2026-02-20T09:07:06.531Z",
       "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:18:22.111Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:20:29.265Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:20:40.898Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:25:38.864Z",
+      "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T09:34:04.336Z",
+      "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T10:47:05.202Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T10:47:11.946Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T10:49:18.589Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T10:51:35.562Z",
+      "feature": "forms",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:04:30.570Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:05:07.162Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:05:16.670Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:05:22.564Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:06:18.103Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:06:37.176Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:06:50.942Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:07:00.727Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:07:29.821Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:07:46.674Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:08:20.732Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:08:56.331Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:10:38.684Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:10:59.125Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:11:05.955Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:11:19.989Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:12:59.909Z",
+      "feature": "dashboard",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:13:09.455Z",
+      "feature": "dashboard",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:13:50.654Z",
+      "feature": "dashboard",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:17:34.987Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:18:11.140Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-20T11:18:23.000Z",
+      "feature": "actions",
       "phase": "do",
       "action": "updated"
     }

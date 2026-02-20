@@ -216,14 +216,46 @@ export async function POST(request: NextRequest) {
           const isNewCallsign = callsignResult.rows[0].inserted;
 
           // Step 2: 발생 날짜 추출 (시작일 row[0] 사용, 없으면 오늘)
-          const occurredDateStr = row[0] ? String(row[0]).trim() : new Date().toISOString().split('T')[0];
-          // 날짜 포맷 변환 (예: "2025-12-10" 또는 "12/10/2025")
-          let occurredDate = occurredDateStr;
-          if (occurredDateStr.includes('/')) {
-            const parts = occurredDateStr.split('/');
-            if (parts.length === 3) {
-              // "MM/DD/YYYY" -> "YYYY-MM-DD"
-              occurredDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+          let occurredDate: string;
+
+          if (!row[0]) {
+            // 비어있으면 오늘 날짜
+            occurredDate = new Date().toISOString().split('T')[0];
+          } else {
+            const dateValue = row[0];
+            const dateNum = typeof dateValue === 'number' ? dateValue : parseFloat(String(dateValue));
+
+            if (!isNaN(dateNum) && dateNum > 0) {
+              // Excel 날짜 일련번호 변환 (1900-01-01 기준)
+              // Excel은 1900-01-01을 1로 취급하되, 1900년 2월 29일 버그가 있음 (실제로 존재하지 않음)
+              // 따라서 1900 또는 1901 기준으로 계산
+              const excelEpoch = new Date(1900, 0, 1); // 1900-01-01
+              const daysOffset = Math.floor(dateNum) - 1; // Excel의 1 = 1900-01-01
+              const actualDate = new Date(excelEpoch.getTime() + daysOffset * 24 * 60 * 60 * 1000);
+
+              // YYYY-MM-DD 형식으로 변환
+              const year = actualDate.getFullYear();
+              const month = String(actualDate.getMonth() + 1).padStart(2, '0');
+              const day = String(actualDate.getDate()).padStart(2, '0');
+              occurredDate = `${year}-${month}-${day}`;
+            } else {
+              // 숫자가 아니거나 포맷이 다르면 문자열로 처리
+              const dateStr = String(dateValue).trim();
+              if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                  // "MM/DD/YYYY" -> "YYYY-MM-DD"
+                  occurredDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+                } else {
+                  occurredDate = new Date().toISOString().split('T')[0];
+                }
+              } else if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                // 이미 "YYYY-MM-DD" 형식
+                occurredDate = dateStr;
+              } else {
+                // 포맷을 인식 못하면 오늘 날짜
+                occurredDate = new Date().toISOString().split('T')[0];
+              }
             }
           }
 
@@ -252,12 +284,23 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Step 4: 각 callsign의 occurrence_count를 callsign_occurrences 개수로 업데이트
+      await query(
+        `UPDATE callsigns c
+         SET occurrence_count = (
+           SELECT COUNT(*) FROM callsign_occurrences
+           WHERE callsign_id = c.id
+         )
+         WHERE file_upload_id = $1`,
+        [uploadId]
+      );
+
       // 업로드 기록 업데이트
       await query(
-        `UPDATE file_uploads 
-         SET status = 'completed', 
-             total_rows = $1, 
-             success_count = $2, 
+        `UPDATE file_uploads
+         SET status = 'completed',
+             total_rows = $1,
+             success_count = $2,
              failed_count = $3,
              error_message = $4,
              processed_at = NOW()

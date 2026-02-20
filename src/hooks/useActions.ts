@@ -23,7 +23,8 @@ import {
  * 필터: airlineId(선택), status, search, dateFrom, dateTo
  * 페이지네이션 지원
  */
-export function useAllActions(filters?: {
+export function useAllActions(
+  filters?: {
   airlineId?: string;
   status?: 'pending' | 'in_progress' | 'completed';
   search?: string;
@@ -31,7 +32,9 @@ export function useAllActions(filters?: {
   dateTo?: string;
   page?: number;
   limit?: number;
-}) {
+  },
+  options?: { enabled?: boolean }
+) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const page = filters?.page || 1;
   const limit = filters?.limit || 20;
@@ -68,7 +71,7 @@ export function useAllActions(filters?: {
       const data = (await response.json()) as ActionListResponse;
       return data;
     },
-    enabled: !!accessToken,
+    enabled: !!accessToken && (options?.enabled ?? true),
     staleTime: 30 * 1000, // 30초
     gcTime: 5 * 60 * 1000, // 5분
   });
