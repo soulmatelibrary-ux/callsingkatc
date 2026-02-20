@@ -62,7 +62,7 @@ export default function DashboardPage() {
     dateFrom: actionDateFrom || undefined,
     dateTo: actionDateTo || undefined,
     page: actionPage,
-    limit: 20,
+    limit: 100,  // 한 페이지에 최대 100개까지 조회
   });
 
   useEffect(() => {
