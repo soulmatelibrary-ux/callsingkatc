@@ -66,11 +66,13 @@ export async function GET(
     const offset = (page - 1) * limit;
 
     // 기본 쿼리 (호출부호 기준 조치 이력 조회)
+    // 상태 로직: action 없음 = in_progress, action 있음 = completed
     let sql = `
       SELECT
         a.id, a.airline_id, a.callsign_id, a.action_type, a.description,
         a.manager_name, a.manager_email, a.responsible_staff, a.planned_due_date,
-        a.status, a.result_detail, a.completed_at,
+        CASE WHEN a.id IS NULL THEN 'in_progress' ELSE 'completed' END as status,
+        a.result_detail, a.completed_at,
         a.registered_by, a.registered_at, a.updated_at,
         a.reviewed_by, a.reviewed_at, a.review_comment,
         al.code as airline_code, al.name_ko as airline_name_ko,
@@ -79,14 +81,19 @@ export async function GET(
       FROM callsigns cs
       LEFT JOIN actions a ON cs.id = a.callsign_id
       LEFT JOIN airlines al ON a.airline_id = al.id
-      WHERE cs.airline_id = $1 AND (a.status IS NULL OR a.status IN ('in_progress', 'completed'))
+      WHERE cs.airline_id = $1
     `;
     const queryParams: any[] = [airlineId];
 
-    // 필터 조건 (pending 상태는 제외)
-    if (status && ['in_progress', 'completed'].includes(status)) {
-      sql += ` AND a.status = $${queryParams.length + 1}`;
-      queryParams.push(status);
+    // 필터 조건: action 존재 여부로 필터링
+    if (status) {
+      if (status === 'in_progress') {
+        // action이 없는 호출부호 (진행 중)
+        sql += ` AND a.id IS NULL`;
+      } else if (status === 'completed') {
+        // action이 있는 호출부호 (완료)
+        sql += ` AND a.id IS NOT NULL`;
+      }
     }
 
     // 검색 조건 (유사호출부호, 조치유형, 담당자)
@@ -120,18 +127,23 @@ export async function GET(
     // 데이터 조회
     const result = await query(sql, queryParams);
 
-    // 전체 개수 조회 (호출부호 기준, pending 상태 제외)
+    // 전체 개수 조회 (호출부호 기준)
     let countSql = `
-      SELECT COUNT(DISTINCT a.id) as total FROM callsigns cs
+      SELECT COUNT(DISTINCT cs.id) as total FROM callsigns cs
       LEFT JOIN actions a ON cs.id = a.callsign_id
-      WHERE cs.airline_id = $1 AND (a.status IS NULL OR a.status IN ('in_progress', 'completed'))
+      WHERE cs.airline_id = $1
     `;
     const countParams: any[] = [airlineId];
 
-    // 필터 조건 (pending 상태는 제외)
-    if (status && ['in_progress', 'completed'].includes(status)) {
-      countSql += ` AND a.status = $${countParams.length + 1}`;
-      countParams.push(status);
+    // 필터 조건: action 존재 여부로 필터링
+    if (status) {
+      if (status === 'in_progress') {
+        // action이 없는 호출부호 (진행 중)
+        countSql += ` AND a.id IS NULL`;
+      } else if (status === 'completed') {
+        // action이 있는 호출부호 (완료)
+        countSql += ` AND a.id IS NOT NULL`;
+      }
     }
 
     if (search && search.trim()) {
