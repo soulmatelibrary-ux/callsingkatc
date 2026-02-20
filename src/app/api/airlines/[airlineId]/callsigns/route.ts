@@ -62,7 +62,8 @@ export async function GET(
     const sqlParams: any[] = [airlineId];
 
     // WHERE 조건 구성 (GROUP BY 전에)
-    let whereCondition = 'WHERE c.airline_id = $1 AND a.id IS NULL';
+    // 조치가 없거나 조치가 완료되지 않은 호출부호 조회
+    let whereCondition = 'WHERE c.airline_id = $1 AND (a.id IS NULL OR a.status != \'completed\')';
 
     // 위험도 필터 (WHERE에 추가)
     if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
@@ -96,7 +97,8 @@ export async function GET(
     // 전체 개수 조회 (고유 호출부호 쌍의 개수)
     const countSqlParams: any[] = [airlineId];
 
-    let countWhereCondition = 'WHERE c.airline_id = $1 AND a.id IS NULL';
+    // 조치가 없거나 조치가 완료되지 않은 호출부호 개수
+    let countWhereCondition = 'WHERE c.airline_id = $1 AND (a.id IS NULL OR a.status != \'completed\')';
 
     if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
       countWhereCondition += ` AND c.risk_level = $${countSqlParams.length + 1}`;

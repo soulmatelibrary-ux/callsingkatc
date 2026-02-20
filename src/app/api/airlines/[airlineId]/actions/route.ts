@@ -75,7 +75,7 @@ export async function GET(
         a.reviewed_by, a.reviewed_at, a.review_comment,
         al.code as airline_code, al.name_ko as airline_name_ko,
         cs.id as cs_id, cs.callsign_pair, cs.my_callsign, cs.other_callsign, cs.risk_level,
-        cs.occurrence_count, cs.error_type, cs.sub_error, cs.similarity
+        cs.occurrence_count, cs.error_type, cs.sub_error, cs.similarity, cs.created_at as callsign_created_at
       FROM callsigns cs
       LEFT JOIN actions a ON cs.id = a.callsign_id
       LEFT JOIN airlines al ON a.airline_id = al.id
@@ -180,6 +180,7 @@ export async function GET(
           error_type: row.error_type,
           sub_error: row.sub_error,
           similarity: row.similarity,
+          created_at: row.callsign_created_at,
         } : null,
         action_type: row.action_type,
         description: row.description,

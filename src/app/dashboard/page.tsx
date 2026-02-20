@@ -1,14 +1,33 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
 import { Header } from '@/components/layout/Header';
-import { useAirlineCallsigns, useAirlineActions, useDeleteAction } from '@/hooks/useActions';
+import {
+  useAirlineCallsigns,
+  useAirlineActions,
+  useDeleteAction,
+  useAllActions,
+} from '@/hooks/useActions';
 import { ActionDetailModal } from '@/components/actions/ActionDetailModal';
 import { Action } from '@/types/action';
 import * as XLSX from 'xlsx';
+
+type DashboardTab = 'callsigns' | 'actions' | 'upload';
+
+type ActionSummary = {
+  total: number;
+  pending: number;
+  in_progress: number;
+  completed: number;
+};
+
+type AirlineSummaryRow = ActionSummary & {
+  code: string;
+  name?: string;
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -18,7 +37,7 @@ export default function DashboardPage() {
     isAdmin: s.isAdmin(),
   }));
 
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<DashboardTab>('callsigns');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<{
@@ -30,6 +49,7 @@ export default function DashboardPage() {
   // 호출부호 필터
   const [riskLevelFilter, setRiskLevelFilter] = useState<string>('');
   const [callsignPage, setCallsignPage] = useState(1);
+  const [callsignLimit, setCallsignLimit] = useState(30);
 
   // 조치 이력 필터 (기본값: 1개월)
   const getDefaultDateFrom = () => {
@@ -52,7 +72,7 @@ export default function DashboardPage() {
   const callsignsQuery = useAirlineCallsigns(user?.airline_id, {
     riskLevel: riskLevelFilter || undefined,
     page: callsignPage,
-    limit: 50,  // 페이지당 50개 (데이터가 많으면 페이징)
+    limit: callsignLimit,
   });
 
   // 조치 이력 조회 (사용자의 항공사별, 기본값 1개월)
@@ -64,6 +84,18 @@ export default function DashboardPage() {
     page: actionPage,
     limit: 999,  // 항공사의 모든 조치 이력 조회
   });
+
+  const allActionsQuery = useAllActions(
+    isAdmin
+      ? {
+          dateFrom: actionDateFrom || undefined,
+          dateTo: actionDateTo || undefined,
+          page: 1,
+          limit: 999,
+        }
+      : undefined,
+    { enabled: isAdmin }
+  );
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -180,6 +212,50 @@ export default function DashboardPage() {
     completed: '완료',
   };
 
+  const dashboardTabs: Array<{ id: DashboardTab; label: string }> = [
+    { id: 'callsigns', label: '유사호출부호목록' },
+    { id: 'actions', label: '조치 이력' },
+    { id: 'upload', label: 'Excel 업로드' },
+  ];
+
+  const actionSummary = useMemo<ActionSummary>(() => {
+    const rows = actionsQuery.data?.data ?? [];
+    return rows.reduce<ActionSummary>(
+      (acc, cur) => {
+        acc.total += 1;
+        acc[cur.status] += 1;
+        return acc;
+      },
+      { total: 0, pending: 0, in_progress: 0, completed: 0 }
+    );
+  }, [actionsQuery.data?.data]);
+
+  const airlineSummary = useMemo<AirlineSummaryRow[]>(() => {
+    if (!isAdmin) {
+      return [];
+    }
+
+    const rows = allActionsQuery.data?.data ?? [];
+    const map = new Map<string, AirlineSummaryRow>();
+
+    rows.forEach((action) => {
+      const code = action.airline?.code || action.callsign?.airline_code || '미확인';
+      const existing = map.get(code) || {
+        code,
+        name: action.airline?.name,
+        total: 0,
+        pending: 0,
+        in_progress: 0,
+        completed: 0,
+      };
+      existing.total += 1;
+      existing[action.status] += 1;
+      map.set(code, existing);
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [allActionsQuery.data?.data, isAdmin]);
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
@@ -194,21 +270,34 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* 호출부호 목록 섹션 */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          {/* 헤더 */}
-          <div className="flex justify-between items-start mb-6">
-            <h2 className="text-xl font-bold text-gray-900">유사호출부호 목록</h2>
-            <button
-              onClick={() => setIsUploadModalOpen(!isUploadModalOpen)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-            >
-              {isUploadModalOpen ? 'Excel 업로드 닫기' : 'Excel 업로드'}
-            </button>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-2 mb-8">
+          <div className="flex flex-wrap gap-2">
+            {dashboardTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 min-w-[140px] px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-blue-600 text-white shadow'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
+        </div>
+
+        {/* 호출부호 목록 섹션 */}
+        {activeTab === 'callsigns' && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-900">유사호출부호 목록</h2>
+              <p className="text-sm text-gray-500 mt-2">위험도별 필터와 페이지당 개수를 조정해 현황을 확인하세요.</p>
+            </div>
 
           {/* 필터 UI */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             {/* 위험도 필터 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -229,12 +318,35 @@ export default function DashboardPage() {
               </select>
             </div>
 
+            {/* 페이지당 개수 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                표시 개수
+              </label>
+              <select
+                value={callsignLimit}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  setCallsignLimit(next);
+                  setCallsignPage(1);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {[10, 30, 50, 100].map((size) => (
+                  <option key={size} value={size}>
+                    {size}개
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* 초기화 버튼 */}
             <div>
               <button
                 onClick={() => {
                   setRiskLevelFilter('');
                   setCallsignPage(1);
+                  setCallsignLimit(30);
                 }}
                 className="w-full px-4 py-2 mt-6 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
               >
@@ -371,11 +483,72 @@ export default function DashboardPage() {
             </>
           )}
         </div>
+        )}
 
         {/* 조치 이력 섹션 */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          {/* 헤더 */}
-          <h2 className="text-xl font-bold text-gray-900 mb-6">조치 이력</h2>
+        {activeTab === 'actions' && (
+          <div className="bg-white rounded-lg shadow p-6 mb-8">
+            {/* 헤더 */}
+            <h2 className="text-xl font-bold text-gray-900 mb-6">조치 이력</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
+                <p className="text-sm text-blue-700 font-semibold mb-2">전체 조치</p>
+                <p className="text-3xl font-bold text-blue-600">{actionSummary.total}</p>
+              </div>
+              <div className="bg-cyan-50 border border-cyan-100 rounded-xl p-4 text-center">
+                <p className="text-sm text-cyan-700 font-semibold mb-2">진행중</p>
+                <p className="text-3xl font-bold text-cyan-600">{actionSummary.in_progress}</p>
+              </div>
+              <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
+                <p className="text-sm text-emerald-700 font-semibold mb-2">완료</p>
+                <p className="text-3xl font-bold text-emerald-600">{actionSummary.completed}</p>
+              </div>
+            </div>
+
+            {isAdmin && (
+              <div className="mb-10">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">항공사별 조치 현황</h3>
+                  <span className="text-sm text-gray-500">날짜 필터와 동기화됨</span>
+                </div>
+                {allActionsQuery.isLoading ? (
+                  <div className="p-6 text-center text-gray-500">항공사 데이터를 불러오는 중...</div>
+                ) : allActionsQuery.error ? (
+                  <div className="p-6 text-center text-red-500">항공사별 조치 현황 조회 실패</div>
+                ) : airlineSummary.length === 0 ? (
+                  <div className="p-6 text-center text-gray-500">표시할 데이터가 없습니다.</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm border border-gray-100 rounded-lg">
+                      <thead className="bg-gray-50 text-gray-600">
+                        <tr>
+                          <th className="px-4 py-3 text-left">항공사</th>
+                          <th className="px-4 py-3 text-center">전체</th>
+                          <th className="px-4 py-3 text-center">대기중</th>
+                          <th className="px-4 py-3 text-center">진행중</th>
+                          <th className="px-4 py-3 text-center">완료</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {airlineSummary.map((row) => (
+                          <tr key={row.code} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 font-semibold text-gray-900">
+                              {row.code}
+                              {row.name && <span className="text-xs text-gray-500 ml-2">{row.name}</span>}
+                            </td>
+                            <td className="px-4 py-3 text-center font-semibold text-gray-900">{row.total}</td>
+                            <td className="px-4 py-3 text-center text-amber-600">{row.pending}</td>
+                            <td className="px-4 py-3 text-center text-blue-600">{row.in_progress}</td>
+                            <td className="px-4 py-3 text-center text-emerald-600">{row.completed}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
 
           {/* 상태별 탭 */}
           <div className="flex gap-2 mb-6 border-b border-gray-200">
@@ -391,19 +564,6 @@ export default function DashboardPage() {
               }`}
             >
               전체
-            </button>
-            <button
-              onClick={() => {
-                setActionStatusFilter('pending');
-                setActionPage(1);
-              }}
-              className={`px-4 py-3 font-medium transition-colors ${
-                actionStatusFilter === 'pending'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              대기중
             </button>
             <button
               onClick={() => {
@@ -666,11 +826,12 @@ export default function DashboardPage() {
               )}
             </>
           )}
-        </div>
+          </div>
+        )}
 
-        {/* Excel 업로드 섹션 (토글 가능) */}
-        {isUploadModalOpen && (
-          <div className="max-w-2xl mx-auto mt-12">
+        {/* Excel 업로드 섹션 */}
+        {activeTab === 'upload' && (
+          <div className="max-w-3xl mx-auto">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
               <div className="flex items-center justify-center mb-6">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
