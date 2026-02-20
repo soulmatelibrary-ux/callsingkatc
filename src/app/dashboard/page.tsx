@@ -183,7 +183,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-16 pb-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-24 pb-10">
         {/* 페이지 헤더 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">대시보드</h1>
@@ -477,8 +477,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 날짜 범위 단축 버튼 */}
-          <div className="flex gap-2 mb-6 flex-wrap">
+          {/* 날짜 범위 단축 버튼 및 검색 */}
+          <div className="flex gap-2 mb-6 flex-wrap items-center">
             <button
               onClick={() => setDateRange('today')}
               className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
@@ -502,6 +502,16 @@ export default function DashboardPage() {
               className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
             >
               최근1개월
+            </button>
+
+            <div className="flex-1"></div>
+
+            <button
+              onClick={() => actionsQuery.refetch()}
+              disabled={actionsQuery.isLoading}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-medium text-sm"
+            >
+              {actionsQuery.isLoading ? '검색중...' : '검색'}
             </button>
           </div>
 
