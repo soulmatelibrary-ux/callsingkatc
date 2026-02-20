@@ -746,28 +746,21 @@ export default function AirlinePage() {
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'all' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
-                    ALL
-                  </button>
-                  <button
-                    onClick={() => { setActionStatusFilter('pending'); setActionPage(1); }}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'pending' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                      }`}
-                  >
-                    PENDING
+                    전체
                   </button>
                   <button
                     onClick={() => { setActionStatusFilter('in_progress'); setActionPage(1); }}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
-                    IN PROGRESS
+                    진행중
                   </button>
                   <button
                     onClick={() => { setActionStatusFilter('completed'); setActionPage(1); }}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'completed' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
-                    COMPLETED
+                    완료
                   </button>
                   {actionsData && (
                     <div className="px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-l border-gray-200 ml-2">
@@ -885,8 +878,9 @@ export default function AirlinePage() {
           )}
           onClose={handleCloseActionModal}
           onSuccess={() => {
-            // 조치 등록 성공 시 페이지 새로고침
-            window.location.reload();
+            // 조치 등록 성공 시 모달 닫기
+            // TanStack Query가 자동으로 캐시를 무효화하여 목록이 갱신됨
+            handleCloseActionModal();
           }}
         />
       )
