@@ -65,7 +65,7 @@ export async function GET(
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 기본 쿼리 (조치 이력 조회)
+    // 기본 쿼리 (호출부호 기준 조치 이력 조회)
     let sql = `
       SELECT
         a.id, a.airline_id, a.callsign_id, a.action_type, a.description,
@@ -76,10 +76,10 @@ export async function GET(
         al.code as airline_code, al.name_ko as airline_name_ko,
         cs.id as cs_id, cs.callsign_pair, cs.my_callsign, cs.other_callsign, cs.risk_level,
         cs.occurrence_count, cs.error_type, cs.sub_error, cs.similarity, cs.created_at as callsign_created_at
-      FROM actions a
-      LEFT JOIN callsigns cs ON a.callsign_id = cs.id
+      FROM callsigns cs
+      LEFT JOIN actions a ON cs.id = a.callsign_id
       LEFT JOIN airlines al ON a.airline_id = al.id
-      WHERE a.airline_id = $1 AND a.status IN ('in_progress', 'completed')
+      WHERE cs.airline_id = $1 AND (a.status IS NULL OR a.status IN ('in_progress', 'completed'))
     `;
     const queryParams: any[] = [airlineId];
 
@@ -120,11 +120,11 @@ export async function GET(
     // 데이터 조회
     const result = await query(sql, queryParams);
 
-    // 전체 개수 조회 (필터 조건 포함, pending 상태 제외)
+    // 전체 개수 조회 (호출부호 기준, pending 상태 제외)
     let countSql = `
-      SELECT COUNT(a.id) as total FROM actions a
-      LEFT JOIN callsigns cs ON a.callsign_id = cs.id
-      WHERE a.airline_id = $1 AND a.status IN ('in_progress', 'completed')
+      SELECT COUNT(DISTINCT a.id) as total FROM callsigns cs
+      LEFT JOIN actions a ON cs.id = a.callsign_id
+      WHERE cs.airline_id = $1 AND (a.status IS NULL OR a.status IN ('in_progress', 'completed'))
     `;
     const countParams: any[] = [airlineId];
 
