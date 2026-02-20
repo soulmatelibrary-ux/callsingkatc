@@ -39,6 +39,13 @@ function formatDateInput(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+function toInputDate(dateString?: string | null) {
+  if (!dateString) return '';
+  const parsed = new Date(dateString);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return parsed.toISOString().split('T')[0];
+}
+
 export default function AirlinePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -609,8 +616,8 @@ export default function AirlinePage() {
                           >
                             {/* 첫 번째 행: 호출부호 | 분류 정보 태그 | 조치 버튼 */}
                             <div className="px-8 py-4 flex items-center justify-between gap-6 group hover:bg-primary/[0.02] transition-colors border-b border-gray-50">
-                              {/* 호출부호 쌍 - 텍스트 표시 (배경 제거) */}
-                              <div className="flex items-center gap-2 flex-shrink-0">
+                              {/* 호출부호 쌍 - 배경색 추가 */}
+                              <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50 rounded-lg px-2.5 py-1">
                                 {(() => {
                                   const parts = incident.pair.split('↔');
                                   if (parts.length !== 2) return incident.pair;
@@ -619,9 +626,9 @@ export default function AirlinePage() {
                                   // 모든 숫자 추출 및 색상 할당
                                   const colorMap: Record<string, string> = {};
                                   const colors = [
-                                    'text-blue-600', 'text-rose-600', 'text-amber-600', 'text-emerald-600',
-                                    'text-cyan-600', 'text-purple-600', 'text-indigo-600', 'text-pink-600',
-                                    'text-lime-600', 'text-teal-600'
+                                    'text-blue-700', 'text-rose-700', 'text-amber-700', 'text-emerald-700',
+                                    'text-cyan-700', 'text-purple-700', 'text-indigo-700', 'text-pink-700',
+                                    'text-lime-700', 'text-teal-700'
                                   ];
 
                                   // 숫자별 색상 맵핑 (0-9)
@@ -633,14 +640,14 @@ export default function AirlinePage() {
                                   });
 
                                   return (
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-0.5">
                                       {/* 첫 번째 콜사인 - 파란색 텍스트 */}
-                                      <div className="flex items-center gap-0.5">
+                                      <div className="flex items-center gap-0">
                                         {Array.from(my).map((char, idx) => (
                                           <span
                                             key={`my-${idx}`}
-                                            className={`font-black text-2xl leading-none ${
-                                              (char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : 'text-blue-600'
+                                            className={`font-black text-xl leading-tight ${
+                                              (char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : 'text-blue-700'
                                             }`}
                                           >
                                             {char as string}
@@ -648,16 +655,16 @@ export default function AirlinePage() {
                                         ))}
                                       </div>
 
-                                      {/* 화살표 */}
-                                      <span className="text-gray-300 font-bold">↔</span>
+                                      {/* 파이프 분리선 */}
+                                      <span className="text-gray-400 font-bold text-sm px-0.5">|</span>
 
                                       {/* 두 번째 콜사인 - 빨간색 텍스트 */}
-                                      <div className="flex items-center gap-0.5">
+                                      <div className="flex items-center gap-0">
                                         {Array.from(other).map((char, idx) => (
                                           <span
                                             key={`other-${idx}`}
-                                            className={`font-black text-2xl leading-none ${
-                                              (char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : 'text-rose-600'
+                                            className={`font-black text-xl leading-tight ${
+                                              (char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : 'text-rose-700'
                                             }`}
                                           >
                                             {char as string}
@@ -695,21 +702,20 @@ export default function AirlinePage() {
                             {/* 두 번째 행: 상세 정보 - 개별 박스 */}
                             <div className="px-8 py-5 bg-gray-50/40 grid grid-cols-4 gap-4">
                               {/* 발생건수 */}
-                              <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 flex flex-col">
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">발생건수</span>
-                                <span className={`text-2xl font-black mt-2 ${
+                              <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">발생건수</span>
+                                <span className={`text-lg font-black ${
                                   incident.risk === '매우높음' ? 'text-rose-600' :
                                   incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
                                 }`}>
-                                  {incident.count || '0'}
+                                  {incident.count}건
                                 </span>
-                                <span className="text-[10px] font-bold text-gray-500 mt-1">건</span>
                               </div>
 
                               {/* 최근 발생일 */}
-                              <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 flex flex-col">
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">최근 발생일</span>
-                                <span className="text-lg font-black text-gray-900 mt-2">
+                              <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">최근 발생일</span>
+                                <span className="text-sm font-bold text-gray-900">
                                   {incident.lastDate
                                     ? new Date(incident.lastDate).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
                                     : '-'
@@ -718,19 +724,17 @@ export default function AirlinePage() {
                               </div>
 
                               {/* 유사성 */}
-                              <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 flex flex-col">
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">유사성</span>
-                                <div className="mt-2 flex items-baseline gap-1">
-                                  <span className="text-lg font-black text-gray-900">
-                                    {incident.similarity}
-                                  </span>
-                                </div>
+                              <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">유사성</span>
+                                <span className="text-sm font-bold text-gray-900">
+                                  {incident.similarity}
+                                </span>
                               </div>
 
                               {/* 오류가능성 */}
-                              <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 flex flex-col">
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">오류가능성</span>
-                                <span className={`text-lg font-black mt-2 ${
+                              <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">오류가능성</span>
+                                <span className={`text-sm font-bold ${
                                   incident.risk === '매우높음' ? 'text-rose-600' :
                                   incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
                                 }`}>
@@ -983,6 +987,8 @@ export default function AirlinePage() {
           onSuccess={() => {
             // 조치 등록 후 발생현황 화면을 유지하면서 모달만 닫는다
             handleCloseActionModal();
+            queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
+            queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
           }}
         />
       )
@@ -1000,14 +1006,17 @@ export default function AirlinePage() {
             actionType: selectedAction.action_type,
             managerName: selectedAction.manager_name,
             description: selectedAction.description,
-            plannedDueDate: selectedAction.planned_due_date,
+            plannedDueDate: toInputDate(selectedAction.planned_due_date) || undefined,
+            completedDate:
+              toInputDate(selectedAction.completed_at) || toInputDate(selectedAction.registered_at) || undefined,
             status: selectedAction.status || 'in_progress',
           }}
           onClose={() => setIsActionDetailModalOpen(false)}
           onSuccess={() => {
             setIsActionDetailModalOpen(false);
-            // 현재 필터 유지: 상태 변경 시 API에서 자동으로 필터링됨
             setActionPage(1);
+            queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
+            queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
           }}
         />
       )}
