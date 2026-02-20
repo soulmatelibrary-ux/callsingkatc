@@ -121,7 +121,7 @@ export default function Home() {
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-end',
         background: 'linear-gradient(135deg, #0a0f2c 0%, #1a1f4b 50%, #0d1b3d 100%)',
         padding: '20px',
         fontFamily: '"Pretendard Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -153,80 +153,89 @@ export default function Home() {
             position: 'absolute',
             top: 0,
             left: 0,
-            width: '100%',
+            width: '60%',
             height: '100%',
-            opacity: 0.25,
+            opacity: 0.35,
             pointerEvents: 'none',
           }}
           viewBox="0 0 400 500"
-          preserveAspectRatio="xMidYMid slice"
+          preserveAspectRatio="xMinYMid slice"
         >
-          {/* 인천 FIR (Red border) */}
+          {/* 인천 FIR (Red border) - Main center region */}
           <path
-            d="M 150 150 Q 180 140 200 150 L 210 200 Q 200 220 180 230 L 160 240 Q 140 230 130 200 Z"
-            fill="rgba(239, 68, 68, 0.1)"
-            stroke="rgba(220, 38, 38, 0.4)"
-            strokeWidth="2"
+            d="M 130 140 L 180 120 L 220 140 L 230 200 L 220 260 L 160 280 L 100 250 L 90 180 Z"
+            fill="rgba(220, 38, 38, 0.15)"
+            stroke="rgba(220, 38, 38, 0.6)"
+            strokeWidth="3"
+            strokeDasharray="5,3"
           />
-          {/* 심양 FIR (Blue border) */}
+
+          {/* 심양 FIR (Blue border) - Upper right */}
           <path
-            d="M 200 80 Q 250 70 280 100 Q 270 130 250 140 L 200 150 Q 180 140 200 80 Z"
-            fill="rgba(59, 130, 246, 0.1)"
-            stroke="rgba(37, 99, 235, 0.4)"
-            strokeWidth="2"
+            d="M 220 140 L 300 100 L 340 140 L 320 200 L 280 180 L 230 200 Z"
+            fill="rgba(37, 99, 235, 0.12)"
+            stroke="rgba(59, 130, 246, 0.5)"
+            strokeWidth="2.5"
           />
-          {/* 평양 FIR (Green border) */}
+
+          {/* 평양 FIR (Green border) - Upper left */}
           <path
-            d="M 150 150 Q 140 120 160 100 Q 200 80 200 150 Z"
-            fill="rgba(34, 197, 94, 0.1)"
-            stroke="rgba(22, 163, 74, 0.4)"
-            strokeWidth="2"
+            d="M 130 140 L 100 80 L 180 60 L 220 140 L 180 120 Z"
+            fill="rgba(22, 163, 74, 0.12)"
+            stroke="rgba(34, 197, 94, 0.5)"
+            strokeWidth="2.5"
           />
-          {/* 서해 FIR (Purple border) */}
+
+          {/* 서해 FIR (Purple border) - Left */}
           <path
-            d="M 100 200 Q 80 180 100 150 L 150 150 Q 160 180 140 220 Z"
-            fill="rgba(168, 85, 247, 0.1)"
-            stroke="rgba(126, 34, 206, 0.4)"
-            strokeWidth="2"
+            d="M 90 180 L 50 150 L 60 100 L 100 80 L 130 140 Z"
+            fill="rgba(126, 34, 206, 0.12)"
+            stroke="rgba(168, 85, 247, 0.5)"
+            strokeWidth="2.5"
           />
-          {/* 제주 FIR (Orange border) */}
+
+          {/* 제주 FIR (Orange border) - Bottom */}
           <path
-            d="M 160 240 Q 150 270 170 290 Q 200 280 210 250 L 180 230 Z"
-            fill="rgba(251, 146, 60, 0.1)"
-            stroke="rgba(234, 88, 12, 0.4)"
-            strokeWidth="2"
+            d="M 160 280 L 140 340 L 200 360 L 240 320 L 220 260 Z"
+            fill="rgba(234, 88, 12, 0.12)"
+            stroke="rgba(251, 146, 60, 0.5)"
+            strokeWidth="2.5"
           />
-          {/* 후쿠오카 FIR (Cyan border) */}
+
+          {/* 후쿠오카 FIR (Cyan border) - Right */}
           <path
-            d="M 210 200 Q 240 200 260 220 Q 250 260 220 270 L 210 250 Z"
-            fill="rgba(6, 182, 212, 0.1)"
-            stroke="rgba(14, 165, 233, 0.4)"
-            strokeWidth="2"
+            d="M 230 200 L 280 180 L 320 200 L 340 280 L 280 300 L 240 260 Z"
+            fill="rgba(14, 165, 233, 0.12)"
+            stroke="rgba(6, 182, 212, 0.5)"
+            strokeWidth="2.5"
           />
 
           {/* FIR Labels */}
-          <text x="175" y="190" fontSize="14" fill="rgba(59, 130, 246, 0.6)" fontWeight="bold" textAnchor="middle">
+          <text x="165" y="200" fontSize="16" fill="rgba(220, 38, 38, 0.7)" fontWeight="bold" textAnchor="middle" fontFamily="Arial, sans-serif">
             인천 FIR
           </text>
-          <text x="240" y="115" fontSize="12" fill="rgba(37, 99, 235, 0.5)" textAnchor="middle">
+          <text x="280" y="140" fontSize="13" fill="rgba(59, 130, 246, 0.6)" fontWeight="600" textAnchor="middle" fontFamily="Arial, sans-serif">
             심양 FIR
           </text>
-          <text x="150" y="120" fontSize="12" fill="rgba(22, 163, 74, 0.5)" textAnchor="middle">
+          <text x="150" y="100" fontSize="13" fill="rgba(34, 197, 94, 0.6)" fontWeight="600" textAnchor="middle" fontFamily="Arial, sans-serif">
             평양 FIR
           </text>
-          <text x="110" y="190" fontSize="12" fill="rgba(126, 34, 206, 0.5)" textAnchor="middle">
+          <text x="80" y="160" fontSize="12" fill="rgba(168, 85, 247, 0.6)" fontWeight="600" textAnchor="middle" fontFamily="Arial, sans-serif">
             서해 FIR
           </text>
-          <text x="180" y="270" fontSize="12" fill="rgba(234, 88, 12, 0.5)" textAnchor="middle">
+          <text x="190" y="310" fontSize="13" fill="rgba(251, 146, 60, 0.6)" fontWeight="600" textAnchor="middle" fontFamily="Arial, sans-serif">
             제주 FIR
           </text>
-          <text x="250" y="240" fontSize="12" fill="rgba(14, 165, 233, 0.5)" textAnchor="middle">
-            후쿠오카
+          <text x="290" y="260" fontSize="13" fill="rgba(6, 182, 212, 0.6)" fontWeight="600" textAnchor="middle" fontFamily="Arial, sans-serif">
+            후쿠오카 FIR
           </text>
 
           {/* Incheon Airport Marker */}
-          <circle cx="175" cy="190" r="4" fill="rgba(239, 68, 68, 0.7)" />
-          <circle cx="175" cy="190" r="8" fill="none" stroke="rgba(239, 68, 68, 0.3)" strokeWidth="1" />
+          <circle cx="165" cy="200" r="5" fill="rgba(239, 68, 68, 0.8)" />
+          <circle cx="165" cy="200" r="10" fill="none" stroke="rgba(239, 68, 68, 0.4)" strokeWidth="1.5" />
+          <text x="165" y="225" fontSize="11" fill="rgba(220, 38, 38, 0.7)" fontWeight="bold" textAnchor="middle" fontFamily="Arial, sans-serif">
+            ICN
+          </text>
         </svg>
         {/* Enhanced Radar Rings */}
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '200px', height: '200px', border: '2px solid rgba(59, 130, 246, 0.15)', borderRadius: '50%' }} />
@@ -381,6 +390,7 @@ export default function Home() {
           padding: '24px 40px',
           width: '500px',
           maxWidth: '95vw',
+          marginRight: '40px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
           textAlign: 'center',
           animation: 'fadeIn 0.6s ease-out',
