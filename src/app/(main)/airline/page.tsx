@@ -393,6 +393,64 @@ export default function AirlinePage() {
     1,
   );
 
+  const callsignMatchPalette = [
+    'text-rose-600',
+    'text-amber-600',
+    'text-emerald-600',
+    'text-sky-600',
+    'text-indigo-600',
+    'text-purple-600',
+  ];
+
+  function renderCallsignPair(pair: string) {
+    const delimiter = pair.includes('↔') ? '↔' : '|';
+    const parts = pair.split(delimiter);
+    const left = (parts[0] || '').trim();
+    const right = (parts[1] || '').trim();
+    const maxLen = Math.max(left.length, right.length);
+    const leftColors: string[] = [];
+    const rightColors: string[] = [];
+
+    for (let i = 0; i < maxLen; i += 1) {
+      const leftChar = left[i];
+      const rightChar = right[i];
+      if (
+        leftChar &&
+        rightChar &&
+        /\d/.test(leftChar) &&
+        leftChar === rightChar
+      ) {
+        const paletteColor = callsignMatchPalette[i % callsignMatchPalette.length];
+        leftColors[i] = paletteColor;
+        rightColors[i] = paletteColor;
+      }
+    }
+
+    const renderSequence = (value: string, colorMap: string[]) => (
+      <span className="flex items-center gap-[2px]">
+        {Array.from(value).map((char, idx) => {
+          const isDigit = /\d/.test(char);
+          const matchColor = colorMap[idx];
+          const baseClasses = 'font-black text-2xl leading-none tracking-tight';
+          const colorClass = matchColor || (isDigit ? 'text-gray-900' : 'text-gray-800');
+          return (
+            <span key={`${value}-${idx}`} className={`${baseClasses} ${colorClass}`}>
+              {char}
+            </span>
+          );
+        })}
+      </span>
+    );
+
+    return (
+      <div className="flex items-center gap-3">
+        {renderSequence(left, leftColors)}
+        <span className="text-gray-400 font-black text-2xl">|</span>
+        {renderSequence(right, rightColors)}
+      </div>
+    );
+  }
+
   return (
     <>
       <main className="flex min-h-screen bg-gray-50">
@@ -407,7 +465,6 @@ export default function AirlinePage() {
                 : 'text-gray-500 hover:bg-gray-100'
                 }`}
             >
-              <span className="text-lg">📊</span>
               <span>발생현황</span>
             </button>
 
@@ -418,7 +475,6 @@ export default function AirlinePage() {
                 : 'text-gray-500 hover:bg-gray-100'
                 }`}
             >
-              <span className="text-lg">📋</span>
               <span>조치이력</span>
             </button>
 
@@ -429,7 +485,6 @@ export default function AirlinePage() {
                 : 'text-gray-500 hover:bg-gray-100'
                 }`}
             >
-              <span className="text-lg">📈</span>
               <span>통계</span>
             </button>
           </nav>
@@ -437,85 +492,10 @@ export default function AirlinePage() {
 
         {/* 오른쪽 콘텐츠 영역 */}
         <div className="flex-1 overflow-auto">
-          <div className="w-full px-8 py-10 space-y-8 animate-fade-in flex flex-col">
+          <div className="w-full px-8 pt-0 pb-10 space-y-8 animate-fade-in flex flex-col">
             {activeTab === 'incidents' && (
               <>
-                {/* 조회 기간 필터 - 최상단으로 이동 */}
-                <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-none">
-                  <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%22currentColor%22 viewBox=%220 0 24 24%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z%22/></svg>')] bg-rose-50 text-rose-700 rounded-none flex items-center justify-center">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">조회 기간</p>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="date"
-                            value={startDate}
-                            onChange={handleStartDateChange}
-                            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
-                          />
-                          <span className="text-gray-300">~</span>
-                          <input
-                            type="date"
-                            value={endDate}
-                            onChange={handleEndDateChange}
-                            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex bg-gray-50/50 p-1 rounded-none border border-gray-100">
-                      <button
-                        type="button"
-                        onClick={() => applyQuickRange('today')}
-                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === 'today' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                      >
-                        오늘
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyQuickRange('1w')}
-                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '1w' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                      >
-                        1주
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyQuickRange('2w')}
-                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '2w' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                      >
-                        2주
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyQuickRange('1m')}
-                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '1m' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                      >
-                        1개월
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 w-full md:w-auto">
-                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-none font-bold shadow-sm hover:bg-gray-50 transition-all text-sm">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      <span>Excel 내보내기</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* 발생현황 테이블 */}
+                {/* 발생현황 테이블 - 메인 최상단 */}
                 <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                   <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-[#00205b] text-white">
                     <div>
@@ -529,54 +509,6 @@ export default function AirlinePage() {
                   <div className="overflow-x-auto flex-1">
                     <div className="divide-y divide-gray-50">
                       {allFilteredIncidents.map((incident: any) => {
-                        // 호출부호 숫자 색상 처리: 같은 숫자끼리 같은 색
-                        const renderColoredCallsign = (callsignPair: string) => {
-                          const parts = callsignPair.split('↔');
-                          if (parts.length !== 2) return callsignPair;
-
-                          const [my, other] = [parts[0].trim(), parts[1].trim()];
-
-                          // 모든 숫자 추출 및 색상 할당 (숫자별로 일관된 색상)
-                          const colorMap: Record<string, string> = {};
-                          const colors = [
-                            'text-blue-600', 'text-rose-600', 'text-amber-600', 'text-emerald-600',
-                            'text-cyan-600', 'text-purple-600', 'text-indigo-600', 'text-pink-600',
-                            'text-lime-600', 'text-teal-600'
-                          ];
-
-                          // 숫자별 색상 맵핑 (0-9)
-                          Array.from(new Set((my + other).split(''))).forEach((char, idx) => {
-                            if (char >= '0' && char <= '9') {
-                              const digitIdx = parseInt(char, 10);
-                              colorMap[char] = colors[digitIdx % colors.length];
-                            }
-                          });
-
-                          return (
-                            <div className="flex items-center gap-0.5">
-                              {Array.from(my).map((char, idx) => (
-                                <span
-                                  key={`my-${idx}`}
-                                  className={`font-black text-2xl leading-none font-extrabold ${char >= '0' && char <= '9' ? colorMap[char] : 'text-gray-900'
-                                    }`}
-                                >
-                                  {char}
-                                </span>
-                              ))}
-                              <span className="text-gray-400 font-bold mx-0.5">↔</span>
-                              {Array.from(other).map((char, idx) => (
-                                <span
-                                  key={`other-${idx}`}
-                                  className={`font-black text-2xl leading-none font-extrabold ${char >= '0' && char <= '9' ? colorMap[char] : 'text-gray-900'
-                                    }`}
-                                >
-                                  {char}
-                                </span>
-                              ))}
-                            </div>
-                          );
-                        };
-
                         return (
                           <div
                             key={incident.id}
@@ -587,66 +519,8 @@ export default function AirlinePage() {
                             {/* 첫 번째 행: 호출부호 | 분류 정보 태그 | 조치 버튼 */}
                             <div className="px-8 py-4 flex items-center justify-between gap-6 group hover:bg-slate-50 transition-colors border-b border-gray-50">
                               {/* 호출부호 쌍 - 배경색 추가 */}
-                              <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50 rounded-none px-2.5 py-1">
-                                {(() => {
-                                  const parts = incident.pair.split('↔');
-                                  if (parts.length !== 2) return incident.pair;
-                                  const [my, other] = [parts[0].trim(), parts[1].trim()];
-
-                                  // 모든 숫자 추출 및 색상 할당
-                                  const colorMap: Record<string, string> = {};
-                                  const colors = [
-                                    'text-blue-700', 'text-rose-700', 'text-amber-700', 'text-emerald-700',
-                                    'text-cyan-700', 'text-purple-700', 'text-indigo-700', 'text-pink-700',
-                                    'text-lime-700', 'text-teal-700'
-                                  ];
-
-                                  // 숫자별 색상 맵핑 (0-9)
-                                  Array.from(new Set((my + other).split(''))).forEach((char, idx) => {
-                                    if ((char as string) >= '0' && (char as string) <= '9') {
-                                      const digitIdx = parseInt(char as string, 10);
-                                      colorMap[char as string] = colors[digitIdx % colors.length];
-                                    }
-                                  });
-
-                                  // 항공사 코드 비교 (첫 3글자)
-                                  const myAirline = my.substring(0, 3);
-                                  const otherAirline = other.substring(0, 3);
-                                  const isSameAirline = myAirline === otherAirline;
-
-                                  return (
-                                    <div className="flex items-center gap-0.5">
-                                      {/* 첫 번째 콜사인 - 파란색 텍스트 */}
-                                      <div className="flex items-center gap-0">
-                                        {Array.from(my).map((char, idx) => (
-                                          <span
-                                            key={`my-${idx}`}
-                                            className={`font-black text-3xl leading-none font-extrabold ${(char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : 'text-blue-700'
-                                              }`}
-                                          >
-                                            {char as string}
-                                          </span>
-                                        ))}
-                                      </div>
-
-                                      {/* 파이프 분리선 */}
-                                      <span className="text-gray-400 font-bold text-sm px-0.5">|</span>
-
-                                      {/* 두 번째 콜사인 - 같은 항공사면 파란색, 다르면 빨간색 */}
-                                      <div className="flex items-center gap-0">
-                                        {Array.from(other).map((char, idx) => (
-                                          <span
-                                            key={`other-${idx}`}
-                                            className={`font-black text-3xl leading-none font-extrabold ${(char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : (isSameAirline ? 'text-blue-700' : 'text-rose-700')
-                                              }`}
-                                          >
-                                            {char as string}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  );
-                                })()}
+                              <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50 rounded-none px-3 py-2">
+                                {renderCallsignPair(incident.pair)}
                               </div>
 
                               {/* 분류 정보 태그 - 호출부호 바로 옆 */}
@@ -734,6 +608,81 @@ export default function AirlinePage() {
                         );
                       })}
                     </div>
+                  </div>
+                </div>
+
+                {/* 조회 기간 필터 */}
+                <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-none">
+                  <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%22currentColor%22 viewBox=%220 0 24 24%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z%22/></svg>')] bg-rose-50 text-rose-700 rounded-none flex items-center justify-center">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">조회 기간</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={handleStartDateChange}
+                            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
+                          />
+                          <span className="text-gray-300">~</span>
+                          <input
+                            type="date"
+                            value={endDate}
+                            onChange={handleEndDateChange}
+                            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex bg-gray-50/50 p-1 rounded-none border border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('today')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === 'today' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        오늘
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('1w')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '1w' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        1주
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('2w')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '2w' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        2주
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('1m')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '1m' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        1개월
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 w-full md:w-auto">
+                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-none font-bold shadow-sm hover:bg-gray-50 transition-all text-sm">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      <span>Excel 내보내기</span>
+                    </button>
                   </div>
                 </div>
 
