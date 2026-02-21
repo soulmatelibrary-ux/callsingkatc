@@ -4,7 +4,7 @@
 - **Stack**: Next.js 14 + PostgreSQL 15 (direct, no ORM)
 - **Auth**: JWT (1h access, 7d refresh httpOnly cookie) + bcryptjs
 - **State**: Zustand (client), pg.Pool (server)
-- **DB Init**: `scripts/init.sql` (8 tables: airlines, users, password_history, audit_logs, file_uploads, callsigns, actions, action_history)
+- **DB Init**: `scripts/init.sql` (11 tables: airlines, users, password_history, audit_logs, file_uploads, callsigns, callsign_occurrences, actions, action_history, announcements, announcement_views)
 - **Airlines**: Design says 11, DB has 9 (ESR->EOK, ARK/APZ missing)
 
 ## Key Findings (2026-02-20 v5.0 Extended Scope Analysis)
@@ -66,13 +66,50 @@
 - This means /pending page exists but DB can't produce pending users
 
 ## Admin Pages Status
-- Implemented: /admin, /admin/users, /admin/password-reset, /admin/airlines, /admin/actions (6)
+- Implemented: /admin, /admin/users, /admin/password-reset, /admin/airlines, /admin/actions, /admin/announcements (7)
 - Missing: /admin/bulk-register, /admin/approval, /admin/access-control, /admin/audit-logs, /admin/settings (5)
+- Note: /admin/announcements NOT linked in AdminSidebar or admin dashboard
+
+## Phase 5 Gap Analysis (2026-02-22) - announcement-system
+- **Match Rate: 94%** (weighted across 9 categories)
+- DB Schema: 100% (all columns, constraints, indexes, sample data)
+- API Endpoints: 93% (8/8 endpoints, one URL path deviation: view endpoint)
+- Types: 90% (11 interfaces, targetAirlines type CSV vs string[])
+- Hooks: 98% (4 query + 4 mutation, query key factory, cache invalidation)
+- Components: 96% (3/3 components, missing targetAirlines UI in form)
+- Pages: 100% (2/2 pages with role-based redirects)
+- Layout: 100% (AnnouncementModal in Providers.tsx)
+- Constants: 100% (ANNOUNCEMENT_LEVEL, STATUS, COLORS, ROUTES)
+- Navigation: 50% (no sidebar/header links to announcements)
+
+## Phase 5 Bug Found
+1. History route JOIN: `av.user_id = $1` uses airline_id instead of user_id - isViewed always false
+
+## Phase 5 Missing Features
+- targetAirlines multi-select dropdown in AnnouncementForm
+- Admin sidebar link for announcement management
+- Header navigation link for user announcements
+- AnnouncementErrorCode enum not exported
+
+## Phase 5 File Map
+- `src/app/api/announcements/route.ts` - GET active announcements
+- `src/app/api/announcements/[id]/route.ts` - GET detail + POST view
+- `src/app/api/announcements/history/route.ts` - GET history with filters
+- `src/app/api/admin/announcements/route.ts` - GET list + POST create
+- `src/app/api/admin/announcements/[id]/route.ts` - PATCH + DELETE
+- `src/hooks/useAnnouncements.ts` - 8 hooks + query key factory
+- `src/types/announcement.ts` - 11 interfaces
+- `src/components/announcements/AnnouncementModal.tsx` - Global popup
+- `src/components/announcements/AnnouncementTable.tsx` - History table
+- `src/components/announcements/AnnouncementForm.tsx` - Create/edit form
+- `src/app/announcements/page.tsx` - User history page
+- `src/app/admin/announcements/page.tsx` - Admin management page
 
 ## Analysis Reports
 - `docs/03-analysis/features/katc1-auth-gap.md` - v4.0 auth-focused (92%)
 - `docs/03-analysis/features/katc1-full-gap-v5.md` - v5.0 full system (65%)
 - `docs/03-analysis/features/airline-data-action-management.analysis.md` - Phase 4 (63%)
+- `docs/03-analysis/features/announcement-system.analysis.md` - Phase 5 (94%)
 
 ## Implementation File Map
 - `src/app/page.tsx` - Portal login (airline/admin toggle)

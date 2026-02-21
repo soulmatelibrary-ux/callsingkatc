@@ -82,11 +82,11 @@ export async function GET(request: NextRequest) {
         ON a.id = av.announcement_id AND av.user_id = $1
       WHERE (
         a.target_airlines IS NULL
-        OR $1 = ANY(string_to_array(a.target_airlines, ','))
+        OR $2 = ANY(string_to_array(a.target_airlines, ','))
       )
     `;
 
-    const queryParams: any[] = [user.airline_id];
+    const queryParams: any[] = [user.id, user.airline_id];
 
     // 5. 필터 적용
     if (level && ['warning', 'info', 'success'].includes(level)) {

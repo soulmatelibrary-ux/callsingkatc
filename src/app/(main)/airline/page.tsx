@@ -273,8 +273,11 @@ export default function AirlinePage() {
   // 추가 필터링 불필요 (완료된 항목은 API 단계에서 제외됨)
   const incidentsWithoutCompleted = filteredIncidents;
 
-  // 통계는 필터링된 인시던트 기준
-  const total = incidentsWithoutCompleted.length;
+  // 통계 계산과 노출 건수는 현재 화면에 표시된 데이터를 기준으로 함
+  const visibleIncidentCount = incidentsWithoutCompleted.length;
+
+  // 전체 진행 중 건수는 API에서 제공하는 pagination.total을 사용 (표시 개수와 다를 수 있음)
+  const totalIncidentCount = callsignsData?.pagination?.total ?? visibleIncidentCount;
 
   // 에러 타입별 동적 통계 생성
   const errorTypeConfig: Record<string, { label: string; bgColor: string; textColor: string; description: string }> = {
@@ -303,7 +306,7 @@ export default function AirlinePage() {
       return {
         type,
         count,
-        percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+        percentage: visibleIncidentCount > 0 ? Math.round((count / visibleIncidentCount) * 100) : 0,
         ...config
       };
     });
@@ -481,7 +484,7 @@ export default function AirlinePage() {
             {activeTab === 'incidents' && (
               <>
                 {/* 요약 통계 - 상단 카드 */}
-                {total > 0 && (
+                {totalIncidentCount > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div className="group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
                       <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
@@ -490,10 +493,15 @@ export default function AirlinePage() {
                           <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total Cases</p>
                         </div>
                         <div className="flex items-baseline gap-1">
-                          <p className="text-5xl font-black text-gray-900 tracking-tighter">{total}</p>
+                          <p className="text-5xl font-black text-gray-900 tracking-tighter">{totalIncidentCount}</p>
                           <span className="text-sm font-bold text-gray-400">건</span>
                         </div>
-                        <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">분석 기간 내 전체 발생 건수</p>
+                        <p className="mt-1 text-[12px] font-bold text-gray-400 leading-tight">전체 진행 중 호출부호 누적 건수</p>
+                        {totalIncidentCount > visibleIncidentCount && (
+                          <p className="mt-2 text-[11px] font-bold text-gray-400 leading-tight">
+                            현재 화면에 {visibleIncidentCount}건 표시 중 (최대 {callsignsData?.pagination?.limit ?? visibleIncidentCount}건)
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -522,7 +530,7 @@ export default function AirlinePage() {
                             <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
                               {stat.label}
                             </p>
-                            {total > 0 && (
+                            {visibleIncidentCount > 0 && (
                               <span className={`text-[10px] font-black px-2 py-1 rounded-none ${stat.bgColor} ${stat.textColor}`}>
                                 {stat.percentage}%
                               </span>

@@ -25,7 +25,7 @@ export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Prop
   const [filters, setFilters] = useState<
     AnnouncementHistoryFilters | AdminAnnouncementFilters
   >({
-    level: '',
+    level: undefined,
     status: 'all',
     dateFrom: '',
     dateTo: '',
@@ -34,10 +34,15 @@ export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Prop
     ...initialFilters,
   });
 
-  // 데이터 조회
-  const { data, isLoading } = isAdmin
-    ? useAdminAnnouncements(filters as AdminAnnouncementFilters)
-    : useAnnouncementHistory(filters as AnnouncementHistoryFilters);
+  // 데이터 조회 (훅은 조건부가 아닌 항상 호출해야 함)
+  const adminData = useAdminAnnouncements(
+    filters as AdminAnnouncementFilters
+  );
+  const userData = useAnnouncementHistory(
+    filters as AnnouncementHistoryFilters
+  );
+
+  const { data, isLoading } = isAdmin ? adminData : userData;
 
   const announcements = data?.announcements || [];
   const total = data?.total || 0;
@@ -57,7 +62,7 @@ export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Prop
   // 필터 초기화
   const handleResetFilters = () => {
     setFilters({
-      level: '',
+      level: undefined,
       status: 'all',
       dateFrom: '',
       dateTo: '',
@@ -95,8 +100,8 @@ export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Prop
               긴급도
             </label>
             <select
-              value={filters.level || ''}
-              onChange={e => handleFilterChange('level', e.target.value)}
+              value={(filters.level as string) || ''}
+              onChange={e => handleFilterChange('level', e.target.value || undefined)}
               className="w-full border rounded px-3 py-2 text-sm"
             >
               <option value="">전체</option>

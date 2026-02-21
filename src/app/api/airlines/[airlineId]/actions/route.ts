@@ -76,8 +76,19 @@ export async function GET(
         a.registered_by, a.registered_at, a.updated_at,
         a.reviewed_by, a.reviewed_at, a.review_comment,
         al.code as airline_code, al.name_ko as airline_name_ko,
-        cs.id as cs_id, cs.callsign_pair, cs.my_callsign, cs.other_callsign, cs.risk_level,
-        cs.occurrence_count, cs.error_type, cs.sub_error, cs.similarity, cs.created_at as callsign_created_at
+        cs.id as cs_id,
+        cs.callsign_pair,
+        cs.my_callsign,
+        cs.other_callsign,
+        cs.airline_code as cs_airline_code,
+        cs.other_airline_code,
+        cs.risk_level,
+        cs.occurrence_count,
+        cs.error_type,
+        cs.sub_error,
+        cs.similarity,
+        cs.created_at as callsign_created_at,
+        cs.last_occurred_at
       FROM callsigns cs
       LEFT JOIN actions a ON cs.id = a.callsign_id
       LEFT JOIN airlines al ON a.airline_id = al.id
@@ -308,9 +319,12 @@ export async function POST(
       );
     }
 
+    // completedAt이 없으면 현재 시각 사용
+    const completedTimestamp = completedAt || new Date().toISOString();
+
     // 조치 생성 (트랜잭션)
     const result = await transaction(async (trx) => {
-      return trx(
+      const actionResult = await trx(
         `INSERT INTO actions (
           airline_id, callsign_id, action_type, description,
           manager_name, planned_due_date, completed_at,
@@ -324,13 +338,18 @@ export async function POST(
           description || null,
           managerName || null,
           plannedDueDate || null,
-          completedAt || null,
-          'pending',
+          completedTimestamp,
+          'completed',
           payload.userId, // 현재 관리자 ID
           new Date().toISOString(),
           new Date().toISOString(),
         ]
       );
+
+      // 호출부호 상태를 완료로 변경
+      await trx('UPDATE callsigns SET status = $1 WHERE id = $2', ['completed', callsignId]);
+
+      return actionResult;
     });
 
     if (result.rows.length === 0) {

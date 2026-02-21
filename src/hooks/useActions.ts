@@ -303,8 +303,9 @@ export function useCreateAction() {
       return (await response.json()) as Action;
     },
     onSuccess: () => {
-      // 조치 목록 캐시 무효화
+      // 조치 목록 및 호출부호 목록 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['airline-callsigns'], exact: false });
     },
   });
 }

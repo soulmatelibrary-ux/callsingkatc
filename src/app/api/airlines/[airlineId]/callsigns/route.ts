@@ -86,7 +86,11 @@ export async function GET(
               file_upload_id, uploaded_at, occurrence_count, last_occurred_at,
               status, created_at, updated_at
        FROM callsigns
-       WHERE (airline_code = $1 OR other_airline_code = $1) AND status = 'in_progress'
+       WHERE (airline_code = $1 OR other_airline_code = $1)
+         AND status = 'in_progress'
+         AND NOT EXISTS (
+           SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
+         )
        ORDER BY occurrence_count DESC NULLS LAST, last_occurred_at DESC NULLS LAST
        LIMIT $2 OFFSET $3`,
       [airlineCode, limit, offset]
@@ -104,7 +108,11 @@ export async function GET(
     const countResult = await query(
       `SELECT COUNT(*) as total
        FROM callsigns
-       WHERE (airline_code = $1 OR other_airline_code = $1) AND status = 'in_progress'`,
+       WHERE (airline_code = $1 OR other_airline_code = $1)
+         AND status = 'in_progress'
+         AND NOT EXISTS (
+           SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
+         )`,
       [airlineCode]
     );
     const total = parseInt(countResult.rows[0].total, 10);
