@@ -817,20 +817,20 @@ export default function AirlinePage() {
                           setActionPage(1);
                         }
                       }}
-                      className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-gray-300"
+                      className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-none text-sm font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-700/20 focus:border-rose-700 transition-all placeholder:text-gray-300"
                     />
                     <button
                       onClick={() => {
                         setActionSearch(actionSearchInput);
                         setActionPage(1);
                       }}
-                      className="absolute right-2 top-2 bottom-2 px-6 bg-primary text-white text-[11px] font-black rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest"
+                      className="absolute right-2 top-2 bottom-2 px-6 bg-[#00205b] text-white text-[11px] font-black rounded-none shadow-none hover:bg-[#001540] transition-all uppercase tracking-widest"
                     >
                       Search
                     </button>
                   </div>
 
-                  <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm border border-gray-100 flex items-center gap-2">
+                  <div className="bg-white/50 backdrop-blur-sm rounded-none p-1.5 shadow-sm border border-gray-100 flex items-center gap-2">
                     <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-3">Limit</span>
                     <select
                       value={actionLimit}
@@ -851,24 +851,24 @@ export default function AirlinePage() {
                 </div>
 
                 {/* 상태 필터 탭 */}
-                <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/50 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm border border-gray-100">
+                <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/50 backdrop-blur-sm rounded-none p-1.5 shadow-sm border border-gray-100">
                   <button
                     onClick={() => setActionStatusFilter('all')}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'all' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'all' ? 'bg-[#00205b] text-white shadow-none' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     전체
                   </button>
                   <button
                     onClick={() => setActionStatusFilter('in_progress')}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-rose-700 text-white shadow-none' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     진행중
                   </button>
                   <button
                     onClick={() => setActionStatusFilter('completed')}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'completed' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'completed' ? 'bg-emerald-600 text-white shadow-none' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     완료
@@ -884,7 +884,7 @@ export default function AirlinePage() {
                 {actionsLoading ? (
                   <div className="p-20 text-center text-gray-400 font-bold animate-pulse">데이터 분석 중...</div>
                 ) : actionsData && actionsData.data.length > 0 ? (
-                  <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                  <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                     <div className="overflow-x-auto flex-1">
                       <table className="w-full">
                         <thead>
@@ -902,7 +902,7 @@ export default function AirlinePage() {
                           {actionsData.data.map((action, index) => {
                             const statusLabel = action.status === 'in_progress' ? '진행중' : '완료';
                             const statusStyles =
-                              action.status === 'in_progress' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50';
+                              action.status === 'in_progress' ? 'text-rose-700 bg-rose-50 border border-rose-200' : 'text-emerald-600 bg-emerald-50 border border-emerald-200';
                             const registeredDate = action.registered_at ? new Date(action.registered_at).toLocaleDateString('ko-KR') : '-';
                             const rowNumber = (actionPage - 1) * actionLimit + index + 1;
 
@@ -921,7 +921,7 @@ export default function AirlinePage() {
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.action_type}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.manager_name}</td>
                                 <td className="px-8 py-5 text-center">
-                                  <span className={`inline-flex px-3 py-1 rounded-lg text-[10px] font-black tracking-widest ${statusStyles}`}>
+                                  <span className={`inline-flex px-3 py-1 rounded-none text-[10px] font-black tracking-widest ${statusStyles}`}>
                                     {statusLabel}
                                   </span>
                                 </td>
@@ -931,7 +931,7 @@ export default function AirlinePage() {
                                       setSelectedAction(action);
                                       setIsActionDetailModalOpen(true);
                                     }}
-                                    className="px-3 py-1.5 bg-primary text-white text-[9px] font-black rounded-lg shadow-md shadow-primary/20 hover:scale-[1.05] active:scale-[0.95] transition-all uppercase tracking-wider"
+                                    className="px-4 py-2 bg-rose-700 text-white text-[9px] font-black rounded-none shadow-none hover:bg-rose-800 transition-all uppercase tracking-wider"
                                   >
                                     편집
                                   </button>
@@ -949,7 +949,7 @@ export default function AirlinePage() {
                         <button
                           onClick={() => setActionPage(Math.max(1, actionPage - 1))}
                           disabled={actionPage === 1}
-                          className="p-2 rounded-xl border border-gray-200 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
+                          className="p-2 rounded-none border border-gray-200 text-gray-400 hover:text-rose-700 hover:border-rose-700 disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
                         >
                           PREV
                         </button>
@@ -963,9 +963,9 @@ export default function AirlinePage() {
                               <button
                                 key={pageNum}
                                 onClick={() => setActionPage(pageNum)}
-                                className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${pageNum === actionPage
-                                  ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
-                                  : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'
+                                className={`w-10 h-10 rounded-none text-xs font-black transition-all border border-transparent ${pageNum === actionPage
+                                  ? 'bg-rose-700 text-white shadow-none'
+                                  : 'text-gray-400 hover:text-gray-900 border-gray-200 hover:bg-gray-50'
                                   }`}
                               >
                                 {pageNum}
@@ -977,7 +977,7 @@ export default function AirlinePage() {
                         <button
                           onClick={() => setActionPage(Math.min(actionsData.pagination.totalPages, actionPage + 1))}
                           disabled={actionPage === actionsData.pagination.totalPages}
-                          className="p-2 rounded-xl border border-gray-200 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
+                          className="p-2 rounded-none border border-gray-200 text-gray-400 hover:text-rose-700 hover:border-rose-700 disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
                         >
                           NEXT
                         </button>
@@ -985,7 +985,7 @@ export default function AirlinePage() {
                     )}
                   </div>
                 ) : (
-                  <div className="bg-white rounded-3xl p-20 text-center shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-none p-20 text-center shadow-sm border border-gray-100">
                     <div className="text-4xl mb-4">📑</div>
                     <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">No action history found</p>
                   </div>
