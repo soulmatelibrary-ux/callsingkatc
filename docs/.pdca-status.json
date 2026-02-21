@@ -428,11 +428,20 @@
       "lastFile": "/Users/sein/Desktop/katc1/scripts/reset-callsigns-status.js"
     },
     "announcement-system": {
-      "phase": "design",
-      "status": "Design document created",
-      "createdAt": "2026-02-21T23:53:00Z",
-      "designDocument": "docs/02-design/features/announcement-system.design.md",
-      "planDocument": "docs/01-plan/features/announcement-system.plan.md"
+      "phase": "archived",
+      "matchRate": 94.2,
+      "iterationCount": 0,
+      "startedAt": "2026-02-21T23:53:00Z",
+      "archivedAt": "2026-02-22T00:30:00Z",
+      "archivedTo": "docs/archive/2026-02/announcement-system/",
+      "status": "Production Ready",
+      "summary": {
+        "deliverables": "50+ files (DB schema, 8 APIs, 8 hooks, 3 components, 2 pages)",
+        "linesOfCode": "~2,170 production lines",
+        "typeScriptErrors": 0,
+        "bugs": "1 P0 (fixed - history JOIN condition)",
+        "improvements": "3 MEDIUM (recommended for Phase 6)"
+      }
     },
     "announcements": {
       "phase": "do",
