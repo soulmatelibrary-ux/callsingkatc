@@ -209,6 +209,10 @@ export interface ActionStatisticsResponse {
   };
   typeDistribution: Array<{ name: string; count: number; percentage: number }>;
   monthlyTrend: Array<{ month: string; count: number }>;
+  filters?: {
+    dateFrom: string;
+    dateTo: string;
+  };
 }
 
 /**

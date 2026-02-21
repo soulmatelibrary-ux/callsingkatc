@@ -234,11 +234,14 @@ export function useAirlineCallsigns(
 /**
  * 항공사별 조치 통계 조회
  */
-export function useAirlineActionStats(airlineId?: string) {
+export function useAirlineActionStats(
+  airlineId?: string,
+  filters?: { dateFrom?: string; dateTo?: string }
+) {
   const accessToken = useAuthStore((s) => s.accessToken);
 
   return useQuery({
-    queryKey: ['airline-action-stats', airlineId],
+    queryKey: ['airline-action-stats', airlineId, filters?.dateFrom, filters?.dateTo],
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('인증 토큰이 없습니다.');
@@ -248,11 +251,19 @@ export function useAirlineActionStats(airlineId?: string) {
         throw new Error('항공사 ID가 필요합니다.');
       }
 
-      const response = await fetch(`/api/airlines/${airlineId}/actions/stats`, {
+      const params = new URLSearchParams();
+      if (filters?.dateFrom) params.append('dateFrom', filters.dateFrom);
+      if (filters?.dateTo) params.append('dateTo', filters.dateTo);
+
+      const qs = params.toString();
+      const response = await fetch(
+        `/api/airlines/${airlineId}/actions/stats${qs ? `?${qs}` : ''}`,
+        {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-      });
+        }
+      );
 
       if (!response.ok) {
         throw new Error('조치 통계 조회 실패');

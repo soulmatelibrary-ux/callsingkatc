@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useCreateAnnouncement, useUpdateAnnouncement } from '@/hooks/useAnnouncements';
-import { ANNOUNCEMENT_LEVEL } from '@/lib/constants';
+import { ANNOUNCEMENT_LEVEL, AIRLINES } from '@/lib/constants';
 import { Announcement } from '@/types/announcement';
 
 interface Props {
@@ -184,6 +184,48 @@ export function AnnouncementForm({ announcement, onSuccess }: Props) {
           <option value="warning">🚨 경고</option>
           <option value="success">✅ 완료</option>
         </select>
+      </div>
+
+      {/* 대상항공사 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          대상항공사 (선택사항 - 공란 시 전체 항공사)
+        </label>
+        <div className="border rounded p-3 bg-gray-50 space-y-2 max-h-48 overflow-y-auto">
+          {AIRLINES.map((airline) => (
+            <label key={airline.code} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.targetAirlines.includes(airline.code)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setForm({
+                      ...form,
+                      targetAirlines: [...form.targetAirlines, airline.code],
+                    });
+                  } else {
+                    setForm({
+                      ...form,
+                      targetAirlines: form.targetAirlines.filter(
+                        (code) => code !== airline.code
+                      ),
+                    });
+                  }
+                }}
+                disabled={isLoading}
+                className="rounded"
+              />
+              <span className="text-sm text-gray-700">
+                {airline.code} - {airline.name_ko} ({airline.name_en})
+              </span>
+            </label>
+          ))}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          {form.targetAirlines.length > 0
+            ? `선택됨: ${form.targetAirlines.join(', ')}`
+            : '항공사를 선택하지 않으면 모든 항공사에게 공지됩니다'}
+        </p>
       </div>
 
       {/* 시작일 */}

@@ -21,6 +21,10 @@ export function AdminSidebar() {
             } else {
                 setActiveMenu('users');
             }
+        } else if (pathname.startsWith('/admin/announcements')) {
+            setActiveMenu('announcements');
+        } else if (pathname.startsWith('/admin/actions')) {
+            setActiveMenu('actions');
         }
     }, [pathname, searchParams]);
 
@@ -28,6 +32,8 @@ export function AdminSidebar() {
         { id: 'dashboard', label: '대시보드', href: '/admin', icon: '📊' },
         { id: 'users', label: '사용자 관리', href: '/admin/users?tab=users', icon: '👥' },
         { id: 'airlines', label: '항공사 관리', href: '/admin/users?tab=airlines', icon: '✈️' },
+        { id: 'announcements', label: '공지사항 관리', href: '/admin/announcements', icon: '📢' },
+        { id: 'actions', label: '조치 관리', href: '/admin/actions', icon: '✅' },
         { id: 'password', label: '비밀번호 초기화', href: '/admin/users?tab=password', icon: '🔒' },
     ];
 

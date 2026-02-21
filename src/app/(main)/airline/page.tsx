@@ -65,6 +65,14 @@ export default function AirlinePage() {
   });
   const [activeRange, setActiveRange] = useState<'custom' | 'today' | '1w' | '2w' | '1m'>('custom');
   const [errorTypeFilter, setErrorTypeFilter] = useState<'all' | '관제사 오류' | '조종사 오류' | '오류 미발생'>('all');
+  const [statsStartDate, setStatsStartDate] = useState<string>(() => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(now.getDate() - 29);
+    return formatDateInput(start);
+  });
+  const [statsEndDate, setStatsEndDate] = useState<string>(() => formatDateInput(new Date()));
+  const [statsActiveRange, setStatsActiveRange] = useState<'custom' | 'today' | '1w' | '2w' | '1m'>('1m');
 
   // 조치이력 탭용 state
   const [actionPage, setActionPage] = useState(1);
@@ -119,7 +127,10 @@ export default function AirlinePage() {
     limit: 1000,
   });
 
-  const { data: actionStats, isLoading: actionStatsLoading } = useAirlineActionStats(airlineId);
+  const { data: actionStats, isLoading: actionStatsLoading } = useAirlineActionStats(airlineId, {
+    dateFrom: statsStartDate,
+    dateTo: statsEndDate,
+  });
 
   useEffect(() => {
     console.log('🔄 airline/page useEffect 실행됨');
@@ -215,6 +226,24 @@ export default function AirlinePage() {
     }
   }
 
+  function handleStatsStartDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setStatsStartDate(value);
+    setStatsActiveRange('custom');
+    if (statsEndDate && value && value > statsEndDate) {
+      setStatsEndDate(value);
+    }
+  }
+
+  function handleStatsEndDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setStatsEndDate(value);
+    setStatsActiveRange('custom');
+    if (statsStartDate && value && value < statsStartDate) {
+      setStatsStartDate(value);
+    }
+  }
+
   function applyQuickRange(type: 'today' | '1w' | '2w' | '1m') {
     const now = new Date();
     let start = new Date(now);
@@ -233,6 +262,26 @@ export default function AirlinePage() {
     setStartDate(formatDateInput(start));
     setEndDate(formatDateInput(end));
     setActiveRange(type);
+  }
+
+  function applyStatsQuickRange(type: 'today' | '1w' | '2w' | '1m') {
+    const now = new Date();
+    let start = new Date(now);
+    const end = new Date(now);
+
+    if (type === 'today') {
+      // keep today only
+    } else if (type === '1w') {
+      start.setDate(now.getDate() - 6);
+    } else if (type === '2w') {
+      start.setDate(now.getDate() - 13);
+    } else if (type === '1m') {
+      start.setDate(now.getDate() - 29);
+    }
+
+    setStatsStartDate(formatDateInput(start));
+    setStatsEndDate(formatDateInput(end));
+    setStatsActiveRange(type);
   }
 
   function handleOpenActionModal(incident: any) {
@@ -336,7 +385,8 @@ export default function AirlinePage() {
 
   const typeDistribution = actionStats?.typeDistribution ?? [];
   const monthlyTrend = actionStats?.monthlyTrend ?? [];
-  const statusCounts = actionStats?.statusCounts ?? {
+  type StatusKey = 'waiting' | 'in_progress' | 'completed';
+  const statusCounts: Record<StatusKey, number> = actionStats?.statusCounts ?? {
     waiting: 0,
     in_progress: 0,
     completed: 0,
@@ -1100,167 +1150,162 @@ export default function AirlinePage() {
             {/* 통계 탭 */}
             {activeTab === 'statistics' && (
               <>
-                {/* 통계 헤더 */}
-                {/* <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden mb-8">
-                  <div className="px-8 py-6 border-b border-gray-50 bg-[#00205b] text-white">
-                    <h3 className="text-xl font-black text-white tracking-tight">조치 관리 통계</h3>
-                    <p className="text-xs font-bold text-gray-300 mt-1 uppercase tracking-widest">
-                      Action Management Statistics
-                    </p>
-                  </div>
-                </div> */}
-
-                {/* 핵심 3개 통계 카드 */}
-                <div className="grid grid-cols-3 gap-6 mb-8">
-                  {/* 총 조치 건수 */}
-                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">총 조치 건수</p>
-                    <p className="text-4xl font-black text-gray-700">{actionsData?.data.length || 0}</p>
-                    <p className="text-xs text-gray-500 font-bold mt-2">건</p>
-                  </div>
-
-                  {/* 완료율 */}
-                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">완료율</p>
-                    <p className="text-4xl font-black text-emerald-600">
-                      {actionsData?.data.length
-                        ? Math.round(
-                          ((actionsData.data.filter((a: any) => a.status === 'completed').length /
-                            actionsData.data.length) *
-                            100)
-                        )
-                        : 0}
-                    </p>
-                    <p className="text-xs text-gray-500 font-bold mt-2">%</p>
-                  </div>
-
-                  {/* 평균 처리 기간 */}
-                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">평균 처리 기간</p>
-                    <p className="text-4xl font-black text-blue-600">
-                      {actionsData?.data.length
-                        ? (() => {
-                          const completedActions = actionsData.data.filter((a: any) => a.status === 'completed');
-                          if (completedActions.length === 0) return 0;
-                          const totalDays = completedActions.reduce((sum: number, a: any) => {
-                            if (!a.registered_at || !a.completed_at) return sum;
-                            const start = new Date(a.registered_at).getTime();
-                            const end = new Date(a.completed_at).getTime();
-                            return sum + Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-                          }, 0);
-                          return Math.round(totalDays / completedActions.length);
-                        })()
-                        : 0}
-                    </p>
-                    <p className="text-xs text-gray-500 font-bold mt-2">일</p>
-                  </div>
-                </div>
-
-                {/* 조치 유형별 분포 */}
-                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 mb-8">
-                  <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">조치 유형별 분포</h4>
-                  <div className="space-y-4">
-                    {(() => {
-                      const typeMap: Record<string, number> = {};
-                      actionsData?.data.forEach((action: any) => {
-                        const type = action.action_type || '미정의';
-                        typeMap[type] = (typeMap[type] || 0) + 1;
-                      });
-                      const total = actionsData?.data.length || 1;
-                      const types = Object.entries(typeMap).sort((a, b) => b[1] - a[1]);
-
-                      return types.map(([type, count], idx) => {
-                        const percentage = Math.round((count / total) * 100);
-                        const colors = [
-                          { bar: 'bg-rose-500', text: 'text-rose-600' },
-                          { bar: 'bg-amber-500', text: 'text-amber-600' },
-                          { bar: 'bg-blue-500', text: 'text-blue-600' },
-                          { bar: 'bg-emerald-500', text: 'text-emerald-600' },
-                          { bar: 'bg-purple-500', text: 'text-purple-600' },
-                          { bar: 'bg-indigo-500', text: 'text-indigo-600' },
-                        ];
-                        const color = colors[idx % colors.length];
-
-                        return (
-                          <div key={type} className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm font-bold text-gray-700">{type}</span>
-                              <span className={`text-sm font-black ${color.text}`}>{count}건 ({percentage}%)</span>
-                            </div>
-                            <div className="w-full bg-gray-100 rounded-none h-3 overflow-hidden">
-                              <div
-                                className={`${color.bar} h-full transition-all`}
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-                </div>
-
-                {/* 상태별 분포 */}
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                  {/* 상태별 집계 */}
-                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6">
-                    <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">상태별 집계</h4>
-                    <div className="space-y-4">
-                      {(() => {
-                        const statusMap = {
-                          pending: { label: '대기 중', color: 'text-amber-600', bgColor: 'bg-amber-50' },
-                          in_progress: { label: '진행 중', color: 'text-blue-600', bgColor: 'bg-blue-50' },
-                          completed: { label: '완료', color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
-                        };
-
-                        const counts = {
-                          pending: actionsData?.data.filter((a: any) => a.status === 'pending').length || 0,
-                          in_progress: actionsData?.data.filter((a: any) => a.status === 'in_progress').length || 0,
-                          completed: actionsData?.data.filter((a: any) => a.status === 'completed').length || 0,
-                        };
-
-                        return Object.entries(statusMap).map(([status, { label, color, bgColor }]) => (
-                          <div key={status} className={`${bgColor} rounded-none p-4`}>
-                            <p className={`text-xs font-bold uppercase tracking-widest ${color} mb-2`}>{label}</p>
-                            <p className={`text-3xl font-black ${color}`}>{counts[status as keyof typeof counts]}</p>
-                            <p className="text-xs text-gray-500 font-bold mt-2">건</p>
-                          </div>
-                        ));
-                      })()}
+                <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-none mb-8">
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="w-10 h-10 bg-indigo-50 text-indigo-700 rounded-none flex items-center justify-center">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">통계 조회 기간</p>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="date"
+                          value={statsStartDate}
+                          onChange={handleStatsStartDateChange}
+                          className="border border-gray-200 rounded-none px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        />
+                        <span className="text-gray-400 font-bold">~</span>
+                        <input
+                          type="date"
+                          value={statsEndDate}
+                          onChange={handleStatsEndDateChange}
+                          className="border border-gray-200 rounded-none px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* 월별 추이 요약 */}
-                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6">
-                    <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">월별 조치 현황</h4>
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {(() => {
-                        const monthMap: Record<string, number> = {};
-                        actionsData?.data.forEach((action: any) => {
-                          if (!action.registered_at) return;
-                          const date = new Date(action.registered_at);
-                          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                          monthMap[monthKey] = (monthMap[monthKey] || 0) + 1;
-                        });
+                  <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    {[
+                      { label: '오늘', value: 'today' },
+                      { label: '1주', value: '1w' },
+                      { label: '2주', value: '2w' },
+                      { label: '1개월', value: '1m' },
+                    ].map((range) => (
+                      <button
+                        key={range.value}
+                        onClick={() => applyStatsQuickRange(range.value as 'today' | '1w' | '2w' | '1m')}
+                        className={`px-4 py-2 text-xs font-black rounded-none border transition-all ${statsActiveRange === range.value
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-none'
+                          : 'text-gray-500 border-gray-200 hover:text-gray-900 hover:border-gray-400'
+                          }`}
+                      >
+                        {range.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-                        const months = Object.entries(monthMap)
-                          .sort(([a], [b]) => b.localeCompare(a))
-                          .slice(0, 6);
+                {actionStatsLoading ? (
+                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-20 text-center">
+                    <div className="text-4xl mb-4">📊</div>
+                    <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">통계 데이터를 불러오는 중입니다...</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* 핵심 3개 통계 카드 */}
+                    <div className="grid grid-cols-3 gap-6 mb-8">
+                      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">총 조치 건수</p>
+                        <p className="text-4xl font-black text-gray-700">{actionStats?.total ?? 0}</p>
+                        <p className="text-xs text-gray-500 font-bold mt-2">건</p>
+                      </div>
 
-                        return months.length > 0 ? (
-                          months.map(([month, count]) => (
-                            <div key={month} className="flex items-center justify-between pb-3 border-b border-gray-100 last:border-b-0">
-                              <span className="text-sm font-bold text-gray-600">{month}</span>
-                              <span className="text-sm font-black text-rose-600">{count}건</span>
-                            </div>
-                          ))
+                      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">완료율</p>
+                        <p className="text-4xl font-black text-emerald-600">{actionStats?.completionRate ?? 0}</p>
+                        <p className="text-xs text-gray-500 font-bold mt-2">%</p>
+                      </div>
+
+                      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">평균 처리 기간</p>
+                        <p className="text-4xl font-black text-blue-600">{actionStats?.averageCompletionDays ?? 0}</p>
+                        <p className="text-xs text-gray-500 font-bold mt-2">일</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 mb-8">
+                      <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">조치 유형별 분포</h4>
+                      <div className="space-y-4">
+                        {typeDistribution.length > 0 ? (
+                          typeDistribution.map((item, idx) => {
+                            const colors = [
+                              { bar: 'bg-rose-500', text: 'text-rose-600' },
+                              { bar: 'bg-amber-500', text: 'text-amber-600' },
+                              { bar: 'bg-blue-500', text: 'text-blue-600' },
+                              { bar: 'bg-emerald-500', text: 'text-emerald-600' },
+                              { bar: 'bg-purple-500', text: 'text-purple-600' },
+                              { bar: 'bg-indigo-500', text: 'text-indigo-600' },
+                            ];
+                            const color = colors[idx % colors.length];
+
+                            return (
+                              <div key={`${item.name}-${idx}`} className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm font-bold text-gray-700">{item.name}</span>
+                                  <span className={`text-sm font-black ${color.text}`}>
+                                    {item.count}건 ({item.percentage}%)
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-100 rounded-none h-3 overflow-hidden">
+                                  <div className={`${color.bar} h-full transition-all`} style={{ width: `${item.percentage}%` }} />
+                                </div>
+                              </div>
+                            );
+                          })
                         ) : (
                           <p className="text-center text-gray-400 text-sm py-8">조치 데이터가 없습니다</p>
-                        );
-                      })()}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
+
+                    <div className="grid grid-cols-2 gap-6 mb-8">
+                      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6">
+                        <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">상태별 집계</h4>
+                        <div className="space-y-4">
+                          {(() => {
+                            const statusMap = {
+                              waiting: { label: '대기 중', color: 'text-amber-600', bgColor: 'bg-amber-50' },
+                              in_progress: { label: '진행 중', color: 'text-blue-600', bgColor: 'bg-blue-50' },
+                              completed: { label: '완료', color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
+                            } as const;
+
+                            return (Object.entries(statusMap) as Array<[
+                              keyof typeof statusMap,
+                              { label: string; color: string; bgColor: string }
+                            ]>).map(([statusKey, meta]) => (
+                              <div key={statusKey} className={`${meta.bgColor} rounded-none p-4`}>
+                                <p className={`text-xs font-bold uppercase tracking-widest ${meta.color} mb-2`}>{meta.label}</p>
+                                <p className={`text-3xl font-black ${meta.color}`}>
+                                  {statusCounts[statusKey] ?? 0}
+                                </p>
+                                <p className="text-xs text-gray-500 font-bold mt-2">건</p>
+                              </div>
+                            ));
+                          })()}
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6">
+                        <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">월별 조치 현황</h4>
+                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                          {monthlyTrend.length > 0 ? (
+                            monthlyTrend.map((trend) => (
+                              <div key={trend.month} className="flex items-center justify-between pb-3 border-b border-gray-100 last:border-b-0">
+                                <span className="text-sm font-bold text-gray-600">{trend.month}</span>
+                                <span className="text-sm font-black text-rose-600">{trend.count}건</span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-center text-gray-400 text-sm py-8">조치 데이터가 없습니다</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -1280,6 +1325,7 @@ export default function AirlinePage() {
             handleCloseActionModal();
             queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
             queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
+            queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
           }}
         />
       )
@@ -1310,6 +1356,7 @@ export default function AirlinePage() {
             setActionPage(1);
             queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
             queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
+            queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
           }}
         />
       )}
