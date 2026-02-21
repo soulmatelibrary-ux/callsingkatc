@@ -820,6 +820,8 @@ export default function AirlinePage() {
                       onChange={(e) => {
                         setActionLimit(parseInt(e.target.value, 10));
                         setActionPage(1);
+                        // 목록 개수 변경 시 캐시 초기화
+                        queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
                       }}
                       className="bg-transparent text-sm font-black text-gray-700 focus:outline-none cursor-pointer pr-4"
                     >
