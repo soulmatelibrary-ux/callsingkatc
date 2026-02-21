@@ -120,7 +120,7 @@ export function PasswordResetSection() {
       {resetResult && (
         <div
           role="alert"
-          className="px-6 py-5 rounded-xl border-2 border-green-300 bg-green-50 space-y-3"
+          className="px-6 py-5 rounded-none border-2 border-green-300 bg-green-50 space-y-3"
         >
           <div className="flex items-center gap-2">
             <svg
@@ -165,7 +165,7 @@ export function PasswordResetSection() {
       {resetError && (
         <div
           role="alert"
-          className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700"
+          className="px-4 py-3 rounded-none bg-red-50 border border-red-200 text-sm text-red-700"
         >
           {resetError}
         </div>

@@ -21,7 +21,7 @@ export function Card({ children, className = '' }: CardProps) {
   return (
     <div
       className={[
-        'bg-white rounded-xl border border-gray-200 shadow-sm',
+        'bg-white rounded-none border border-gray-200 shadow-sm',
         className,
       ]
         .filter(Boolean)

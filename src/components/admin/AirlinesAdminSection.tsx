@@ -162,7 +162,7 @@ export function AirlinesAdminSection() {
       </div>
 
       {showCreateForm && (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <div className="bg-white rounded-none border border-gray-200 shadow-sm p-6">
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
             새 항공사 추가
           </h3>
@@ -228,11 +228,11 @@ export function AirlinesAdminSection() {
           <p className="mt-3 text-sm text-gray-500">항공사 목록 로딩 중...</p>
         </div>
       ) : airlines.length === 0 ? (
-        <div className="py-16 text-center bg-white rounded-xl border border-gray-200">
+        <div className="py-16 text-center bg-white rounded-none border border-gray-200">
           <p className="text-sm text-gray-500">항공사가 없습니다.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-none border border-gray-200 bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
@@ -396,7 +396,7 @@ export function AirlinesAdminSection() {
 
       {deleteConfirm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4">
+          <div className="bg-white rounded-none shadow-xl max-w-sm w-full p-6 space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">항공사 삭제</h3>
             <p className="text-sm text-gray-600">
               선택한 항공사를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.

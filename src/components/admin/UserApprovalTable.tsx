@@ -118,7 +118,7 @@ export function UserApprovalTable() {
             key={status}
             onClick={() => setFilter(status)}
             className={[
-              'px-3 py-1.5 rounded-full text-sm font-semibold border transition-colors',
+              'px-3 py-1.5 rounded-none text-sm font-semibold border transition-colors',
               filter === status
                 ? 'bg-primary text-white border-primary'
                 : 'bg-white text-gray-600 border-gray-200 hover:border-primary hover:text-primary',
@@ -131,7 +131,7 @@ export function UserApprovalTable() {
       </div>
 
       {/* 테이블 */}
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-none border border-gray-200 bg-white shadow-sm">
         {isLoading ? (
           <div className="py-16 text-center">
             <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" aria-label="로딩 중" />

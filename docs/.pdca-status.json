@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-21T13:06:05.329Z",
+  "lastUpdated": "2026-02-21T14:04:46.032Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -30,7 +30,8 @@
     "actions",
     "callsigns",
     "upload-callsigns",
-    "providers"
+    "providers",
+    "scripts"
   ],
   "primaryFeature": "katc1",
   "features": {
@@ -410,6 +411,19 @@
         "lastUpdated": "2026-02-21T03:38:04.317Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/components/providers/SessionProvider.tsx"
+    },
+    "scripts": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-21T14:04:09.072Z",
+        "lastUpdated": "2026-02-21T14:04:46.032Z"
+      },
+      "lastFile": "/Users/sein/Desktop/katc1/scripts/assign-airlines.js"
     }
   },
   "pipeline": {
@@ -420,7 +434,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-21T13:06:05.329Z"
+    "lastActivity": "2026-02-21T14:04:46.032Z"
   },
   "history": [
     {
@@ -4302,6 +4316,18 @@
     {
       "timestamp": "2026-02-21T13:06:05.329Z",
       "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:04:09.073Z",
+      "feature": "scripts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:04:46.032Z",
+      "feature": "scripts",
       "phase": "do",
       "action": "updated"
     }
