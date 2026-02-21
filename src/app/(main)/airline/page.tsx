@@ -76,6 +76,8 @@ export default function AirlinePage() {
   const [selectedAction, setSelectedAction] = useState<any | null>(null);
   const [isActionDetailModalOpen, setIsActionDetailModalOpen] = useState(false);
 
+  const [selectedCallsignForDetail, setSelectedCallsignForDetail] = useState<any | null>(null);
+  const [isCallsignDetailModalOpen, setIsCallsignDetailModalOpen] = useState(false);
   const accessToken = useAuthStore((s) => s.accessToken);
 
   // 조치 목록 데이터
@@ -889,7 +891,14 @@ export default function AirlinePage() {
                             const registeredDate = action.registered_at ? new Date(action.registered_at).toLocaleDateString('ko-KR') : '-';
 
                             return (
-                              <tr key={action.id} className="group hover:bg-primary/[0.02] transition-colors">
+                              <tr 
+                                key={action.id} 
+                                className="group hover:bg-primary/[0.02] transition-colors cursor-pointer" 
+                                onDoubleClick={() => {
+                                  setSelectedCallsignForDetail(action.callsign);
+                                  setIsCallsignDetailModalOpen(true);
+                                }}
+                              >
                                 <td className="px-8 py-5 text-sm font-bold text-gray-500">{registeredDate}</td>
                                 <td className="px-8 py-5 text-sm font-black text-gray-900 tracking-tight">{action.callsign?.callsign_pair || '-'}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.action_type}</td>
@@ -907,7 +916,7 @@ export default function AirlinePage() {
                                     }}
                                     className="px-3 py-1.5 bg-primary text-white text-[9px] font-black rounded-lg shadow-md shadow-primary/20 hover:scale-[1.05] active:scale-[0.95] transition-all uppercase tracking-wider"
                                   >
-                                    상세보기
+                                    편집
                                   </button>
                                 </td>
                               </tr>
@@ -1016,6 +1025,171 @@ export default function AirlinePage() {
           }}
         />
       )}
+
+      {/* 발생내역 상세조회 모달 */}
+      {isCallsignDetailModalOpen && selectedCallsignForDetail && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
+          }}
+          onClick={() => setIsCallsignDetailModalOpen(false)}
+        >
+          <div
+            style={{
+              width: '800px',
+              maxWidth: '95vw',
+              background: '#ffffff',
+              borderRadius: '12px',
+              boxShadow: '0 20px 40px rgba(15,23,42,0.25)',
+              padding: '24px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 헤더 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '20px',
+              }}
+            >
+              <div>
+                <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#111827' }}>
+                  {selectedCallsignForDetail.callsign_pair}
+                </h2>
+                <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>
+                  발생내역 상세정보
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCallsignDetailModalOpen(false)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  lineHeight: 1,
+                  color: '#9ca3af',
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* 상세정보 그리드 */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '16px',
+              }}
+            >
+              <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                  발생건수
+                </p>
+                <p style={{ fontSize: '20px', fontWeight: 700, color: '#ef6c00' }}>
+                  {selectedCallsignForDetail.occurrence_count}건
+                </p>
+              </div>
+
+              <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                  최근 발생일
+                </p>
+                <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+                  {selectedCallsignForDetail.last_occurred_at
+                    ? new Date(selectedCallsignForDetail.last_occurred_at).toLocaleDateString('ko-KR')
+                    : '-'}
+                </p>
+              </div>
+
+              <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                  유사성
+                </p>
+                <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+                  {selectedCallsignForDetail.similarity || '-'}
+                </p>
+              </div>
+
+              <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                  오류가능성
+                </p>
+                <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+                  {selectedCallsignForDetail.risk_level || '-'}
+                </p>
+              </div>
+            </div>
+
+            {/* 추가정보 */}
+            <div style={{ marginTop: '20px', padding: '16px', background: '#f9fafb', borderRadius: '8px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '12px',
+                  fontSize: '13px',
+                }}
+              >
+                <div>
+                  <span style={{ color: '#6b7280' }}>자사 호출부호: </span>
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {selectedCallsignForDetail.my_callsign}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ color: '#6b7280' }}>타사 호출부호: </span>
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {selectedCallsignForDetail.other_callsign}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ color: '#6b7280' }}>오류 유형: </span>
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {selectedCallsignForDetail.error_type || '-'}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ color: '#6b7280' }}>세부 오류: </span>
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {selectedCallsignForDetail.sub_error || '-'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 닫기 버튼 */}
+            <div style={{ marginTop: '20px', textAlign: 'right' }}>
+              <button
+                onClick={() => setIsCallsignDetailModalOpen(false)}
+                style={{
+                  padding: '10px 20px',
+                  background: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </>
   );
 }

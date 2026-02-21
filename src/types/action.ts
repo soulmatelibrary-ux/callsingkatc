@@ -175,6 +175,7 @@ export interface CreateActionRequest {
 export interface UpdateActionRequest {
   status?: 'pending' | 'in_progress' | 'completed';
   description?: string;
+  action_type?: string;
   manager_name?: string;
   manager_email?: string;
   responsible_staff?: string; // 항공사 담당자명
