@@ -72,7 +72,7 @@ export function UserApprovalTable() {
       });
 
       if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+        queryClient.invalidateQueries({ queryKey: ['admin', 'users'], exact: false });
       }
     } catch (error) {
       console.error('항공사 변경 실패:', error);

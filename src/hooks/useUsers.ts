@@ -76,7 +76,7 @@ export function useUserMutations() {
   const queryClient = useQueryClient();
 
   const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+    queryClient.invalidateQueries({ queryKey: ['admin', 'users'], exact: false });
 
   const approve = useMutation({
     mutationFn: (userId: string) => {
