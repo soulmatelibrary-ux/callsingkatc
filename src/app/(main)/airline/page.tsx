@@ -334,6 +334,14 @@ export default function AirlinePage() {
     }
     : null;
 
+  const typeDistribution = actionStats?.typeDistribution ?? [];
+  const monthlyTrend = actionStats?.monthlyTrend ?? [];
+  const statusCounts = actionStats?.statusCounts ?? {
+    waiting: 0,
+    in_progress: 0,
+    completed: 0,
+  };
+
   // 에러 타입별 동적 통계 생성
   const errorTypeConfig: Record<string, { label: string; bgColor: string; textColor: string; description: string }> = {
     '관제사 오류': { label: 'ATC RELATED', bgColor: 'bg-rose-50', textColor: 'text-rose-600', description: '관제사 요인으로 판명된 사례' },
