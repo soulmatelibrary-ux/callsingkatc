@@ -646,7 +646,7 @@ export default function AirlinePage() {
                                         {Array.from(my).map((char, idx) => (
                                           <span
                                             key={`my-${idx}`}
-                                            className={`font-black text-xl leading-tight ${
+                                            className={`font-black text-2xl leading-tight ${
                                               (char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : 'text-blue-700'
                                             }`}
                                           >
@@ -663,7 +663,7 @@ export default function AirlinePage() {
                                         {Array.from(other).map((char, idx) => (
                                           <span
                                             key={`other-${idx}`}
-                                            className={`font-black text-xl leading-tight ${
+                                            className={`font-black text-2xl leading-tight ${
                                               (char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : 'text-rose-700'
                                             }`}
                                           >
