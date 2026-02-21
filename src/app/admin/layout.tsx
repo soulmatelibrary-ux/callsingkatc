@@ -9,7 +9,7 @@ export default function AdminLayout({
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
             <Header />
-            <div className="flex flex-1 pt-16 h-screen overflow-hidden">
+            <div className="flex flex-1 min-h-0 overflow-hidden">
                 {/* 사이드바는 스크롤 없이 고정 */}
                 <AdminSidebar />
 

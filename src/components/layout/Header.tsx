@@ -135,7 +135,7 @@ export function Header() {
                   href={ROUTES.DASHBOARD}
                   className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-none transition-all"
                 >
-                  대시보드
+                  유사호출부호 관리
                 </Link>
                 <Link
                   href={ROUTES.ADMIN}

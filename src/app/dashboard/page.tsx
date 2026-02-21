@@ -289,18 +289,6 @@ export default function DashboardPage() {
 
         {/* 메인 콘텐츠 영역 */}
         <main className="flex-1 overflow-y-auto w-full px-8 py-10 bg-gray-50">
-          {/* 페이지 헤더 */}
-          <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">대시보드</h1>
-              <p className="text-sm text-gray-500 font-medium">
-                {user?.airline?.code
-                  ? `${user.airline.code} 항공사의 유사호출부호 현황을 확인하세요.`
-                  : '유사호출부호 현황을 확인하세요.'}
-              </p>
-            </div>
-          </div>
-
           {/* 호출부호 목록 섹션 */}
           {activeTab === 'callsigns' && (
             <div className="bg-white rounded-none border border-gray-100 shadow-sm p-6 mb-8">

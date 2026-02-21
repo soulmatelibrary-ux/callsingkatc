@@ -351,7 +351,7 @@ export default function Home() {
         style={{
           position: 'relative',
           zIndex: 10,
-          borderRadius: '20px',
+          borderRadius: '0',
           padding: '32px 48px',
           width: '460px',
           maxWidth: '90vw',
@@ -402,7 +402,7 @@ export default function Home() {
                 border: 'none',
                 background: !isAdmin ? '#ffffff' : 'transparent',
                 color: !isAdmin ? '#2563eb' : '#64748b',
-                borderRadius: '8px',
+                borderRadius: '0',
                 fontSize: '13px',
                 fontWeight: '700',
                 cursor: 'pointer',
@@ -427,7 +427,7 @@ export default function Home() {
                 border: 'none',
                 background: isAdmin ? '#ffffff' : 'transparent',
                 color: isAdmin ? '#2563eb' : '#64748b',
-                borderRadius: '8px',
+                borderRadius: '0',
                 fontSize: '13px',
                 fontWeight: '700',
                 cursor: 'pointer',
@@ -456,7 +456,7 @@ export default function Home() {
                     width: '100%',
                     padding: '11px 16px 11px 40px',
                     border: '1.5px solid rgba(226, 232, 240, 0.8)',
-                    borderRadius: '10px',
+                    borderRadius: '0',
                     fontSize: '14px',
                     fontFamily: 'inherit',
                     outline: 'none',
@@ -480,7 +480,7 @@ export default function Home() {
                     width: '100%',
                     padding: '11px 16px 11px 40px',
                     border: '1.5px solid rgba(226, 232, 240, 0.8)',
-                    borderRadius: '10px',
+                    borderRadius: '0',
                     fontSize: '14px',
                     fontFamily: 'inherit',
                     outline: 'none',
@@ -494,7 +494,7 @@ export default function Home() {
 
           {/* 에러 메시지 */}
           {error && (
-            <div style={{ background: '#fef2f2', color: '#dc2626', padding: '10px', borderRadius: '10px', fontSize: '13px', fontWeight: '600', marginBottom: '20px' }}>
+            <div style={{ background: '#fef2f2', color: '#dc2626', padding: '10px', borderRadius: '0', fontSize: '13px', fontWeight: '600', marginBottom: '20px' }}>
               {error}
             </div>
           )}
@@ -510,7 +510,7 @@ export default function Home() {
                 background: isSubmitting ? '#94a3b8' : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
                 color: '#ffffff',
                 border: 'none',
-                borderRadius: '12px',
+                borderRadius: '0',
                 fontSize: '15px',
                 fontWeight: '800',
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',

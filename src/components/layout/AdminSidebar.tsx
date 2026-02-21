@@ -32,7 +32,7 @@ export function AdminSidebar() {
     ];
 
     return (
-        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-6 shrink-0 h-[calc(100vh-64px)] overflow-y-auto">
+        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-[calc(100vh-64px)] overflow-y-auto">
             <div className="px-6 mb-6">
                 <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest">
                     Admin Menu

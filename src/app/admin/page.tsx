@@ -155,7 +155,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="flex flex-col bg-[#f8fafc] selection:bg-primary/10 min-h-full">
       <main
-        className={`flex-1 max-w-7xl w-full mx-auto px-6 py-10 space-y-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        className={`flex-1 max-w-7xl w-full mx-auto px-6 pt-8 pb-10 space-y-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
       >
         {/* 페이지 제목 섹션 */}
