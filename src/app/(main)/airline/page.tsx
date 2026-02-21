@@ -80,15 +80,22 @@ export default function AirlinePage() {
   const [isCallsignDetailModalOpen, setIsCallsignDetailModalOpen] = useState(false);
   const accessToken = useAuthStore((s) => s.accessToken);
 
-  // 상태 필터 변경 시 캐시 무효화 및 강제 리페치
+  // 상태 필터 변경 시 캐시 완전 초기화 및 리페치
   useEffect(() => {
+    // 1단계: 모든 'airline-actions' 관련 쿼리 완전 제거
+    queryClient.removeQueries({ queryKey: ['airline-actions'], exact: false });
+
+    // 2단계: 페이지 리셋
     setActionPage(1);
-    // invalidate만으로는 부족할 수 있으므로 refetch 사용
-    queryClient.refetchQueries({
-      queryKey: ['airline-actions'],
-      exact: false
-    });
-  }, [actionStatusFilter, queryClient]);
+
+    // 3단계: 새로운 status로 쿼리 강제 실행 (캐시 무시)
+    setTimeout(() => {
+      queryClient.invalidateQueries({
+        queryKey: ['airline-actions'],
+        exact: false
+      });
+    }, 0);
+  }, [actionStatusFilter, queryClient, airlineId]);
 
 
   // 페이지 첫 로드: 1개월 필터 자동 적용
@@ -267,10 +274,40 @@ export default function AirlinePage() {
   });
 
   // 통계는 조치 완료된 것을 제외한 인시던트 기준
-  const atcCount = incidentsWithoutCompleted.filter(i => i.errorType === '관제사 오류').length;
-  const pilotCount = incidentsWithoutCompleted.filter(i => i.errorType === '조종사 오류').length;
-  const noneCount = incidentsWithoutCompleted.filter(i => i.errorType === '오류 미발생').length;
   const total = incidentsWithoutCompleted.length;
+
+  // 에러 타입별 동적 통계 생성
+  const errorTypeConfig: Record<string, { label: string; bgColor: string; textColor: string; description: string }> = {
+    '관제사 오류': { label: 'ATC RELATED', bgColor: 'bg-rose-50', textColor: 'text-rose-600', description: '관제사 요인으로 판명된 사례' },
+    '조종사 오류': { label: 'PILOT RELATED', bgColor: 'bg-amber-50', textColor: 'text-amber-600', description: '조종사 요인으로 판명된 사례' },
+    '오류 미발생': { label: 'NO ERROR', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600', description: '오류 없이 경고만 발생한 사례' },
+  };
+
+  const errorTypeStats = (() => {
+    // 실제 데이터에 있는 error_type만 추출
+    const uniqueTypes = Array.from(new Set(
+      incidentsWithoutCompleted
+        .map(i => i.errorType)
+        .filter(Boolean)
+    ));
+
+    // 각 타입별로 count와 색상 정보와 함께 반환
+    return uniqueTypes.map(type => {
+      const count = incidentsWithoutCompleted.filter(i => i.errorType === type).length;
+      const config = errorTypeConfig[type] || {
+        label: type,
+        bgColor: 'bg-gray-50',
+        textColor: 'text-gray-600',
+        description: `${type}로 판명된 사례`
+      };
+      return {
+        type,
+        count,
+        percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+        ...config
+      };
+    });
+  })();
 
   // 리스크 레벨을 숫자로 변환 (높을수록 큼)
   const riskLevelMap: Record<string, number> = {
@@ -484,71 +521,48 @@ export default function AirlinePage() {
                     </div>
                   </div>
 
-                  <div
-                    onClick={() => setErrorTypeFilter(errorTypeFilter === '관제사 오류' ? 'all' : '관제사 오류')}
-                    className={`group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === '관제사 오류' ? 'ring-2 ring-rose-500 shadow-rose-500/10' : ''}`}
-                  >
-                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-rose-600" />
-                    <div className="relative flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">ATC Related</p>
-                        {total > 0 && (
-                          <span className="text-[10px] font-black px-2 py-1 rounded-md bg-rose-50 text-rose-600">
-                            {Math.round((atcCount / total) * 100)}%
-                          </span>
-                        )}
+                  {/* 동적으로 생성된 에러 타입별 카드 */}
+                  {errorTypeStats.map((stat) => (
+                    <div
+                      key={stat.type}
+                      onClick={() => setErrorTypeFilter(errorTypeFilter === stat.type ? 'all' : stat.type as any)}
+                      className={`group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${
+                        errorTypeFilter === stat.type ? `ring-2 ring-opacity-50 shadow-opacity-10` : ''
+                      }`}
+                      style={
+                        errorTypeFilter === stat.type
+                          ? {
+                              boxShadow: `0 0 0 2px var(--ring-color), 0 20px 40px var(--shadow-color)`,
+                              '--ring-color': stat.textColor.replace('text-', '--').match(/text-(\w+-\d+)/)?.[1],
+                            } as any
+                          : {}
+                      }
+                    >
+                      <div
+                        className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
+                        style={{ backgroundColor: stat.textColor.replace('text-', 'rgb(') + ')' }}
+                      />
+                      <div className="relative flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                            {stat.label}
+                          </p>
+                          {total > 0 && (
+                            <span className={`text-[10px] font-black px-2 py-1 rounded-md ${stat.bgColor} ${stat.textColor}`}>
+                              {stat.percentage}%
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <p className={`text-5xl font-black tracking-tighter ${stat.textColor}`}>{stat.count}</p>
+                          <span className="text-sm font-bold text-gray-400">건</span>
+                        </div>
+                        <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">
+                          {stat.description}
+                        </p>
                       </div>
-                      <div className="flex items-baseline gap-1">
-                        <p className="text-5xl font-black text-rose-600 tracking-tighter">{atcCount}</p>
-                        <span className="text-sm font-bold text-gray-400">건</span>
-                      </div>
-                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">관제사 요인으로 판명된 사례</p>
                     </div>
-                  </div>
-
-                  <div
-                    onClick={() => setErrorTypeFilter(errorTypeFilter === '조종사 오류' ? 'all' : '조종사 오류')}
-                    className={`group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === '조종사 오류' ? 'ring-2 ring-amber-500 shadow-amber-500/10' : ''}`}
-                  >
-                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-amber-600" />
-                    <div className="relative flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Pilot Related</p>
-                        {total > 0 && (
-                          <span className="text-[10px] font-black px-2 py-1 rounded-md bg-amber-50 text-amber-600">
-                            {Math.round((pilotCount / total) * 100)}%
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-baseline gap-1">
-                        <p className="text-5xl font-black text-amber-600 tracking-tighter">{pilotCount}</p>
-                        <span className="text-sm font-bold text-gray-400">건</span>
-                      </div>
-                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">조종사 요인으로 판명된 사례</p>
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => setErrorTypeFilter(errorTypeFilter === '오류 미발생' ? 'all' : '오류 미발생')}
-                    className={`group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === '오류 미발생' ? 'ring-2 ring-emerald-500 shadow-emerald-500/10' : ''}`}
-                  >
-                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-emerald-600" />
-                    <div className="relative flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">No Error</p>
-                        {total > 0 && (
-                          <span className="text-[10px] font-black px-2 py-1 rounded-md bg-emerald-50 text-emerald-600">
-                            {Math.round((noneCount / total) * 100)}%
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-baseline gap-1">
-                        <p className="text-5xl font-black text-emerald-600 tracking-tighter">{noneCount}</p>
-                        <span className="text-sm font-bold text-gray-400">건</span>
-                      </div>
-                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">오류 없이 경고만 발생한 사례</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               )}
 
