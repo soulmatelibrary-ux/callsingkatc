@@ -10,6 +10,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { SessionProvider } from '@/components/providers/SessionProvider';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -46,7 +47,12 @@ function AuthInitializer({ children }: ProvidersProps) {
   }, []); // ✅ 페이지 로드 시 한 번만 실행
 
   // 초기화 전 children 렌더링 (UX 개선: 로딩 상태 표시 필요하면 여기서 처리)
-  return <>{children}</>;
+  // SessionProvider로 감싸서 30분 비활동 자동 로그아웃 기능 활성화
+  return (
+    <SessionProvider>
+      {children}
+    </SessionProvider>
+  );
 }
 
 export function Providers({ children }: ProvidersProps) {
