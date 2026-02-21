@@ -66,10 +66,6 @@ export default function AirlinePage() {
   const [activeRange, setActiveRange] = useState<'custom' | 'today' | '1w' | '2w' | '1m'>('custom');
   const [errorTypeFilter, setErrorTypeFilter] = useState<'all' | '관제사 오류' | '조종사 오류' | '오류 미발생'>('all');
 
-  // 발생현황 탭용 state
-  const [incidentPage, setIncidentPage] = useState(1);
-  const [incidentLimit, setIncidentLimit] = useState(10);
-
   // 조치이력 탭용 state
   const [actionPage, setActionPage] = useState(1);
   const [actionLimit, setActionLimit] = useState(10);
@@ -84,16 +80,16 @@ export default function AirlinePage() {
   const [isCallsignDetailModalOpen, setIsCallsignDetailModalOpen] = useState(false);
   const accessToken = useAuthStore((s) => s.accessToken);
 
-  // 상태 필터 변경 시 캐시 완전 초기화
+  // 상태 필터 변경 시 캐시 무효화 및 강제 리페치
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
     setActionPage(1);
+    // invalidate만으로는 부족할 수 있으므로 refetch 사용
+    queryClient.refetchQueries({
+      queryKey: ['airline-actions'],
+      exact: false
+    });
   }, [actionStatusFilter, queryClient]);
 
-  // 에러 타입 필터 변경 시 페이지 리셋
-  useEffect(() => {
-    setIncidentPage(1);
-  }, [errorTypeFilter]);
 
   // 페이지 첫 로드: 1개월 필터 자동 적용
   useEffect(() => {
@@ -307,12 +303,6 @@ export default function AirlinePage() {
     });
   })();
 
-  // 페이지네이션 적용된 incidents (테이블 표시용)
-  const visibleIncidents = (() => {
-    const startIndex = (incidentPage - 1) * incidentLimit;
-    const endIndex = startIndex + incidentLimit;
-    return allFilteredIncidents.slice(startIndex, endIndex);
-  })();
 
   const selectedErrorLabel =
     errorTypeFilter === 'all' ? '전체' : errorTypeFilter;
@@ -575,7 +565,7 @@ export default function AirlinePage() {
 
                   <div className="overflow-x-auto flex-1">
                     <div className="divide-y divide-gray-50">
-                      {visibleIncidents.map((incident: any) => {
+                      {allFilteredIncidents.map((incident: any) => {
                         // 호출부호 숫자 색상 처리: 같은 숫자끼리 같은 색
                         const renderColoredCallsign = (callsignPair: string) => {
                           const parts = callsignPair.split('↔');
@@ -792,72 +782,6 @@ export default function AirlinePage() {
                   </div>
                 </div>
 
-                {/* 발생현황 페이지네이션 */}
-                {allFilteredIncidents.length > 0 && (
-                  <div className="mt-8 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-                    <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        Showing {(incidentPage - 1) * incidentLimit + 1} - {Math.min(incidentPage * incidentLimit, allFilteredIncidents.length)} of {allFilteredIncidents.length} cases
-                      </span>
-                      <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 shadow-sm border border-gray-100 flex items-center gap-2">
-                        <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-3">Limit</span>
-                        <select
-                          value={incidentLimit}
-                          onChange={(e) => {
-                            setIncidentLimit(parseInt(e.target.value, 10));
-                            setIncidentPage(1);
-                          }}
-                          className="bg-transparent text-sm font-black text-gray-700 focus:outline-none cursor-pointer pr-4"
-                        >
-                          <option value="10">10 Rows</option>
-                          <option value="30">30 Rows</option>
-                          <option value="50">50 Rows</option>
-                          <option value="100">100 Rows</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* 페이지네이션 버튼 */}
-                    <div className="px-8 py-6 border-t border-gray-50 flex justify-center items-center gap-2">
-                      <button
-                        onClick={() => setIncidentPage(Math.max(1, incidentPage - 1))}
-                        disabled={incidentPage === 1}
-                        className="p-2 rounded-xl border border-gray-200 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
-                      >
-                        PREV
-                      </button>
-
-                      <div className="flex gap-1 mx-4">
-                        {Array.from({ length: Math.min(5, Math.ceil(allFilteredIncidents.length / incidentLimit)) }, (_, i) => {
-                          const totalPages = Math.ceil(allFilteredIncidents.length / incidentLimit);
-                          const startPage = Math.max(1, Math.min(incidentPage - 2, totalPages - 4));
-                          const pageNum = startPage + i;
-                          if (pageNum > totalPages) return null;
-                          return (
-                            <button
-                              key={pageNum}
-                              onClick={() => setIncidentPage(pageNum)}
-                              className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${pageNum === incidentPage
-                                  ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
-                                  : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'
-                                }`}
-                            >
-                              {pageNum}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <button
-                        onClick={() => setIncidentPage(Math.min(Math.ceil(allFilteredIncidents.length / incidentLimit), incidentPage + 1))}
-                        disabled={incidentPage === Math.ceil(allFilteredIncidents.length / incidentLimit)}
-                        className="p-2 rounded-xl border border-gray-200 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
-                      >
-                        NEXT
-                      </button>
-                    </div>
-                  </div>
-                )}
 
                 {allFilteredIncidents.length === 0 && (
                   <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100 mt-8">
