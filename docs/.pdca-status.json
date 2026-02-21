@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-21T15:09:30.783Z",
+  "lastUpdated": "2026-02-21T15:12:44.288Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -423,9 +423,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:04:09.072Z",
-        "lastUpdated": "2026-02-21T14:11:08.469Z"
+        "lastUpdated": "2026-02-21T15:10:43.625Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/scripts/reset-all.js"
+      "lastFile": "/Users/sein/Desktop/katc1/scripts/reset-callsigns-status.js"
     },
     "announcement-system": {
       "phase": "design",
@@ -443,9 +443,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:06.344Z",
-        "lastUpdated": "2026-02-21T14:59:06.443Z"
+        "lastUpdated": "2026-02-21T15:12:44.288Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/announcements/route.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/components/announcements/AnnouncementForm.tsx"
     },
     "history": {
       "phase": "do",
@@ -469,7 +469,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-21T15:09:30.783Z"
+    "lastActivity": "2026-02-21T15:12:44.288Z"
   },
   "history": [
     {
@@ -4681,6 +4681,30 @@
     {
       "timestamp": "2026-02-21T15:09:30.783Z",
       "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T15:10:43.625Z",
+      "feature": "scripts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T15:10:53.926Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T15:11:44.689Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T15:12:44.288Z",
+      "feature": "announcements",
       "phase": "do",
       "action": "updated"
     }
