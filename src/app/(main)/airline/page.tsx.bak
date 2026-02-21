@@ -68,7 +68,7 @@ export default function AirlinePage() {
 
   // 조치이력 탭용 state
   const [actionPage, setActionPage] = useState(1);
-  const [actionLimit, setActionLimit] = useState(10);
+  const [actionLimit, setActionLimit] = useState(30);
   const [actionSearch, setActionSearch] = useState('');
   const [actionSearchInput, setActionSearchInput] = useState('');
   const [actionStatusFilter, setActionStatusFilter] = useState<'all' | 'in_progress' | 'completed'>('all');

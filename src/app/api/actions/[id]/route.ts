@@ -169,13 +169,23 @@ export async function PATCH(
     // 상태 로직: in_progress는 action row 삭제, completed는 row 존재 = 조치 업데이트
     if (status === 'in_progress') {
       // in_progress = 미조치 = action row 삭제
+      const deletedAction = await query(
+        'SELECT * FROM actions WHERE id = $1',
+        [id]
+      );
+
       await transaction(async (trx) => {
         return trx('DELETE FROM actions WHERE id = $1', [id]);
       });
 
+      // 삭제된 action 데이터 반환 (mutation 성공 처리)
+      if (deletedAction.rows.length > 0) {
+        return NextResponse.json(deletedAction.rows[0], { status: 200 });
+      }
+
       return NextResponse.json(
-        { message: '조치가 삭제되었습니다. (미조치 상태)' },
-        { status: 200 }
+        { error: '조치를 찾을 수 없습니다.' },
+        { status: 404 }
       );
     }
 

@@ -198,8 +198,10 @@ export function ActionModal({
             <input
               type="text"
               value={
+                initialData?.callsign_pair ||
                 callsigns.find((cs) => String(cs.id) === callsignId)
-                  ?.callsign_pair || ''
+                  ?.callsign_pair ||
+                ''
               }
               disabled
               readOnly
