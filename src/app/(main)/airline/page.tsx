@@ -369,7 +369,7 @@ export default function AirlinePage() {
 
         {/* 오른쪽 콘텐츠 영역 */}
         <div className="flex-1 overflow-auto">
-          <div className="max-w-6xl w-full mx-auto px-8 py-10 space-y-8 animate-fade-in">
+          <div className="w-full px-8 py-10 space-y-8 animate-fade-in">
             {activeTab === 'incidents' && (
               <>
                 {/* 조회 기간 필터 */}
