@@ -88,11 +88,11 @@ export default function DashboardPage() {
   const allActionsQuery = useAllActions(
     isAdmin
       ? {
-          dateFrom: actionDateFrom || undefined,
-          dateTo: actionDateTo || undefined,
-          page: 1,
-          limit: 999,
-        }
+        dateFrom: actionDateFrom || undefined,
+        dateTo: actionDateTo || undefined,
+        page: 1,
+        limit: 999,
+      }
       : undefined,
     { enabled: isAdmin }
   );
@@ -259,709 +259,710 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 pt-24 pb-10">
-        {/* 페이지 헤더 */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">대시보드</h1>
-          <p className="text-gray-600">
-            {user?.airline?.code
-              ? `${user.airline.code} 항공사의 유사호출부호 현황을 확인하세요.`
-              : '유사호출부호 현황을 확인하세요.'}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-2 mb-8">
-          <div className="flex flex-wrap gap-2">
-            {dashboardTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 min-w-[140px] px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
-                  activeTab === tab.id
-                    ? 'bg-blue-600 text-white shadow'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+      <main className="flex min-h-screen bg-gray-50">
+        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-4">
+          <div className="flex-1 overflow-y-auto">
+            <nav className="p-4 space-y-1">
+              <div className="px-4 pb-2 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                {user?.airline?.code || '대시보드'}
+              </div>
+              {dashboardTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-none text-sm font-black tracking-tight transition-all text-left ${activeTab === tab.id
+                    ? 'bg-rose-700 text-white shadow-none'
+                    : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                >
+                  <span className="flex-1">{tab.label}</span>
+                </button>
+              ))}
+            </nav>
           </div>
-        </div>
+        </aside>
 
-        {/* 호출부호 목록 섹션 */}
-        {activeTab === 'callsigns' && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900">유사호출부호 목록</h2>
-              <p className="text-sm text-gray-500 mt-2">위험도별 필터와 페이지당 개수를 조정해 현황을 확인하세요.</p>
+        <div className="flex-1 overflow-auto">
+          <div className="w-full px-8 py-10 space-y-8 animate-fade-in">
+            {/* 페이지 헤더 */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">대시보드</h1>
+              <p className="text-gray-600 font-bold">
+                {user?.airline?.code
+                  ? `${user.airline.code} 항공사의 유사호출부호 현황을 확인하세요.`
+                  : '유사호출부호 현황을 확인하세요.'}
+              </p>
             </div>
 
-          {/* 필터 UI */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {/* 위험도 필터 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                위험도
-              </label>
-              <select
-                value={riskLevelFilter}
-                onChange={(e) => {
-                  setRiskLevelFilter(e.target.value);
-                  setCallsignPage(1);
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">전체</option>
-                <option value="매우높음">매우높음</option>
-                <option value="높음">높음</option>
-                <option value="낮음">낮음</option>
-              </select>
-            </div>
+            {/* 호출부호 목록 섹션 */}
+            {activeTab === 'callsigns' && (
+              <div className="bg-white rounded-none shadow-sm p-8 mb-8 border border-gray-100">
+                <div className="mb-8 border-b border-gray-100 pb-4">
+                  <h2 className="text-2xl font-black text-gray-900 tracking-tight">유사호출부호 목록</h2>
+                  <p className="text-sm text-gray-500 mt-2">위험도별 필터와 페이지당 개수를 조정해 현황을 확인하세요.</p>
+                </div>
 
-            {/* 페이지당 개수 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                표시 개수
-              </label>
-              <select
-                value={callsignLimit}
-                onChange={(e) => {
-                  const next = Number(e.target.value);
-                  setCallsignLimit(next);
-                  setCallsignPage(1);
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {[10, 30, 50, 100].map((size) => (
-                  <option key={size} value={size}>
-                    {size}개
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* 초기화 버튼 */}
-            <div>
-              <button
-                onClick={() => {
-                  setRiskLevelFilter('');
-                  setCallsignPage(1);
-                  setCallsignLimit(30);
-                }}
-                className="w-full px-4 py-2 mt-6 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
-              >
-                초기화
-              </button>
-            </div>
-
-            {/* Excel 내보내기 */}
-            <div>
-              <button
-                onClick={() => {
-                  if (!callsignsQuery.data?.data) return;
-                  const rows = callsignsQuery.data.data.map((cs) => ({
-                    '호출부호 쌍': cs.callsign_pair,
-                    '자신 호출부호': cs.my_callsign,
-                    '타사 호출부호': cs.other_callsign,
-                    '위험도': cs.risk_level,
-                    '유사도': cs.similarity,
-                    '발생 횟수': cs.occurrence_count,
-                    '마지막 발생일': cs.last_occurred_at
-                      ? new Date(cs.last_occurred_at).toLocaleDateString('ko-KR')
-                      : '-',
-                  }));
-                  const ws = XLSX.utils.json_to_sheet(rows);
-                  const wb = XLSX.utils.book_new();
-                  XLSX.utils.book_append_sheet(wb, ws, '호출부호목록');
-                  XLSX.writeFile(
-                    wb,
-                    `${user?.airline?.code || '항공사'}_호출부호목록_${new Date().toLocaleDateString('ko-KR')}.xlsx`
-                  );
-                }}
-                disabled={!callsignsQuery.data?.data || callsignsQuery.data.data.length === 0}
-                className="w-full px-4 py-2 mt-6 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
-              >
-                내보내기
-              </button>
-            </div>
-          </div>
-
-          {/* 호출부호 테이블 */}
-          {callsignsQuery.isLoading ? (
-            <div className="p-8 text-center text-gray-600">로딩 중...</div>
-          ) : callsignsQuery.error ? (
-            <div className="p-8 text-center text-red-600">
-              {callsignsQuery.error instanceof Error
-                ? callsignsQuery.error.message
-                : '호출부호 목록 조회 실패'}
-            </div>
-          ) : (callsignsQuery.data?.data.length ?? 0) === 0 ? (
-            <div className="p-8 text-center text-gray-600">호출부호가 없습니다.</div>
-          ) : (
-            <>
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                      호출부호 쌍
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                {/* 필터 UI */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  {/* 위험도 필터 */}
+                  <div>
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
                       위험도
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                      유사도
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                      발생 횟수
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                      마지막 발생일
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {callsignsQuery.data?.data.map((cs) => (
-                    <tr key={cs.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                        <div className="font-medium">{cs.callsign_pair}</div>
-                        <div className="text-xs text-gray-500">
-                          {cs.my_callsign} / {cs.other_callsign}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          style={{
-                            color: riskColors[cs.risk_level || '낮음'],
-                            fontWeight: 600,
-                          }}
-                        >
-                          {cs.risk_level || '-'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {cs.similarity || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {cs.occurrence_count || 0}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                        {cs.last_occurred_at
-                          ? new Date(cs.last_occurred_at).toLocaleDateString('ko-KR')
-                          : '-'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                    </label>
+                    <select
+                      value={riskLevelFilter}
+                      onChange={(e) => {
+                        setRiskLevelFilter(e.target.value);
+                        setCallsignPage(1);
+                      }}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-none text-sm font-bold focus:outline-none focus:ring-2 focus:ring-rose-700/20 focus:border-rose-700 bg-white"
+                    >
+                      <option value="">전체 (All)</option>
+                      <option value="매우높음">매우높음</option>
+                      <option value="높음">높음</option>
+                      <option value="낮음">낮음</option>
+                    </select>
+                  </div>
 
-              {/* 페이지네이션 */}
-              {callsignsQuery.data && callsignsQuery.data.pagination.totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between mt-4">
-                  <button
-                    onClick={() => setCallsignPage(Math.max(1, callsignPage - 1))}
-                    disabled={callsignPage === 1}
-                    className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    이전
-                  </button>
-                  <span className="text-sm text-gray-600">
-                    {callsignPage} / {callsignsQuery.data.pagination.totalPages}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setCallsignPage(
-                        Math.min(callsignsQuery.data.pagination.totalPages, callsignPage + 1)
-                      )
-                    }
-                    disabled={callsignPage === callsignsQuery.data.pagination.totalPages}
-                    className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    다음
-                  </button>
+                  {/* 페이지당 개수 */}
+                  <div>
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                      표시 개수
+                    </label>
+                    <select
+                      value={callsignLimit}
+                      onChange={(e) => {
+                        const next = Number(e.target.value);
+                        setCallsignLimit(next);
+                        setCallsignPage(1);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {[10, 30, 50, 100].map((size) => (
+                        <option key={size} value={size}>
+                          {size}개
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 초기화 버튼 */}
+                  <div className="flex items-end">
+                    <button
+                      onClick={() => {
+                        setRiskLevelFilter('');
+                        setCallsignPage(1);
+                        setCallsignLimit(30);
+                      }}
+                      className="w-full px-4 py-3 bg-gray-100 text-gray-700 rounded-none hover:bg-gray-200 font-black text-sm uppercase tracking-widest transition-colors"
+                    >
+                      초기화
+                    </button>
+                  </div>
+
+                  {/* Excel 내보내기 */}
+                  <div className="flex items-end">
+                    <button
+                      onClick={() => {
+                        if (!callsignsQuery.data?.data) return;
+                        const rows = callsignsQuery.data.data.map((cs) => ({
+                          '호출부호 쌍': cs.callsign_pair,
+                          '자신 호출부호': cs.my_callsign,
+                          '타사 호출부호': cs.other_callsign,
+                          '위험도': cs.risk_level,
+                          '유사도': cs.similarity,
+                          '발생 횟수': cs.occurrence_count,
+                          '마지막 발생일': cs.last_occurred_at
+                            ? new Date(cs.last_occurred_at).toLocaleDateString('ko-KR')
+                            : '-',
+                        }));
+                        const ws = XLSX.utils.json_to_sheet(rows);
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, ws, '호출부호목록');
+                        XLSX.writeFile(
+                          wb,
+                          `${user?.airline?.code || '항공사'}_호출부호목록_${new Date().toLocaleDateString('ko-KR')}.xlsx`
+                        );
+                      }}
+                      disabled={!callsignsQuery.data?.data || callsignsQuery.data.data.length === 0}
+                      className="w-full px-4 py-3 bg-emerald-600 text-white rounded-none hover:bg-emerald-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed font-black text-sm uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                    >
+                      내보내기
+                    </button>
+                  </div>
                 </div>
-              )}
-            </>
-          )}
-        </div>
-        )}
 
-        {/* 조치 이력 섹션 */}
-        {activeTab === 'actions' && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            {/* 헤더 */}
-            <h2 className="text-xl font-bold text-gray-900 mb-6">조치 이력</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
-                <p className="text-sm text-blue-700 font-semibold mb-2">전체 조치</p>
-                <p className="text-3xl font-bold text-blue-600">{actionSummary.total}</p>
-              </div>
-              <div className="bg-cyan-50 border border-cyan-100 rounded-xl p-4 text-center">
-                <p className="text-sm text-cyan-700 font-semibold mb-2">진행중</p>
-                <p className="text-3xl font-bold text-cyan-600">{actionSummary.in_progress}</p>
-              </div>
-              <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
-                <p className="text-sm text-emerald-700 font-semibold mb-2">완료</p>
-                <p className="text-3xl font-bold text-emerald-600">{actionSummary.completed}</p>
-              </div>
-            </div>
-
-            {isAdmin && (
-              <div className="mb-10">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">항공사별 조치 현황</h3>
-                  <span className="text-sm text-gray-500">날짜 필터와 동기화됨</span>
-                </div>
-                {allActionsQuery.isLoading ? (
-                  <div className="p-6 text-center text-gray-500">항공사 데이터를 불러오는 중...</div>
-                ) : allActionsQuery.error ? (
-                  <div className="p-6 text-center text-red-500">항공사별 조치 현황 조회 실패</div>
-                ) : airlineSummary.length === 0 ? (
-                  <div className="p-6 text-center text-gray-500">표시할 데이터가 없습니다.</div>
+                {/* 호출부호 테이블 */}
+                {callsignsQuery.isLoading ? (
+                  <div className="p-8 text-center text-gray-600">로딩 중...</div>
+                ) : callsignsQuery.error ? (
+                  <div className="p-8 text-center text-red-600">
+                    {callsignsQuery.error instanceof Error
+                      ? callsignsQuery.error.message
+                      : '호출부호 목록 조회 실패'}
+                  </div>
+                ) : (callsignsQuery.data?.data.length ?? 0) === 0 ? (
+                  <div className="p-8 text-center text-gray-600">호출부호가 없습니다.</div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm border border-gray-100 rounded-lg">
-                      <thead className="bg-gray-50 text-gray-600">
+                  <>
+                    <table className="w-full text-sm">
+                      <thead className="bg-[#00205b] text-white">
                         <tr>
-                          <th className="px-4 py-3 text-left">항공사</th>
-                          <th className="px-4 py-3 text-center">전체</th>
-                          <th className="px-4 py-3 text-center">대기중</th>
-                          <th className="px-4 py-3 text-center">진행중</th>
-                          <th className="px-4 py-3 text-center">완료</th>
+                          <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">
+                            호출부호 쌍
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">
+                            위험도
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">
+                            유사도
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">
+                            발생 횟수
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">
+                            마지막 발생일
+                          </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {airlineSummary.map((row) => (
-                          <tr key={row.code} className="hover:bg-gray-50">
-                            <td className="px-4 py-3 font-semibold text-gray-900">
-                              {row.code}
-                              {row.name && <span className="text-xs text-gray-500 ml-2">{row.name}</span>}
+                      <tbody className="divide-y divide-gray-200">
+                        {callsignsQuery.data?.data.map((cs) => (
+                          <tr key={cs.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                              <div className="font-medium">{cs.callsign_pair}</div>
+                              <div className="text-xs text-gray-500">
+                                {cs.my_callsign} / {cs.other_callsign}
+                              </div>
                             </td>
-                            <td className="px-4 py-3 text-center font-semibold text-gray-900">{row.total}</td>
-                            <td className="px-4 py-3 text-center text-amber-600">{row.pending}</td>
-                            <td className="px-4 py-3 text-center text-blue-600">{row.in_progress}</td>
-                            <td className="px-4 py-3 text-center text-emerald-600">{row.completed}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                style={{
+                                  color: riskColors[cs.risk_level || '낮음'],
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {cs.risk_level || '-'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                              {cs.similarity || '-'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                              {cs.occurrence_count || 0}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                              {cs.last_occurred_at
+                                ? new Date(cs.last_occurred_at).toLocaleDateString('ko-KR')
+                                : '-'}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
-                  </div>
+
+                    {/* 페이지네이션 */}
+                    {callsignsQuery.data && callsignsQuery.data.pagination.totalPages > 1 && (
+                      <div className="px-6 py-6 flex items-center justify-center gap-2 mt-4">
+                        <button
+                          onClick={() => setCallsignPage(Math.max(1, callsignPage - 1))}
+                          disabled={callsignPage === 1}
+                          className="p-2 rounded-none border border-gray-200 text-gray-400 hover:text-rose-700 hover:border-rose-700 disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
+                        >
+                          PREV
+                        </button>
+                        <span className="text-sm font-bold text-gray-600 mx-4">
+                          {callsignPage} / {callsignsQuery.data.pagination.totalPages}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setCallsignPage(
+                              Math.min(callsignsQuery.data.pagination.totalPages, callsignPage + 1)
+                            )
+                          }
+                          disabled={callsignPage === callsignsQuery.data.pagination.totalPages}
+                          className="p-2 rounded-none border border-gray-200 text-gray-400 hover:text-rose-700 hover:border-rose-700 disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
+                        >
+                          NEXT
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
 
-          {/* 상태별 탭 */}
-          <div className="flex gap-2 mb-6 border-b border-gray-200">
-            <button
-              onClick={() => {
-                setActionStatusFilter('');
-                setActionPage(1);
-              }}
-              className={`px-4 py-3 font-medium transition-colors ${
-                actionStatusFilter === ''
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              전체
-            </button>
-            <button
-              onClick={() => {
-                setActionStatusFilter('in_progress');
-                setActionPage(1);
-              }}
-              className={`px-4 py-3 font-medium transition-colors ${
-                actionStatusFilter === 'in_progress'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              진행중
-            </button>
-            <button
-              onClick={() => {
-                setActionStatusFilter('completed');
-                setActionPage(1);
-              }}
-              className={`px-4 py-3 font-medium transition-colors ${
-                actionStatusFilter === 'completed'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              완료
-            </button>
-          </div>
+            {/* 조치 이력 섹션 */}
+            {activeTab === 'actions' && (
+              <div className="bg-white rounded-lg shadow p-6 mb-8">
+                {/* 헤더 */}
+                <h2 className="text-xl font-bold text-gray-900 mb-6">조치 이력</h2>
 
-          {/* 날짜 필터 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                시작일
-              </label>
-              <input
-                type="date"
-                value={actionDateFrom}
-                onChange={(e) => {
-                  setActionDateFrom(e.target.value);
-                  setActionPage(1);
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                종료일
-              </label>
-              <input
-                type="date"
-                value={actionDateTo}
-                onChange={(e) => {
-                  setActionDateTo(e.target.value);
-                  setActionPage(1);
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="flex items-end">
-              <button
-                onClick={() => {
-                  setActionDateFrom(getDefaultDateFrom());
-                  setActionDateTo(new Date().toISOString().split('T')[0]);
-                  setActionPage(1);
-                }}
-                className="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
-              >
-                초기화
-              </button>
-            </div>
-          </div>
-
-          {/* 날짜 범위 단축 버튼 및 검색 */}
-          <div className="flex gap-2 mb-6 flex-wrap items-center">
-            <button
-              onClick={() => setDateRange('today')}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
-            >
-              오늘
-            </button>
-            <button
-              onClick={() => setDateRange(7)}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
-            >
-              최근1주
-            </button>
-            <button
-              onClick={() => setDateRange(14)}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
-            >
-              최근2주
-            </button>
-            <button
-              onClick={() => setDateRange(30)}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
-            >
-              최근1개월
-            </button>
-
-            <div className="flex-1"></div>
-
-            <button
-              onClick={() => actionsQuery.refetch()}
-              disabled={actionsQuery.isLoading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-medium text-sm"
-            >
-              {actionsQuery.isLoading ? '검색중...' : '검색'}
-            </button>
-          </div>
-
-          {/* 조치 이력 테이블 */}
-          {actionsQuery.isLoading ? (
-            <div className="p-8 text-center text-gray-600">로딩 중...</div>
-          ) : actionsQuery.error ? (
-            <div className="p-8 text-center text-red-600">
-              {actionsQuery.error instanceof Error
-                ? actionsQuery.error.message
-                : '조치 이력 조회 실패'}
-            </div>
-          ) : (actionsQuery.data?.data.length ?? 0) === 0 ? (
-            <div className="p-8 text-center text-gray-600">조치 이력이 없습니다.</div>
-          ) : (
-            <>
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                      호출부호
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                      조치 유형
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                      담당자
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                      상태
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                      등록일
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                      상세
-                    </th>
-                    {isAdmin && (
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
-                        삭제
-                      </th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {actionsQuery.data?.data.map((action) => (
-                    <tr key={action.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 text-gray-900">
-                        <div className="font-medium">{action.callsign?.callsign_pair}</div>
-                        <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
-                          <div className="bg-gray-50 p-2 rounded">
-                            <div className="text-gray-600">발생건수</div>
-                            <div className="font-semibold text-gray-900">
-                              {action.callsign?.occurrence_count || 0}건
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 p-2 rounded">
-                            <div className="text-gray-600">최근 발생일</div>
-                            <div className="font-semibold text-gray-900">
-                              {action.callsign?.last_occurred_at
-                                ? new Date(action.callsign.last_occurred_at).toLocaleDateString('ko-KR')
-                                : '-'}
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 p-2 rounded">
-                            <div className="text-gray-600">원인사</div>
-                            <div className="font-semibold text-gray-900 text-red-600">
-                              {action.callsign?.error_type || '-'}
-                            </div>
-                          </div>
-                          <div className="bg-gray-50 p-2 rounded">
-                            <div className="text-gray-600">위험도</div>
-                            <div
-                              className="font-semibold"
-                              style={{ color: riskColors[action.callsign?.risk_level || '낮음'] }}
-                            >
-                              {action.callsign?.risk_level || '-'}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {action.action_type}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {action.manager_name || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          style={{
-                            backgroundColor: statusColors[action.status],
-                            color: '#ffffff',
-                            padding: '4px 12px',
-                            borderRadius: '20px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {statusLabels[action.status]}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {new Date(action.registered_at).toLocaleDateString('ko-KR')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => setSelectedAction(action)}
-                          className="px-3 py-1 text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-600 rounded hover:bg-blue-50"
-                        >
-                          상세보기
-                        </button>
-                      </td>
-                      {isAdmin && (
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => handleDeleteAction(action.id)}
-                            disabled={deletingActionId === action.id || deleteActionMutation.isPending}
-                            className="px-3 py-1 text-red-600 hover:text-red-800 font-medium text-sm border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {deletingActionId === action.id ? '삭제 중...' : '삭제'}
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {/* 페이지네이션 */}
-              {actionsQuery.data && actionsQuery.data.pagination.totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between mt-4">
-                  <button
-                    onClick={() => setActionPage(Math.max(1, actionPage - 1))}
-                    disabled={actionPage === 1}
-                    className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    이전
-                  </button>
-                  <span className="text-sm text-gray-600">
-                    {actionPage} / {actionsQuery.data.pagination.totalPages}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setActionPage(Math.min(actionsQuery.data.pagination.totalPages, actionPage + 1))
-                    }
-                    disabled={actionPage === actionsQuery.data.pagination.totalPages}
-                    className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    다음
-                  </button>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
+                    <p className="text-sm text-blue-700 font-semibold mb-2">전체 조치</p>
+                    <p className="text-3xl font-bold text-blue-600">{actionSummary.total}</p>
+                  </div>
+                  <div className="bg-cyan-50 border border-cyan-100 rounded-xl p-4 text-center">
+                    <p className="text-sm text-cyan-700 font-semibold mb-2">진행중</p>
+                    <p className="text-3xl font-bold text-cyan-600">{actionSummary.in_progress}</p>
+                  </div>
+                  <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
+                    <p className="text-sm text-emerald-700 font-semibold mb-2">완료</p>
+                    <p className="text-3xl font-bold text-emerald-600">{actionSummary.completed}</p>
+                  </div>
                 </div>
-              )}
-            </>
-          )}
-          </div>
-        )}
 
-        {/* Excel 업로드 섹션 */}
-        {activeTab === 'upload' && (
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-              <div className="flex items-center justify-center mb-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                  </svg>
-                </div>
-              </div>
-
-              <h2 className="text-xl font-bold text-gray-900 mb-2">유사호출부호 데이터 업로드</h2>
-              <p className="text-sm text-gray-600 mb-6">
-                Excel 파일(.xlsx, .xls)로 유사호출부호 데이터를 일괄 업로드할 수 있습니다.
-              </p>
-
-              {/* 파일 선택 */}
-              <div className="mb-6">
-                <label
-                  htmlFor="file-input"
-                  className="block w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors cursor-pointer"
-                >
-                  <input
-                    id="file-input"
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    disabled={uploading}
-                  />
-                  <div className="text-center">
-                    {selectedFile ? (
-                      <>
-                        <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {(selectedFile.size / 1024).toFixed(1)} KB
-                        </p>
-                      </>
+                {isAdmin && (
+                  <div className="mb-10">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">항공사별 조치 현황</h3>
+                      <span className="text-sm text-gray-500">날짜 필터와 동기화됨</span>
+                    </div>
+                    {allActionsQuery.isLoading ? (
+                      <div className="p-6 text-center text-gray-500">항공사 데이터를 불러오는 중...</div>
+                    ) : allActionsQuery.error ? (
+                      <div className="p-6 text-center text-red-500">항공사별 조치 현황 조회 실패</div>
+                    ) : airlineSummary.length === 0 ? (
+                      <div className="p-6 text-center text-gray-500">표시할 데이터가 없습니다.</div>
                     ) : (
-                      <>
-                        <p className="text-sm font-medium text-gray-700">파일을 선택하거나 드래그하세요</p>
-                        <p className="text-xs text-gray-500 mt-1">.xlsx, .xls 파일</p>
-                      </>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm border border-gray-100 rounded-lg">
+                          <thead className="bg-gray-50 text-gray-600">
+                            <tr>
+                              <th className="px-4 py-3 text-left">항공사</th>
+                              <th className="px-4 py-3 text-center">전체</th>
+                              <th className="px-4 py-3 text-center">대기중</th>
+                              <th className="px-4 py-3 text-center">진행중</th>
+                              <th className="px-4 py-3 text-center">완료</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {airlineSummary.map((row) => (
+                              <tr key={row.code} className="hover:bg-gray-50">
+                                <td className="px-4 py-3 font-semibold text-gray-900">
+                                  {row.code}
+                                  {row.name && <span className="text-xs text-gray-500 ml-2">{row.name}</span>}
+                                </td>
+                                <td className="px-4 py-3 text-center font-semibold text-gray-900">{row.total}</td>
+                                <td className="px-4 py-3 text-center text-amber-600">{row.pending}</td>
+                                <td className="px-4 py-3 text-center text-blue-600">{row.in_progress}</td>
+                                <td className="px-4 py-3 text-center text-emerald-600">{row.completed}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
                   </div>
-                </label>
-              </div>
+                )}
 
-              {/* 업로드 버튼 */}
-              <button
-                onClick={handleUpload}
-                disabled={!selectedFile || uploading}
-                className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              >
-                {uploading ? '업로드 중...' : '업로드'}
-              </button>
-
-              {/* 업로드 결과 */}
-              {uploadResult && (
-                <div
-                  className={`mt-6 p-4 rounded-lg ${
-                    uploadResult.success
-                      ? 'bg-green-50 border border-green-200'
-                      : 'bg-red-50 border border-red-200'
-                  }`}
-                >
-                  <p
-                    className={`text-sm font-medium ${
-                      uploadResult.success ? 'text-green-800' : 'text-red-800'
-                    }`}
+                {/* 상태별 탭 */}
+                <div className="flex gap-2 mb-6 border-b border-gray-200">
+                  <button
+                    onClick={() => {
+                      setActionStatusFilter('');
+                      setActionPage(1);
+                    }}
+                    className={`px-4 py-3 font-medium transition-colors ${actionStatusFilter === ''
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-600 hover:text-gray-900'
+                      }`}
                   >
-                    {uploadResult.message}
-                  </p>
-                  {uploadResult.details?.errors && uploadResult.details.errors.length > 0 && (
-                    <div className="mt-3 text-xs text-red-700">
-                      <p className="font-semibold mb-1">오류 내역:</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        {uploadResult.details.errors.map((err: string, idx: number) => (
-                          <li key={idx}>{err}</li>
+                    전체
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActionStatusFilter('in_progress');
+                      setActionPage(1);
+                    }}
+                    className={`px-4 py-3 font-medium transition-colors ${actionStatusFilter === 'in_progress'
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                  >
+                    진행중
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActionStatusFilter('completed');
+                      setActionPage(1);
+                    }}
+                    className={`px-4 py-3 font-medium transition-colors ${actionStatusFilter === 'completed'
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                  >
+                    완료
+                  </button>
+                </div>
+
+                {/* 날짜 필터 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      시작일
+                    </label>
+                    <input
+                      type="date"
+                      value={actionDateFrom}
+                      onChange={(e) => {
+                        setActionDateFrom(e.target.value);
+                        setActionPage(1);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      종료일
+                    </label>
+                    <input
+                      type="date"
+                      value={actionDateTo}
+                      onChange={(e) => {
+                        setActionDateTo(e.target.value);
+                        setActionPage(1);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <button
+                      onClick={() => {
+                        setActionDateFrom(getDefaultDateFrom());
+                        setActionDateTo(new Date().toISOString().split('T')[0]);
+                        setActionPage(1);
+                      }}
+                      className="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium"
+                    >
+                      초기화
+                    </button>
+                  </div>
+                </div>
+
+                {/* 날짜 범위 단축 버튼 및 검색 */}
+                <div className="flex gap-2 mb-6 flex-wrap items-center">
+                  <button
+                    onClick={() => setDateRange('today')}
+                    className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
+                  >
+                    오늘
+                  </button>
+                  <button
+                    onClick={() => setDateRange(7)}
+                    className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
+                  >
+                    최근1주
+                  </button>
+                  <button
+                    onClick={() => setDateRange(14)}
+                    className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
+                  >
+                    최근2주
+                  </button>
+                  <button
+                    onClick={() => setDateRange(30)}
+                    className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm"
+                  >
+                    최근1개월
+                  </button>
+
+                  <div className="flex-1"></div>
+
+                  <button
+                    onClick={() => actionsQuery.refetch()}
+                    disabled={actionsQuery.isLoading}
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-medium text-sm"
+                  >
+                    {actionsQuery.isLoading ? '검색중...' : '검색'}
+                  </button>
+                </div>
+
+                {/* 조치 이력 테이블 */}
+                {actionsQuery.isLoading ? (
+                  <div className="p-8 text-center text-gray-600">로딩 중...</div>
+                ) : actionsQuery.error ? (
+                  <div className="p-8 text-center text-red-600">
+                    {actionsQuery.error instanceof Error
+                      ? actionsQuery.error.message
+                      : '조치 이력 조회 실패'}
+                  </div>
+                ) : (actionsQuery.data?.data.length ?? 0) === 0 ? (
+                  <div className="p-8 text-center text-gray-600">조치 이력이 없습니다.</div>
+                ) : (
+                  <>
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                            호출부호
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                            조치 유형
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                            담당자
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                            상태
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                            등록일
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                            상세
+                          </th>
+                          {isAdmin && (
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                              삭제
+                            </th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {actionsQuery.data?.data.map((action) => (
+                          <tr key={action.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-gray-900">
+                              <div className="font-medium">{action.callsign?.callsign_pair}</div>
+                              <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
+                                <div className="bg-gray-50 p-2 rounded">
+                                  <div className="text-gray-600">발생건수</div>
+                                  <div className="font-semibold text-gray-900">
+                                    {action.callsign?.occurrence_count || 0}건
+                                  </div>
+                                </div>
+                                <div className="bg-gray-50 p-2 rounded">
+                                  <div className="text-gray-600">최근 발생일</div>
+                                  <div className="font-semibold text-gray-900">
+                                    {action.callsign?.last_occurred_at
+                                      ? new Date(action.callsign.last_occurred_at).toLocaleDateString('ko-KR')
+                                      : '-'}
+                                  </div>
+                                </div>
+                                <div className="bg-gray-50 p-2 rounded">
+                                  <div className="text-gray-600">원인사</div>
+                                  <div className="font-semibold text-gray-900 text-red-600">
+                                    {action.callsign?.error_type || '-'}
+                                  </div>
+                                </div>
+                                <div className="bg-gray-50 p-2 rounded">
+                                  <div className="text-gray-600">위험도</div>
+                                  <div
+                                    className="font-semibold"
+                                    style={{ color: riskColors[action.callsign?.risk_level || '낮음'] }}
+                                  >
+                                    {action.callsign?.risk_level || '-'}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600">
+                              {action.action_type}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600">
+                              {action.manager_name || '-'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                style={{
+                                  backgroundColor: statusColors[action.status],
+                                  color: '#ffffff',
+                                  padding: '4px 12px',
+                                  borderRadius: '20px',
+                                  fontSize: '12px',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {statusLabels[action.status]}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600">
+                              {new Date(action.registered_at).toLocaleDateString('ko-KR')}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <button
+                                onClick={() => setSelectedAction(action)}
+                                className="px-3 py-1 text-blue-600 hover:text-blue-800 font-medium text-sm border border-blue-600 rounded hover:bg-blue-50"
+                              >
+                                상세보기
+                              </button>
+                            </td>
+                            {isAdmin && (
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <button
+                                  onClick={() => handleDeleteAction(action.id)}
+                                  disabled={deletingActionId === action.id || deleteActionMutation.isPending}
+                                  className="px-3 py-1 text-red-600 hover:text-red-800 font-medium text-sm border border-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {deletingActionId === action.id ? '삭제 중...' : '삭제'}
+                                </button>
+                              </td>
+                            )}
+                          </tr>
                         ))}
-                      </ul>
+                      </tbody>
+                    </table>
+
+                    {/* 페이지네이션 */}
+                    {actionsQuery.data && actionsQuery.data.pagination.totalPages > 1 && (
+                      <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between mt-4">
+                        <button
+                          onClick={() => setActionPage(Math.max(1, actionPage - 1))}
+                          disabled={actionPage === 1}
+                          className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          이전
+                        </button>
+                        <span className="text-sm text-gray-600">
+                          {actionPage} / {actionsQuery.data.pagination.totalPages}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setActionPage(Math.min(actionsQuery.data.pagination.totalPages, actionPage + 1))
+                          }
+                          disabled={actionPage === actionsQuery.data.pagination.totalPages}
+                          className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          다음
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Excel 업로드 섹션 */}
+            {activeTab === 'upload' && (
+              <div className="max-w-3xl mx-auto">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+                  <div className="flex items-center justify-center mb-6">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-8 h-8 text-blue-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">유사호출부호 데이터 업로드</h2>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Excel 파일(.xlsx, .xls)로 유사호출부호 데이터를 일괄 업로드할 수 있습니다.
+                  </p>
+
+                  {/* 파일 선택 */}
+                  <div className="mb-6">
+                    <label
+                      htmlFor="file-input"
+                      className="block w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 transition-colors cursor-pointer"
+                    >
+                      <input
+                        id="file-input"
+                        type="file"
+                        accept=".xlsx,.xls"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        disabled={uploading}
+                      />
+                      <div className="text-center">
+                        {selectedFile ? (
+                          <>
+                            <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {(selectedFile.size / 1024).toFixed(1)} KB
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm font-medium text-gray-700">파일을 선택하거나 드래그하세요</p>
+                            <p className="text-xs text-gray-500 mt-1">.xlsx, .xls 파일</p>
+                          </>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* 업로드 버튼 */}
+                  <button
+                    onClick={handleUpload}
+                    disabled={!selectedFile || uploading}
+                    className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {uploading ? '업로드 중...' : '업로드'}
+                  </button>
+
+                  {/* 업로드 결과 */}
+                  {uploadResult && (
+                    <div
+                      className={`mt-6 p-4 rounded-lg ${uploadResult.success
+                          ? 'bg-green-50 border border-green-200'
+                          : 'bg-red-50 border border-red-200'
+                        }`}
+                    >
+                      <p
+                        className={`text-sm font-medium ${uploadResult.success ? 'text-green-800' : 'text-red-800'
+                          }`}
+                      >
+                        {uploadResult.message}
+                      </p>
+                      {uploadResult.details?.errors && uploadResult.details.errors.length > 0 && (
+                        <div className="mt-3 text-xs text-red-700">
+                          <p className="font-semibold mb-1">오류 내역:</p>
+                          <ul className="list-disc list-inside space-y-1">
+                            {uploadResult.details.errors.map((err: string, idx: number) => (
+                              <li key={idx}>{err}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {uploadResult.success && (
+                        <button
+                          onClick={() => router.push('/airline')}
+                          className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          → 유사호출부호 목록 보기
+                        </button>
+                      )}
                     </div>
                   )}
-                  {uploadResult.success && (
-                    <button
-                      onClick={() => router.push('/airline')}
-                      className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      → 유사호출부호 목록 보기
-                    </button>
-                  )}
-                </div>
-              )}
 
-              {/* 안내사항 */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">📋 Excel 형식 안내</h3>
-                <div className="text-xs text-gray-600 space-y-2 text-left">
-                  <p>• <strong>국내 항공사</strong> 데이터만 자동으로 필터링됩니다</p>
-                  <p>• <strong>편명1 또는 편명2</strong> 중 국내 항공사 코드를 자동 추출합니다</p>
-                  <p>• <strong>유사도</strong>와 <strong>오류발생가능성</strong> 정보가 자동 매핑됩니다</p>
-                  <p>• 중복된 유사호출부호 쌍은 자동으로 업데이트됩니다</p>
-                  <p className="mt-3 pt-3 border-t border-gray-300">
-                    <strong>필수 컬럼:</strong> 편명1, 편명2가 필수이며, 나머지는 선택 사항입니다.
-                  </p>
+                  {/* 안내사항 */}
+                  <div className="mt-8 pt-6 border-t border-gray-200">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">📋 Excel 형식 안내</h3>
+                    <div className="text-xs text-gray-600 space-y-2 text-left">
+                      <p>• <strong>국내 항공사</strong> 데이터만 자동으로 필터링됩니다</p>
+                      <p>• <strong>편명1 또는 편명2</strong> 중 국내 항공사 코드를 자동 추출합니다</p>
+                      <p>• <strong>유사도</strong>와 <strong>오류발생가능성</strong> 정보가 자동 매핑됩니다</p>
+                      <p>• 중복된 유사호출부호 쌍은 자동으로 업데이트됩니다</p>
+                      <p className="mt-3 pt-3 border-t border-gray-300">
+                        <strong>필수 컬럼:</strong> 편명1, 편명2가 필수이며, 나머지는 선택 사항입니다.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* 조치 상세 모달 */}
-        {selectedAction && (
-          <ActionDetailModal
-            action={selectedAction}
-            onClose={() => setSelectedAction(null)}
-            onSuccess={() => {
-              actionsQuery.refetch();
-            }}
-          />
-        )}
-      </main>
-    </div>
-  );
+            {/* 조치 상세 모달 */}
+            {selectedAction && (
+              <ActionDetailModal
+                action={selectedAction}
+                onClose={() => setSelectedAction(null)}
+                onSuccess={() => {
+                  actionsQuery.refetch();
+                }}
+              />
+            )}
+          </main>
+        </div>
+        );
 }
