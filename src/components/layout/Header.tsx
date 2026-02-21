@@ -88,24 +88,21 @@ export function Header() {
       }}
     >
       {/* 로고 + 시스템명 + 항공사 정보 */}
-      <div className="flex items-center gap-4">
-        {/* 로고 */}
-        <span className="text-white p-2 bg-white/10 rounded-none shadow-inner" aria-hidden="true">
+      <div className="flex items-center gap-3">
+        {/* 로고 아이콘 */}
+        <span className="text-white p-2 bg-white/10 rounded-full shadow-lg" aria-hidden="true">
           <PlaneIcon />
         </span>
 
         {/* 시스템명 */}
-        <div className="flex flex-col">
-          <Link
-            href={ROUTES.HOME}
-            className="text-white font-extrabold text-lg leading-tight tracking-tight hover:opacity-90 transition-opacity"
-          >
-            KATC
-          </Link>
-          <span className="text-white/70 text-[10px] font-bold tracking-[0.2em]">
+        <Link
+          href={ROUTES.HOME}
+          className="flex items-baseline gap-2 text-white hover:opacity-90 transition-opacity"
+        >
+          <span className="text-white font-extrabold text-lg leading-tight tracking-tight">
             유사호출부호 경고시스템
           </span>
-        </div>
+        </Link>
 
         {/* 항공사 정보 */}
         {isAuthenticated && user && user.airline?.name_ko && (
