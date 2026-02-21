@@ -426,11 +426,11 @@ export default function AirlinePage() {
 
         {/* 오른쪽 콘텐츠 영역 */}
         <div className="flex-1 overflow-auto">
-          <div className="w-full px-8 py-10 space-y-8 animate-fade-in">
+          <div className="w-full px-8 py-10 space-y-8 animate-fade-in flex flex-col">
             {activeTab === 'incidents' && (
               <>
                 {/* 발생현황 테이블 - 2단계 구조 (최상단으로 이동) */}
-                <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                <div className="order-1 bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                   <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-[#00205b] text-white">
                     <div>
                       <h3 className="text-xl font-black text-white tracking-tight">유사호출부호 발생현황</h3>
@@ -660,7 +660,7 @@ export default function AirlinePage() {
                 )}
 
                 {/* 조회 기간 필터 (발생현황 아래로 이동) */}
-                <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 mb-8 rounded-none mt-8">
+                <div className="order-2 bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 mb-8 rounded-none mt-8">
                   <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%22currentColor%22 viewBox=%220 0 24 24%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z%22/></svg>')] bg-rose-50 text-rose-700 rounded-none flex items-center justify-center">
