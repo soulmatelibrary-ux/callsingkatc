@@ -259,9 +259,9 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <div className="flex flex-1 pt-16 h-svh overflow-hidden">
+      <div className="flex flex-1 h-svh overflow-hidden">
         {/* 사이드바 */}
-        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-6 shrink-0 h-full overflow-y-auto">
+        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col shrink-0 h-full overflow-y-auto">
           <div className="px-6 mb-6">
             <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest">
               Dashboard Menu

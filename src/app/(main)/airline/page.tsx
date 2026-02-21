@@ -236,7 +236,7 @@ export default function AirlinePage() {
 
   if (loading || callsignsLoading) {
     return (
-      <div className="pt-16 flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="text-gray-600">로딩 중...</div>
       </div>
     );
@@ -397,7 +397,7 @@ export default function AirlinePage() {
     <>
       <main className="flex min-h-screen bg-gray-50">
         {/* 왼쪽 사이드바 */}
-        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-4">
+        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col">
           {/* 사이드바 네비게이션 */}
           <nav className="flex-1 px-4 py-4 space-y-2">
             <button
