@@ -1532,6 +1532,69 @@ export default function AirlinePage() {
         </div>
       )}
 
+      {/* Footer */}
+      <footer style={{
+        marginTop: '80px',
+        padding: '40px 20px',
+        backgroundColor: '#1f2937',
+        color: '#e5e7eb',
+        borderTop: '1px solid #374151',
+        textAlign: 'center',
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <p style={{ fontSize: '16px', fontWeight: '600', color: '#ffffff', marginBottom: '8px' }}>
+              유사호출부호 경고시스템
+            </p>
+            <p style={{ fontSize: '14px', color: '#d1d5db' }}>
+              한국공항공사 (Korea Airports Corporation)
+            </p>
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '20px',
+            marginBottom: '20px',
+          }}>
+            <div>
+              <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase' }}>
+                운영 담당
+              </p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>
+                항행안전팀
+              </p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase' }}>
+                전화
+              </p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>
+                1588-2311
+              </p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase' }}>
+                이메일
+              </p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>
+                info@airport.kr
+              </p>
+            </div>
+          </div>
+          <div style={{
+            borderTop: '1px solid #4b5563',
+            paddingTop: '16px',
+            fontSize: '12px',
+            color: '#9ca3af',
+          }}>
+            <p>© 2026 한국공항공사. All rights reserved.</p>
+            <p style={{ marginTop: '8px' }}>
+              유사호출부호 경고시스템은 항공기 안전운항을 위해 개발되었습니다.
+            </p>
+          </div>
+        </div>
+      </footer>
+
     </>
   );
 }
