@@ -238,70 +238,9 @@ export default function AirlinePage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-gray-600">로딩 중...</div>
-                </div>
-
-                {/* 요약 통계 */}
-                {total > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div className="group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-                      <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
-                      <div className="relative flex flex-col h-full">
-                        <div className="flex justify-between items-start mb-4">
-                          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total Cases</p>
-                        </div>
-                        <div className="flex items-baseline gap-1">
-                          <p className="text-5xl font-black text-gray-900 tracking-tighter">{total}</p>
-                          <span className="text-sm font-bold text-gray-400">건</span>
-                        </div>
-                        <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">분석 기간 내 전체 발생 건수</p>
-                      </div>
-                    </div>
-
-                    {/* 동적으로 생성된 에러 타입별 카드 */}
-                    {errorTypeStats.map((stat) => (
-                      <div
-                        key={stat.type}
-                        onClick={() => setErrorTypeFilter(errorTypeFilter === stat.type ? 'all' : stat.type as any)}
-                        className={`group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === stat.type ? `ring-2 ring-opacity-50 shadow-opacity-10` : ''
-                          }`}
-                        style={
-                          errorTypeFilter === stat.type
-                            ? {
-                              boxShadow: `0 0 0 2px var(--ring-color), 0 20px 40px var(--shadow-color)`,
-                              '--ring-color': stat.textColor.replace('text-', '--').match(/text-(\w+-\d+)/)?.[1],
-                            } as any
-                            : {}
-                        }
-                      >
-                        <div
-                          className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
-                          style={{ backgroundColor: stat.textColor.replace('text-', 'rgb(') + ')' }}
-                        />
-                        <div className="relative flex flex-col h-full">
-                          <div className="flex justify-between items-start mb-4">
-                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
-                              {stat.label}
-                            </p>
-                            {total > 0 && (
-                              <span className={`text-[10px] font-black px-2 py-1 rounded-none ${stat.bgColor} ${stat.textColor}`}>
-                                {stat.percentage}%
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-baseline gap-1">
-                            <p className={`text-5xl font-black tracking-tighter ${stat.textColor}`}>{stat.count}</p>
-                            <span className="text-sm font-bold text-gray-400">건</span>
-                          </div>
-                          <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">
-                            {stat.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* 조회 기간 필터 */}
+      </div>
+    );
+  }
 
   // DB에서 가져온 callsigns 데이터를 incidents 형태로 변환
   const incidents = callsignsData?.data.map((cs) => ({
@@ -454,6 +393,20 @@ export default function AirlinePage() {
     1,
   );
 
+  const splitCallsignPair = (pair: string): [string, string] | null => {
+    if (!pair) return null;
+    const separators = ['↔', '|'];
+    for (const separator of separators) {
+      if (pair.includes(separator)) {
+        const [left, right] = pair.split(separator);
+        if (left && right) {
+          return [left.trim(), right.trim()];
+        }
+      }
+    }
+    return null;
+  };
+
   return (
     <>
       <main className="flex min-h-screen bg-gray-50">
@@ -501,7 +454,68 @@ export default function AirlinePage() {
           <div className="w-full px-8 py-10 space-y-8 animate-fade-in flex flex-col">
             {activeTab === 'incidents' && (
               <>
-                {/* 조회 기간 필터 - 최상단으로 이동 */}
+                {/* 요약 통계 - 상단 카드 */}
+                {total > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                      <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
+                      <div className="relative flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total Cases</p>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <p className="text-5xl font-black text-gray-900 tracking-tighter">{total}</p>
+                          <span className="text-sm font-bold text-gray-400">건</span>
+                        </div>
+                        <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">분석 기간 내 전체 발생 건수</p>
+                      </div>
+                    </div>
+
+                    {/* 동적으로 생성된 에러 타입별 카드 */}
+                    {errorTypeStats.map((stat) => (
+                      <div
+                        key={stat.type}
+                        onClick={() => setErrorTypeFilter(errorTypeFilter === stat.type ? 'all' : stat.type as any)}
+                        className={`group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === stat.type ? `ring-2 ring-opacity-50 shadow-opacity-10` : ''
+                          }`}
+                        style={
+                          errorTypeFilter === stat.type
+                            ? {
+                              boxShadow: `0 0 0 2px var(--ring-color), 0 20px 40px var(--shadow-color)`,
+                              '--ring-color': stat.textColor.replace('text-', '--').match(/text-(\w+-\d+)/)?.[1],
+                            } as any
+                            : {}
+                        }
+                      >
+                        <div
+                          className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
+                          style={{ backgroundColor: stat.textColor.replace('text-', 'rgb(') + ')' }}
+                        />
+                        <div className="relative flex flex-col h-full">
+                          <div className="flex justify-between items-start mb-4">
+                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                              {stat.label}
+                            </p>
+                            {total > 0 && (
+                              <span className={`text-[10px] font-black px-2 py-1 rounded-none ${stat.bgColor} ${stat.textColor}`}>
+                                {stat.percentage}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-baseline gap-1">
+                            <p className={`text-5xl font-black tracking-tighter ${stat.textColor}`}>{stat.count}</p>
+                            <span className="text-sm font-bold text-gray-400">건</span>
+                          </div>
+                          <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">
+                            {stat.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 조회 기간 필터 */}
                 <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-none">
                   <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
                     <div className="flex items-center gap-3">
@@ -592,10 +606,10 @@ export default function AirlinePage() {
                       {allFilteredIncidents.map((incident: any) => {
                         // 호출부호 숫자 색상 처리: 같은 숫자끼리 같은 색
                         const renderColoredCallsign = (callsignPair: string) => {
-                          const parts = callsignPair.split('↔');
-                          if (parts.length !== 2) return callsignPair;
+                          const parts = splitCallsignPair(callsignPair);
+                          if (!parts) return callsignPair;
 
-                          const [my, other] = [parts[0].trim(), parts[1].trim()];
+                          const [my, other] = parts;
 
                           // 모든 숫자 추출 및 색상 할당 (숫자별로 일관된 색상)
                           const colorMap: Record<string, string> = {};
@@ -650,9 +664,9 @@ export default function AirlinePage() {
                               {/* 호출부호 쌍 - 배경색 추가 */}
                               <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50 rounded-none px-2.5 py-1">
                                 {(() => {
-                                  const parts = incident.pair.split('↔');
-                                  if (parts.length !== 2) return incident.pair;
-                                  const [my, other] = [parts[0].trim(), parts[1].trim()];
+                                  const parts = splitCallsignPair(incident.pair);
+                                  if (!parts) return incident.pair;
+                                  const [my, other] = parts;
 
                                   // 모든 숫자 추출 및 색상 할당
                                   const colorMap: Record<string, string> = {};
