@@ -81,16 +81,16 @@ export function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 flex items-center justify-between px-8 py-5" // py-3 -> py-5
+      className="sticky top-0 z-50 flex items-center justify-between px-8 py-4 border-b-4 border-rose-700" // py-3 -> py-4, thin red border added
       style={{
-        background: 'linear-gradient(135deg, #1a2e4a 0%, #2563eb 50%, #3b82f6 100%)',
+        backgroundColor: '#00205b', // KAC Dark Navy
         boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
       }}
     >
       {/* 로고 + 시스템명 + 항공사 정보 */}
       <div className="flex items-center gap-4">
         {/* 로고 */}
-        <span className="text-white p-2 bg-white/10 rounded-lg shadow-inner" aria-hidden="true">
+        <span className="text-white p-2 bg-white/10 rounded-none shadow-inner" aria-hidden="true">
           <PlaneIcon />
         </span>
 
@@ -130,16 +130,16 @@ export function Header() {
             </span>
 
             {isAdmin && (
-              <div className="flex bg-black/10 p-1 rounded-xl backdrop-blur-sm">
+              <div className="flex bg-black/10 p-1 rounded-none backdrop-blur-sm">
                 <Link
                   href={ROUTES.DASHBOARD}
-                  className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-lg transition-all"
+                  className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-none transition-all"
                 >
                   대시보드
                 </Link>
                 <Link
                   href={ROUTES.ADMIN}
-                  className="px-4 py-2 bg-white/20 text-white text-sm font-extrabold rounded-lg shadow-sm"
+                  className="px-4 py-2 bg-white/20 text-white text-sm font-extrabold rounded-none shadow-sm"
                 >
                   관리자 페이지
                 </Link>
@@ -149,7 +149,7 @@ export function Header() {
             {/* 로그아웃 */}
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-white/90 text-sm font-bold rounded-xl bg-red-500/20 hover:bg-red-500/40 border border-red-500/20 transition-all ml-1"
+              className="px-4 py-2 text-white/90 text-sm font-bold rounded-none bg-red-500/20 hover:bg-red-500/40 border border-red-500/20 transition-all ml-1"
               type="button"
             >
               로그아웃
@@ -158,7 +158,7 @@ export function Header() {
         ) : (
           <Link
             href={ROUTES.LOGIN}
-            className="px-6 py-2 text-white text-sm font-extrabold rounded-xl bg-white/10 hover:bg-white/20 transition-all border border-white/20 backdrop-blur-md shadow-lg"
+            className="px-6 py-2 text-white text-sm font-extrabold rounded-none bg-white/10 hover:bg-white/20 transition-all border border-white/20 backdrop-blur-md shadow-lg"
           >
             로그인
           </Link>
