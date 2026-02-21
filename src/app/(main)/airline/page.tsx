@@ -1534,66 +1534,44 @@ export default function AirlinePage() {
 
       {/* Footer */}
       <footer style={{
-        marginTop: '80px',
-        padding: '40px 20px',
+        marginTop: '40px',
+        padding: '20px',
         backgroundColor: '#1f2937',
         color: '#e5e7eb',
         borderTop: '1px solid #374151',
-        textAlign: 'center',
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '24px' }}>
-            <p style={{ fontSize: '16px', fontWeight: '600', color: '#ffffff', marginBottom: '8px' }}>
-              유사호출부호 경고시스템
-            </p>
-            <p style={{ fontSize: '14px', color: '#d1d5db' }}>
-              한국공항공사 (Korea Airports Corporation)
-            </p>
-          </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '20px',
-            marginBottom: '20px',
-          }}>
-            <div>
-              <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase' }}>
-                운영 담당
-              </p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>
-                항행안전팀
-              </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: '#ffffff' }}>
+              유사호출부호 경고시스템 | 한국공항공사
             </div>
-            <div>
-              <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase' }}>
-                전화
-              </p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>
-                1588-2311
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '6px', textTransform: 'uppercase' }}>
-                이메일
-              </p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>
-                info@airport.kr
-              </p>
+            <div style={{ display: 'flex', gap: '20px', fontSize: '13px' }}>
+              <div>
+                <span style={{ color: '#9ca3af' }}>항행안전팀</span>
+              </div>
+              <div>
+                <span style={{ color: '#9ca3af' }}>T.</span>
+                <span style={{ fontWeight: '500', marginLeft: '4px' }}>1588-2311</span>
+              </div>
+              <div>
+                <span style={{ color: '#9ca3af' }}>E.</span>
+                <span style={{ fontWeight: '500', marginLeft: '4px' }}>info@airport.kr</span>
+              </div>
             </div>
           </div>
           <div style={{
             borderTop: '1px solid #4b5563',
-            paddingTop: '16px',
-            fontSize: '12px',
+            marginTop: '12px',
+            paddingTop: '12px',
+            fontSize: '11px',
             color: '#9ca3af',
+            textAlign: 'center',
           }}>
-            <p>© 2026 한국공항공사. All rights reserved.</p>
-            <p style={{ marginTop: '8px' }}>
-              유사호출부호 경고시스템은 항공기 안전운항을 위해 개발되었습니다.
-            </p>
+            © 2026 한국공항공사. 유사호출부호 경고시스템은 항공기 안전운항을 위해 개발되었습니다.
           </div>
         </div>
       </footer>
+
 
     </>
   );
