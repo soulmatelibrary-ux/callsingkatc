@@ -57,13 +57,14 @@ export async function GET(
     const offset = (page - 1) * limit;
 
     // 쿼리 구성
-    // 조치가 등록되지 않은 호출부호만 조회 (LEFT JOIN으로 조치 없는 것 필터링)
+    // status = 'in_progress'인 호출부호만 조회 (항공사가 아직 조치 중)
     // callsign_occurrences와 JOIN하여 발생 건수 및 최근 발생일 집계
     const sqlParams: any[] = [airlineId];
 
-    // WHERE 조건 구성 (GROUP BY 전에)
-    // 조치가 없거나 조치가 완료되지 않은 호출부호 조회
-    let whereCondition = 'WHERE c.airline_id = $1 AND (a.id IS NULL OR a.status != \'completed\')';
+    // WHERE 조건 구성 (callsigns.status 기반 필터링)
+    // status = 'in_progress': 아직 조치 중
+    // status = 'completed': 조치 완료 (목록에서 제외)
+    let whereCondition = 'WHERE c.airline_id = $1 AND c.status = \'in_progress\'';
 
     // 위험도 필터 (WHERE에 추가)
     if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
@@ -75,17 +76,16 @@ export async function GET(
       SELECT
         c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
         c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
-        c.file_upload_id, c.uploaded_at,
+        c.status, c.file_upload_id, c.uploaded_at,
         c.created_at, c.updated_at,
         COUNT(co.id) AS occurrence_count,
         MAX(co.occurred_date) AS last_occurred_at
       FROM callsigns c
-      LEFT JOIN actions a ON c.id = a.callsign_id
       LEFT JOIN callsign_occurrences co ON c.id = co.callsign_id
       ${whereCondition}
       GROUP BY c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
                c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
-               c.file_upload_id, c.uploaded_at, c.created_at, c.updated_at
+               c.status, c.file_upload_id, c.uploaded_at, c.created_at, c.updated_at
     `;
 
     // 정렬 및 페이지네이션 (발생건수 많은 순, 동일시 최근 발생일 순)
@@ -94,11 +94,11 @@ export async function GET(
 
     const result = await query(sql, sqlParams);
 
-    // 전체 개수 조회 (고유 호출부호 쌍의 개수)
+    // 전체 개수 조회 (status = 'in_progress'인 호출부호 개수)
     const countSqlParams: any[] = [airlineId];
 
-    // 조치가 없거나 조치가 완료되지 않은 호출부호 개수
-    let countWhereCondition = 'WHERE c.airline_id = $1 AND (a.id IS NULL OR a.status != \'completed\')';
+    // status = 'in_progress'인 호출부호 개수
+    let countWhereCondition = 'WHERE c.airline_id = $1 AND c.status = \'in_progress\'';
 
     if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
       countWhereCondition += ` AND c.risk_level = $${countSqlParams.length + 1}`;
@@ -108,7 +108,6 @@ export async function GET(
     let countSql = `
       SELECT COUNT(DISTINCT c.id) as total
       FROM callsigns c
-      LEFT JOIN actions a ON c.id = a.callsign_id
       ${countWhereCondition}
     `;
 
@@ -128,6 +127,7 @@ export async function GET(
         sub_error: callsign.sub_error,
         risk_level: callsign.risk_level,
         similarity: callsign.similarity,
+        status: callsign.status,
         occurrence_count: callsign.occurrence_count,
         last_occurred_at: callsign.last_occurred_at,
         file_upload_id: callsign.file_upload_id,

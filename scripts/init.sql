@@ -145,6 +145,13 @@ CREATE TABLE IF NOT EXISTS callsigns (
   file_upload_id UUID REFERENCES file_uploads(id) ON DELETE SET NULL,
   uploaded_at TIMESTAMP,
 
+  -- 상태 관리
+  -- 관리자 입력 → 'in_progress' (즉시)
+  -- 항공사 조치 완료 → 'completed'
+  -- 항공사 완료 취소 → 'in_progress'로 복원
+  status VARCHAR(20) NOT NULL DEFAULT 'in_progress'
+    CHECK (status IN ('in_progress', 'completed')),
+
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
 
@@ -157,6 +164,7 @@ CREATE INDEX IF NOT EXISTS idx_callsigns_airline_id ON callsigns(airline_id);
 CREATE INDEX IF NOT EXISTS idx_callsigns_airline_code ON callsigns(airline_code);
 CREATE INDEX IF NOT EXISTS idx_callsigns_pair ON callsigns(callsign_pair);
 CREATE INDEX IF NOT EXISTS idx_callsigns_risk_level ON callsigns(risk_level);
+CREATE INDEX IF NOT EXISTS idx_callsigns_status ON callsigns(status);
 CREATE INDEX IF NOT EXISTS idx_callsigns_created_at ON callsigns(created_at DESC);
 
 -- 2-1. callsign_occurrences 테이블 (호출부호 쌍의 발생 이력)

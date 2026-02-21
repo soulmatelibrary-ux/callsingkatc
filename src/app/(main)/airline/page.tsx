@@ -113,14 +113,8 @@ export default function AirlinePage() {
     limit: actionLimit,
   });
 
-  const { data: completedActionsData } = useAirlineActions({
-    airlineId: airlineId,
-    status: 'completed',
-    page: 1,
-    limit: 1000,
-  });
-
-  // 호출부호 목록 (모달 및 통계 계산용 전체 데이터)
+  // 호출부호 목록 (callsigns.status = 'in_progress'인 것들만 조회됨)
+  // callsigns API에서 이미 status = 'completed'인 것들은 필터링되므로 추가 처리 불필요
   const { data: callsignsData, isLoading: callsignsLoading } = useAirlineCallsigns(airlineId, {
     limit: 1000,
   });
@@ -257,23 +251,11 @@ export default function AirlinePage() {
     return incidentDate >= startDateObj && incidentDate <= endDateObj;
   });
 
-  // 조치 완료된 인시던트 필터링 (상태가 completed인 조치가 있는 인시던트 제외)
-  const completedActions = completedActionsData?.data || [];
-  const completedCallsigns = new Set(
-    completedActions
-      .map(a => a.callsign?.callsign_pair)
-      .filter(Boolean)
-  );
+  // callsigns API에서 이미 status = 'in_progress'인 것만 반환하므로
+  // 추가 필터링 불필요 (완료된 항목은 API 단계에서 제외됨)
+  const incidentsWithoutCompleted = filteredIncidents;
 
-  const incidentsWithoutCompleted = filteredIncidents.filter((incident) => {
-    // 유사호출부호(pair)로 매칭
-    if (completedCallsigns.has(incident.pair)) {
-      return false;
-    }
-    return true;
-  });
-
-  // 통계는 조치 완료된 것을 제외한 인시던트 기준
+  // 통계는 필터링된 인시던트 기준
   const total = incidentsWithoutCompleted.length;
 
   // 에러 타입별 동적 통계 생성
