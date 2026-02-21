@@ -424,6 +424,13 @@
         "lastUpdated": "2026-02-21T14:11:08.469Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/scripts/reset-all.js"
+    },
+    "announcement-system": {
+      "phase": "design",
+      "status": "Design document created",
+      "createdAt": "2026-02-21T23:53:00Z",
+      "designDocument": "docs/02-design/features/announcement-system.design.md",
+      "planDocument": "docs/01-plan/features/announcement-system.plan.md"
     }
   },
   "pipeline": {

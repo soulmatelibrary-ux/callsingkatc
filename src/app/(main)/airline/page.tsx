@@ -407,6 +407,31 @@ export default function AirlinePage() {
     return null;
   };
 
+  const getCallsignCharColors = (my: string, other: string) => {
+    const myChars = Array.from(my);
+    const otherChars = Array.from(other);
+    const myColors = myChars.map(() => 'text-blue-700');
+    const otherColors = otherChars.map(() => 'text-blue-700');
+    const maxLength = Math.max(myChars.length, otherChars.length);
+
+    for (let i = 0; i < maxLength; i += 1) {
+      const myChar = myChars[i];
+      const otherChar = otherChars[i];
+      const isSame = myChar !== undefined && otherChar !== undefined && myChar === otherChar;
+
+      if (!isSame) {
+        if (myChar !== undefined) {
+          myColors[i] = 'text-rose-700';
+        }
+        if (otherChar !== undefined) {
+          otherColors[i] = 'text-rose-700';
+        }
+      }
+    }
+
+    return { myChars, otherChars, myColors, otherColors };
+  };
+
   return (
     <>
       <main className="flex min-h-screen bg-gray-50">
@@ -519,7 +544,8 @@ export default function AirlinePage() {
                 <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-none">
                   <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%22currentColor%22 viewBox=%220 0 24 24%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z%22/></svg>')] bg-rose-50 text-rose-700 rounded-none flex items-center justify-center">
+                      {/* bg-[url('data:image/svg+xml;utf8,<svg ... />')] */}
+                      <div className="w-10 h-10 bg-rose-50 text-rose-700 rounded-none flex items-center justify-center">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
@@ -604,46 +630,28 @@ export default function AirlinePage() {
                   <div className="overflow-x-auto flex-1">
                     <div className="divide-y divide-gray-50">
                       {allFilteredIncidents.map((incident: any) => {
-                        // 호출부호 숫자 색상 처리: 같은 숫자끼리 같은 색
                         const renderColoredCallsign = (callsignPair: string) => {
                           const parts = splitCallsignPair(callsignPair);
                           if (!parts) return callsignPair;
 
                           const [my, other] = parts;
-
-                          // 모든 숫자 추출 및 색상 할당 (숫자별로 일관된 색상)
-                          const colorMap: Record<string, string> = {};
-                          const colors = [
-                            'text-blue-600', 'text-rose-600', 'text-amber-600', 'text-emerald-600',
-                            'text-cyan-600', 'text-purple-600', 'text-indigo-600', 'text-pink-600',
-                            'text-lime-600', 'text-teal-600'
-                          ];
-
-                          // 숫자별 색상 맵핑 (0-9)
-                          Array.from(new Set((my + other).split(''))).forEach((char, idx) => {
-                            if (char >= '0' && char <= '9') {
-                              const digitIdx = parseInt(char, 10);
-                              colorMap[char] = colors[digitIdx % colors.length];
-                            }
-                          });
+                          const { myChars, otherChars, myColors, otherColors } = getCallsignCharColors(my, other);
 
                           return (
                             <div className="flex items-center gap-0.5">
-                              {Array.from(my).map((char, idx) => (
+                              {myChars.map((char, idx) => (
                                 <span
                                   key={`my-${idx}`}
-                                  className={`font-black text-2xl leading-none font-extrabold ${char >= '0' && char <= '9' ? colorMap[char] : 'text-gray-900'
-                                    }`}
+                                  className={`font-black text-2xl leading-none font-extrabold ${myColors[idx]}`}
                                 >
                                   {char}
                                 </span>
                               ))}
                               <span className="text-gray-400 font-bold mx-0.5">↔</span>
-                              {Array.from(other).map((char, idx) => (
+                              {otherChars.map((char, idx) => (
                                 <span
                                   key={`other-${idx}`}
-                                  className={`font-black text-2xl leading-none font-extrabold ${char >= '0' && char <= '9' ? colorMap[char] : 'text-gray-900'
-                                    }`}
+                                  className={`font-black text-2xl leading-none font-extrabold ${otherColors[idx]}`}
                                 >
                                   {char}
                                 </span>
@@ -668,36 +676,16 @@ export default function AirlinePage() {
                                   if (!parts) return incident.pair;
                                   const [my, other] = parts;
 
-                                  // 모든 숫자 추출 및 색상 할당
-                                  const colorMap: Record<string, string> = {};
-                                  const colors = [
-                                    'text-blue-700', 'text-rose-700', 'text-amber-700', 'text-emerald-700',
-                                    'text-cyan-700', 'text-purple-700', 'text-indigo-700', 'text-pink-700',
-                                    'text-lime-700', 'text-teal-700'
-                                  ];
-
-                                  // 숫자별 색상 맵핑 (0-9)
-                                  Array.from(new Set((my + other).split(''))).forEach((char, idx) => {
-                                    if ((char as string) >= '0' && (char as string) <= '9') {
-                                      const digitIdx = parseInt(char as string, 10);
-                                      colorMap[char as string] = colors[digitIdx % colors.length];
-                                    }
-                                  });
-
-                                  // 항공사 코드 비교 (첫 3글자)
-                                  const myAirline = my.substring(0, 3);
-                                  const otherAirline = other.substring(0, 3);
-                                  const isSameAirline = myAirline === otherAirline;
+                                  const { myChars, otherChars, myColors, otherColors } = getCallsignCharColors(my, other);
 
                                   return (
                                     <div className="flex items-center gap-0.5">
                                       {/* 첫 번째 콜사인 - 파란색 텍스트 */}
                                       <div className="flex items-center gap-0">
-                                        {Array.from(my).map((char, idx) => (
+                                        {myChars.map((char, idx) => (
                                           <span
                                             key={`my-${idx}`}
-                                            className={`font-black text-3xl leading-none font-extrabold ${(char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : 'text-blue-700'
-                                              }`}
+                                            className={`font-black text-3xl leading-none font-extrabold ${myColors[idx]}`}
                                           >
                                             {char as string}
                                           </span>
@@ -707,13 +695,12 @@ export default function AirlinePage() {
                                       {/* 파이프 분리선 */}
                                       <span className="text-gray-400 font-bold text-sm px-0.5">|</span>
 
-                                      {/* 두 번째 콜사인 - 같은 항공사면 파란색, 다르면 빨간색 */}
+                                      {/* 두 번째 콜사인 - 동일 구간은 파란색, 차이는 빨간색 */}
                                       <div className="flex items-center gap-0">
-                                        {Array.from(other).map((char, idx) => (
+                                        {otherChars.map((char, idx) => (
                                           <span
                                             key={`other-${idx}`}
-                                            className={`font-black text-3xl leading-none font-extrabold ${(char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : (isSameAirline ? 'text-blue-700' : 'text-rose-700')
-                                              }`}
+                                            className={`font-black text-3xl leading-none font-extrabold ${otherColors[idx]}`}
                                           >
                                             {char as string}
                                           </span>
