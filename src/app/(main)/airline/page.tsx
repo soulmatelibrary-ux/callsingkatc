@@ -429,142 +429,7 @@ export default function AirlinePage() {
           <div className="w-full px-8 py-10 space-y-8 animate-fade-in">
             {activeTab === 'incidents' && (
               <>
-                {/* 조회 기간 필터 */}
-                <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 mb-8 rounded-none">
-                  <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%22currentColor%22 viewBox=%220 0 24 24%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z%22/></svg>')] bg-rose-50 text-rose-700 rounded-none flex items-center justify-center">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">조회 기간</p>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="date"
-                            value={startDate}
-                            onChange={handleStartDateChange}
-                            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
-                          />
-                          <span className="text-gray-300">~</span>
-                          <input
-                            type="date"
-                            value={endDate}
-                            onChange={handleEndDateChange}
-                            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex bg-gray-50/50 p-1 rounded-none border border-gray-100">
-                      <button
-                        type="button"
-                        onClick={() => applyQuickRange('today')}
-                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === 'today' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                      >
-                        오늘
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyQuickRange('1w')}
-                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '1w' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                      >
-                        1주
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyQuickRange('2w')}
-                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '2w' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                      >
-                        2주
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyQuickRange('1m')}
-                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '1m' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                          }`}
-                      >
-                        1개월
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 w-full md:w-auto">
-                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-none font-bold shadow-sm hover:bg-gray-50 transition-all text-sm">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      <span>Excel 내보내기</span>
-                    </button>
-                  </div>
-                </div>
-                {/* 요약 통계 (Full Width) */}
-                {total > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-                      <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
-                      <div className="relative flex flex-col h-full">
-                        <div className="flex justify-between items-start mb-4">
-                          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total Cases</p>
-                        </div>
-                        <div className="flex items-baseline gap-1">
-                          <p className="text-5xl font-black text-gray-900 tracking-tighter">{total}</p>
-                          <span className="text-sm font-bold text-gray-400">건</span>
-                        </div>
-                        <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">분석 기간 내 전체 발생 건수</p>
-                      </div>
-                    </div>
-
-                    {/* 동적으로 생성된 에러 타입별 카드 */}
-                    {errorTypeStats.map((stat) => (
-                      <div
-                        key={stat.type}
-                        onClick={() => setErrorTypeFilter(errorTypeFilter === stat.type ? 'all' : stat.type as any)}
-                        className={`group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === stat.type ? `ring-2 ring-opacity-50 shadow-opacity-10` : ''
-                          }`}
-                        style={
-                          errorTypeFilter === stat.type
-                            ? {
-                              boxShadow: `0 0 0 2px var(--ring-color), 0 20px 40px var(--shadow-color)`,
-                              '--ring-color': stat.textColor.replace('text-', '--').match(/text-(\w+-\d+)/)?.[1],
-                            } as any
-                            : {}
-                        }
-                      >
-                        <div
-                          className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
-                          style={{ backgroundColor: stat.textColor.replace('text-', 'rgb(') + ')' }}
-                        />
-                        <div className="relative flex flex-col h-full">
-                          <div className="flex justify-between items-start mb-4">
-                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
-                              {stat.label}
-                            </p>
-                            {total > 0 && (
-                              <span className={`text-[10px] font-black px-2 py-1 rounded-none ${stat.bgColor} ${stat.textColor}`}>
-                                {stat.percentage}%
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-baseline gap-1">
-                            <p className={`text-5xl font-black tracking-tighter ${stat.textColor}`}>{stat.count}</p>
-                            <span className="text-sm font-bold text-gray-400">건</span>
-                          </div>
-                          <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">
-                            {stat.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* 발생현황 테이블 - 2단계 구조 */}
+                {/* 발생현황 테이블 - 2단계 구조 (최상단으로 이동) */}
                 <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                   <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-[#00205b] text-white">
                     <div>
@@ -791,6 +656,141 @@ export default function AirlinePage() {
                   <div className="bg-white rounded-none p-12 text-center shadow-sm border border-gray-100 mt-8">
                     <div className="text-4xl mb-4">✅</div>
                     <p className="text-gray-500 font-bold">등록된 유사호출부호 발생 이력이 없습니다</p>
+                  </div>
+                )}
+
+                {/* 조회 기간 필터 (발생현황 아래로 이동) */}
+                <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 mb-8 rounded-none mt-8">
+                  <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 stroke=%22currentColor%22 viewBox=%220 0 24 24%22><path stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z%22/></svg>')] bg-rose-50 text-rose-700 rounded-none flex items-center justify-center">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">조회 기간</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={handleStartDateChange}
+                            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
+                          />
+                          <span className="text-gray-300">~</span>
+                          <input
+                            type="date"
+                            value={endDate}
+                            onChange={handleEndDateChange}
+                            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex bg-gray-50/50 p-1 rounded-none border border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('today')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === 'today' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        오늘
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('1w')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '1w' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        1주
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('2w')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '2w' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        2주
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('1m')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '1m' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        1개월
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 w-full md:w-auto">
+                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-none font-bold shadow-sm hover:bg-gray-50 transition-all text-sm">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      <span>Excel 내보내기</span>
+                    </button>
+                  </div>
+                </div>
+                {/* 요약 통계 (Full Width) - 조회기간 아래로 이동 */}
+                {total > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                      <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
+                      <div className="relative flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total Cases</p>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <p className="text-5xl font-black text-gray-900 tracking-tighter">{total}</p>
+                          <span className="text-sm font-bold text-gray-400">건</span>
+                        </div>
+                        <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">분석 기간 내 전체 발생 건수</p>
+                      </div>
+                    </div>
+
+                    {/* 동적으로 생성된 에러 타입별 카드 */}
+                    {errorTypeStats.map((stat) => (
+                      <div
+                        key={stat.type}
+                        onClick={() => setErrorTypeFilter(errorTypeFilter === stat.type ? 'all' : stat.type as any)}
+                        className={`group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === stat.type ? `ring-2 ring-opacity-50 shadow-opacity-10` : ''
+                          }`}
+                        style={
+                          errorTypeFilter === stat.type
+                            ? {
+                              boxShadow: `0 0 0 2px var(--ring-color), 0 20px 40px var(--shadow-color)`,
+                              '--ring-color': stat.textColor.replace('text-', '--').match(/text-(\w+-\d+)/)?.[1],
+                            } as any
+                            : {}
+                        }
+                      >
+                        <div
+                          className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
+                          style={{ backgroundColor: stat.textColor.replace('text-', 'rgb(') + ')' }}
+                        />
+                        <div className="relative flex flex-col h-full">
+                          <div className="flex justify-between items-start mb-4">
+                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                              {stat.label}
+                            </p>
+                            {total > 0 && (
+                              <span className={`text-[10px] font-black px-2 py-1 rounded-none ${stat.bgColor} ${stat.textColor}`}>
+                                {stat.percentage}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-baseline gap-1">
+                            <p className={`text-5xl font-black tracking-tighter ${stat.textColor}`}>{stat.count}</p>
+                            <span className="text-sm font-bold text-gray-400">건</span>
+                          </div>
+                          <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">
+                            {stat.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </>
