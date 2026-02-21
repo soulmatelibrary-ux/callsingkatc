@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-21T14:46:02.100Z",
+  "lastUpdated": "2026-02-21T15:04:20.033Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -31,7 +31,9 @@
     "callsigns",
     "upload-callsigns",
     "providers",
-    "scripts"
+    "scripts",
+    "announcements",
+    "history"
   ],
   "primaryFeature": "katc1",
   "features": {
@@ -291,9 +293,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-21T03:41:53.530Z"
+        "lastUpdated": "2026-02-21T14:58:42.350Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/actions/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/announcements/[id]/route.ts"
     },
     "katc1-backend": {
       "phase": "do",
@@ -382,7 +384,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:58.733Z",
-        "lastUpdated": "2026-02-21T13:06:05.329Z"
+        "lastUpdated": "2026-02-21T15:04:20.033Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/airlines/[airlineId]/callsigns/route.ts"
     },
@@ -431,6 +433,32 @@
       "createdAt": "2026-02-21T23:53:00Z",
       "designDocument": "docs/02-design/features/announcement-system.design.md",
       "planDocument": "docs/01-plan/features/announcement-system.plan.md"
+    },
+    "announcements": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-21T14:57:06.344Z",
+        "lastUpdated": "2026-02-21T14:59:06.443Z"
+      },
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/announcements/route.ts"
+    },
+    "history": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-21T14:57:17.641Z",
+        "lastUpdated": "2026-02-21T14:59:03.745Z"
+      },
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/announcements/history/route.ts"
     }
   },
   "pipeline": {
@@ -441,7 +469,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-21T14:46:02.100Z"
+    "lastActivity": "2026-02-21T15:04:20.033Z"
   },
   "history": [
     {
@@ -4503,6 +4531,96 @@
     {
       "timestamp": "2026-02-21T14:46:02.100Z",
       "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:57:06.344Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:57:17.641Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:57:27.426Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:57:41.916Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:57:54.216Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:58:18.940Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:58:22.351Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:58:26.163Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:58:31.546Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:58:36.758Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:58:42.350Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:59:03.745Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T14:59:06.443Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T15:04:16.050Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T15:04:20.033Z",
+      "feature": "callsigns",
       "phase": "do",
       "action": "updated"
     }

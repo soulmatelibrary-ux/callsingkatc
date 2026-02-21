@@ -254,6 +254,7 @@ export default function AirlinePage() {
     risk: cs.risk_level || '낮음',
     similarity: cs.similarity || '낮음',
     count: cs.occurrence_count || 0,
+    firstDate: cs.created_at ? new Date(cs.created_at).toISOString().split('T')[0] : null,
     lastDate: cs.last_occurred_at ? new Date(cs.last_occurred_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     dates: [], // 상세 날짜 이력은 별도 테이블 필요 시 추가
   })) || [];
@@ -618,6 +619,7 @@ export default function AirlinePage() {
 
                 {/* 발생현황 테이블 */}
                 <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                  {/*
                   <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-[#00205b] text-white">
                     <div>
                       <h3 className="text-xl font-black text-white tracking-tight">유사호출부호 발생현황</h3>
@@ -626,6 +628,7 @@ export default function AirlinePage() {
                       </p>
                     </div>
                   </div>
+                  */}
 
                   <div className="overflow-x-auto flex-1">
                     <div className="divide-y divide-gray-50">
@@ -642,7 +645,7 @@ export default function AirlinePage() {
                               {myChars.map((char, idx) => (
                                 <span
                                   key={`my-${idx}`}
-                                  className={`font-black text-2xl leading-none font-extrabold ${myColors[idx]}`}
+                                  className={`font-black text-xl leading-none font-extrabold ${myColors[idx]}`}
                                 >
                                   {char}
                                 </span>
@@ -651,7 +654,7 @@ export default function AirlinePage() {
                               {otherChars.map((char, idx) => (
                                 <span
                                   key={`other-${idx}`}
-                                  className={`font-black text-2xl leading-none font-extrabold ${otherColors[idx]}`}
+                                  className={`font-black text-xl leading-none font-extrabold ${otherColors[idx]}`}
                                 >
                                   {char}
                                 </span>
@@ -668,9 +671,9 @@ export default function AirlinePage() {
                               }`}
                           >
                             {/* 첫 번째 행: 호출부호 | 분류 정보 태그 | 조치 버튼 */}
-                            <div className="px-8 py-4 flex items-center justify-between gap-6 group hover:bg-slate-50 transition-colors border-b border-gray-50">
+                            <div className="px-6 py-3 flex items-center justify-between gap-5 group hover:bg-slate-50 transition-colors border-b border-gray-50">
                               {/* 호출부호 쌍 - 배경색 추가 */}
-                              <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50 rounded-none px-2.5 py-1">
+                              <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50 rounded-none px-2 py-0.5">
                                 {(() => {
                                   const parts = splitCallsignPair(incident.pair);
                                   if (!parts) return incident.pair;
@@ -685,7 +688,7 @@ export default function AirlinePage() {
                                         {myChars.map((char, idx) => (
                                           <span
                                             key={`my-${idx}`}
-                                            className={`font-black text-3xl leading-none font-extrabold ${myColors[idx]}`}
+                                            className={`font-black text-2xl leading-none font-extrabold ${myColors[idx]}`}
                                           >
                                             {char as string}
                                           </span>
@@ -700,7 +703,7 @@ export default function AirlinePage() {
                                         {otherChars.map((char, idx) => (
                                           <span
                                             key={`other-${idx}`}
-                                            className={`font-black text-3xl leading-none font-extrabold ${otherColors[idx]}`}
+                                            className={`font-black text-2xl leading-none font-extrabold ${otherColors[idx]}`}
                                           >
                                             {char as string}
                                           </span>
@@ -713,13 +716,13 @@ export default function AirlinePage() {
 
                               {/* 분류 정보 태그 - 호출부호 바로 옆 */}
                               <div className="flex flex-wrap gap-2 items-center">
-                                <span className={`inline-block text-[10px] font-bold px-2.5 py-1 rounded-none ${incident.errorType === '관제사 오류' ? 'text-rose-600 bg-rose-50' :
+                                <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-none ${incident.errorType === '관제사 오류' ? 'text-rose-600 bg-rose-50' :
                                   incident.errorType === '조종사 오류' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'
                                   }`}>
                                   {incident.errorType}
                                 </span>
                                 {incident.subError && (
-                                  <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-none text-indigo-600 bg-indigo-50">
+                                  <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-none text-indigo-600 bg-indigo-50">
                                     {incident.subError}
                                   </span>
                                 )}
@@ -727,28 +730,39 @@ export default function AirlinePage() {
 
                               <button
                                 onClick={() => handleOpenActionModal(incident)}
-                                className="flex-shrink-0 px-4 py-2 bg-rose-700 text-white text-[11px] font-black rounded-none shadow-none hover:bg-rose-800 transition-all uppercase tracking-widest whitespace-nowrap"
+                                className="flex-shrink-0 px-3 py-1.5 bg-rose-700 text-white text-[10px] font-black rounded-none shadow-none hover:bg-rose-800 transition-all uppercase tracking-widest whitespace-nowrap"
                               >
                                 조치 등록
                               </button>
                             </div>
 
                             {/* 두 번째 행: 상세 정보 - 개별 박스 */}
-                            <div className="px-8 py-5 bg-gray-50/40 grid grid-cols-4 gap-4">
+                            <div className="px-6 py-4 bg-gray-50/40 grid grid-cols-2 md:grid-cols-5 gap-3">
                               {/* 발생건수 */}
-                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">발생건수</span>
-                                <span className={`text-lg font-black ${incident.risk === '매우높음' ? 'text-rose-600' :
+                                <span className={`text-base font-black ${incident.risk === '매우높음' ? 'text-rose-600' :
                                   incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
                                   }`}>
                                   {incident.count}건
                                 </span>
                               </div>
 
+                              {/* 최초 발생일 */}
+                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">최초 발생일</span>
+                                <span className="text-[13px] font-bold text-gray-900">
+                                  {incident.firstDate
+                                    ? new Date(incident.firstDate).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
+                                    : '-'
+                                  }
+                                </span>
+                              </div>
+
                               {/* 최근 발생일 */}
-                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">최근 발생일</span>
-                                <span className="text-sm font-bold text-gray-900">
+                                <span className="text-[13px] font-bold text-gray-900">
                                   {incident.lastDate
                                     ? new Date(incident.lastDate).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
                                     : '-'
@@ -757,17 +771,17 @@ export default function AirlinePage() {
                               </div>
 
                               {/* 유사성 */}
-                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">유사성</span>
-                                <span className="text-sm font-bold text-gray-900">
+                                <span className="text-[13px] font-bold text-gray-900">
                                   {incident.similarity}
                                 </span>
                               </div>
 
                               {/* 오류가능성 */}
-                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">오류가능성</span>
-                                <span className={`text-sm font-bold ${incident.risk === '매우높음' ? 'text-rose-600' :
+                                <span className={`text-[13px] font-black ${incident.risk === '매우높음' ? 'text-rose-600' :
                                   incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
                                   }`}>
                                   {incident.risk}

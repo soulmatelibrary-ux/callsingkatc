@@ -283,3 +283,108 @@ SELECT
   '조종사 오류', '고도이탈', '매우높음', '높음', 4
 FROM airlines WHERE airlines.code = 'KAL'
 ON CONFLICT (airline_code, callsign_pair) DO NOTHING;
+
+-- ================================================================
+-- Phase 5: 공지사항 관리 시스템
+-- ================================================================
+
+-- 1. announcements 테이블 (공지사항 마스터 데이터)
+CREATE TABLE IF NOT EXISTS announcements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- 기본 정보
+  title VARCHAR(255) NOT NULL,          -- "KAL-AAL 호출부호 개선 조치"
+  content TEXT NOT NULL,                -- 공지사항 본문
+
+  -- 긴급도 레벨
+  level VARCHAR(20) NOT NULL DEFAULT 'info'
+    CHECK (level IN ('warning', 'info', 'success')),
+
+  -- 기간 설정
+  start_date TIMESTAMP NOT NULL,        -- 공지 시작 일시
+  end_date TIMESTAMP NOT NULL,          -- 공지 종료 일시
+  is_active BOOLEAN DEFAULT true,       -- 활성 여부
+
+  -- 대상 설정 (NULL = 전체 항공사, 또는 쉼표로 구분된 airline_id)
+  target_airlines TEXT,                 -- 대상 항공사 IDs (JSON 배열 형식 또는 CSV)
+
+  -- 메타데이터
+  created_by UUID NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+  -- 제약조건
+  CONSTRAINT chk_announcement_date_range CHECK (start_date < end_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_announcements_start_date ON announcements(start_date);
+CREATE INDEX IF NOT EXISTS idx_announcements_end_date ON announcements(end_date);
+CREATE INDEX IF NOT EXISTS idx_announcements_is_active ON announcements(is_active);
+CREATE INDEX IF NOT EXISTS idx_announcements_level ON announcements(level);
+CREATE INDEX IF NOT EXISTS idx_announcements_created_at ON announcements(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_announcements_created_by ON announcements(created_by);
+
+-- 2. announcement_views 테이블 (사용자별 읽음 상태 추적)
+CREATE TABLE IF NOT EXISTS announcement_views (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  announcement_id UUID NOT NULL REFERENCES announcements(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+  -- 읽음 상태
+  viewed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  dismissed_at TIMESTAMP,               -- 팝업 닫은 시간 (선택사항)
+
+  -- 복합 인덱스 및 제약조건
+  UNIQUE(announcement_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_announcement_views_announcement_id ON announcement_views(announcement_id);
+CREATE INDEX IF NOT EXISTS idx_announcement_views_user_id ON announcement_views(user_id);
+CREATE INDEX IF NOT EXISTS idx_announcement_views_viewed_at ON announcement_views(viewed_at DESC);
+
+-- ================================================================
+-- Phase 5 샘플 데이터 (선택사항 - 개발 용도)
+-- ================================================================
+
+-- 샘플 공지사항 1: 긴급 경고 (Warning)
+INSERT INTO announcements (title, content, level, start_date, end_date, is_active, target_airlines, created_by)
+SELECT
+  '🚨 KAL-AAL 호출부호 유사 경고',
+  '대한항공(KAL852)과 아시아나항공(AAR789) 호출부호 유사도가 높습니다. 2026년 2월 21일부터 조치가 시작됩니다. 모든 조종사 및 관제사는 각별한 주의가 필요합니다.',
+  'warning',
+  NOW(),
+  NOW() + INTERVAL '7 days',
+  true,
+  NULL,  -- 전체 항공사
+  users.id
+FROM users WHERE users.email = 'admin@katc.com'
+ON CONFLICT DO NOTHING;
+
+-- 샘플 공지사항 2: 일반 정보 (Info)
+INSERT INTO announcements (title, content, level, start_date, end_date, is_active, target_airlines, created_by)
+SELECT
+  '📢 조치 관리 시스템 사용 방법',
+  '새로운 조치 관리 시스템이 도입되었습니다. 조치 등록, 수정, 완료 기능을 사용하여 유사호출부호 문제를 신속하게 관리하세요.',
+  'info',
+  NOW(),
+  NOW() + INTERVAL '30 days',
+  true,
+  NULL,  -- 전체 항공사
+  users.id
+FROM users WHERE users.email = 'admin@katc.com'
+ON CONFLICT DO NOTHING;
+
+-- 샘플 공지사항 3: 완료 정보 (Success)
+INSERT INTO announcements (title, content, level, start_date, end_date, is_active, target_airlines, created_by)
+SELECT
+  '✅ KAL 조치 완료 안내',
+  '대한항공의 KAL852 호출부호 조치가 완료되었습니다. 모든 조종사 대상 안전 브리핑이 실시되었습니다.',
+  'success',
+  NOW() - INTERVAL '1 days',
+  NOW() + INTERVAL '14 days',
+  true,
+  NULL,  -- 전체 항공사
+  users.id
+FROM users WHERE users.email = 'admin@katc.com'
+ON CONFLICT DO NOTHING;

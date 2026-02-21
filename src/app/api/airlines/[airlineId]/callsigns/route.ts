@@ -76,14 +76,14 @@ export async function GET(
 
     const airlineCode = airlineCodeResult.rows[0].code;
 
-    // 📌 복잡한 쿼리 대신 단순 쿼리 사용
+    // 📌 복잡한 쿼리 대신 단순 쿼리 사용 (status = 'in_progress'만 조회)
     const simpleResult = await query(
       `SELECT id, airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
               other_airline_code, error_type, sub_error, risk_level, similarity,
               file_upload_id, uploaded_at, occurrence_count, last_occurred_at,
-              created_at, updated_at
+              status, created_at, updated_at
        FROM callsigns
-       WHERE (airline_code = $1 OR other_airline_code = $1)
+       WHERE (airline_code = $1 OR other_airline_code = $1) AND status = 'in_progress'
        ORDER BY occurrence_count DESC NULLS LAST, last_occurred_at DESC NULLS LAST
        LIMIT $2 OFFSET $3`,
       [airlineCode, limit, offset]
@@ -97,11 +97,11 @@ export async function GET(
       resultCount: result.rows.length
     });
 
-    // 전체 개수 조회
+    // 전체 개수 조회 (status = 'in_progress'만 카운트)
     const countResult = await query(
       `SELECT COUNT(DISTINCT id) as total
        FROM callsigns
-       WHERE airline_code = $1 OR other_airline_code = $1`,
+       WHERE (airline_code = $1 OR other_airline_code = $1) AND status = 'in_progress'`,
       [airlineCode]
     );
     const total = parseInt(countResult.rows[0].total, 10);
