@@ -156,7 +156,7 @@ export async function PATCH(
 
     // 기존 조치 확인
     const existingAction = await query(
-      'SELECT id, status FROM actions WHERE id = $1',
+      'SELECT id, status, callsign_id FROM actions WHERE id = $1',
       [id]
     );
 
@@ -167,27 +167,34 @@ export async function PATCH(
       );
     }
 
-    // 상태 로직: in_progress는 action row 삭제, completed는 row 존재 = 조치 업데이트
+    // 상태 로직: in_progress는 action row 삭제 + callsigns.status 'in_progress'로 복원
     if (status === 'in_progress') {
-      // in_progress = 미조치 = action row 삭제
+      // in_progress = 항공사 미조치 상태 = action row 삭제 + callsign 상태 복원
       const deletedAction = await query(
-        'SELECT * FROM actions WHERE id = $1',
+        'SELECT id, callsign_id FROM actions WHERE id = $1',
         [id]
       );
 
+      if (deletedAction.rows.length === 0) {
+        return NextResponse.json(
+          { error: '조치를 찾을 수 없습니다.' },
+          { status: 404 }
+        );
+      }
+
+      const callsignId = deletedAction.rows[0].callsign_id;
+
+      // 트랜잭션: action 삭제 + callsign 상태 복원
       await transaction(async (trx) => {
-        return trx('DELETE FROM actions WHERE id = $1', [id]);
+        // 1. action 행 삭제
+        await trx('DELETE FROM actions WHERE id = $1', [id]);
+
+        // 2. callsign 상태를 'in_progress'로 변경 (항공사가 다시 조치하도록)
+        await trx('UPDATE callsigns SET status = $1 WHERE id = $2', ['in_progress', callsignId]);
       });
 
       // 삭제된 action 데이터 반환 (mutation 성공 처리)
-      if (deletedAction.rows.length > 0) {
-        return NextResponse.json(deletedAction.rows[0], { status: 200 });
-      }
-
-      return NextResponse.json(
-        { error: '조치를 찾을 수 없습니다.' },
-        { status: 404 }
-      );
+      return NextResponse.json(deletedAction.rows[0], { status: 200 });
     }
 
     // 업데이트 필드 구성 (completed 또는 다른 상태 업데이트)
@@ -195,6 +202,12 @@ export async function PATCH(
     const fields: string[] = [];
     const values: any[] = [];
     let paramIndex = 1;
+
+    // status 필드 업데이트 (필수)
+    if (status !== undefined) {
+      fields.push(`status = $${paramIndex++}`);
+      values.push(status);
+    }
 
     if (action_type !== undefined) {
       fields.push(`action_type = $${paramIndex++}`);
@@ -238,8 +251,20 @@ export async function PATCH(
     sql += fields.join(', ') + ` WHERE id = $${paramIndex} RETURNING *`;
     values.push(id);
 
+    // 트랜잭션: action 업데이트 + callsigns 상태 동기화
+    const callsignId = existingAction.rows[0].callsign_id;
+
     const result = await transaction(async (trx) => {
-      return trx(sql, values);
+      // 1. action 업데이트
+      const actionResult = await trx(sql, values);
+
+      if (actionResult.rows.length > 0) {
+        // 2. callsigns 상태 동기화: action의 status와 일치하게
+        const newStatus = actionResult.rows[0].status;
+        await trx('UPDATE callsigns SET status = $1 WHERE id = $2', [newStatus, callsignId]);
+      }
+
+      return actionResult;
     });
 
     if (result.rows.length === 0) {
