@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-20T14:02:55.933Z",
+  "lastUpdated": "2026-02-21T01:38:31.708Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -42,9 +42,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:37:49.180Z",
-        "lastUpdated": "2026-02-20T13:29:10.505Z"
+        "lastUpdated": "2026-02-21T01:37:10.607Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/hooks/useActions.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/types/action.ts"
     },
     "api": {
       "phase": "do",
@@ -341,7 +341,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T02:01:15.039Z",
-        "lastUpdated": "2026-02-20T14:02:55.933Z"
+        "lastUpdated": "2026-02-21T01:38:31.708Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/(main)/airline/page.tsx"
     },
@@ -367,9 +367,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:32.683Z",
-        "lastUpdated": "2026-02-20T13:55:12.991Z"
+        "lastUpdated": "2026-02-21T01:37:31.398Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/actions/ActionModal.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/airlines/[airlineId]/actions/route.ts"
     },
     "callsigns": {
       "phase": "do",
@@ -406,7 +406,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-20T14:02:55.933Z"
+    "lastActivity": "2026-02-21T01:38:31.708Z"
   },
   "history": [
     {
@@ -3801,6 +3801,84 @@
     },
     {
       "timestamp": "2026-02-20T14:02:55.933Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:14:15.528Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:14:19.512Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:15:52.549Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:34:27.771Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:36:26.335Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:36:30.509Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:36:39.775Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:36:47.494Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:36:52.577Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:37:10.607Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:37:27.237Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:37:31.399Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-21T01:38:31.708Z",
       "feature": "airline",
       "phase": "do",
       "action": "updated"

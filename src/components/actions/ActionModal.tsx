@@ -10,11 +10,21 @@ interface ActionModalProps {
   selectedCallsign?: Callsign;
   actionId?: string; // 수정 모드일 때
   initialData?: {
+    callsignId?: string;
+    callsign_id?: string;
+    callsignLabel?: string;
+    callsign_pair?: string;
     actionType?: string;
+    action_type?: string;
     managerName?: string;
+    manager_name?: string;
     description?: string;
     plannedDueDate?: string;
-    status?: 'in_progress' | 'completed'; // 수정 모드일 때만 사용
+    processedDate?: string;
+    processed_at?: string;
+    completedDate?: string;
+    completed_at?: string;
+    status?: 'in_progress' | 'completed';
   };
   onClose: () => void;
   onSuccess?: () => void;
@@ -33,6 +43,11 @@ export function ActionModal({
   const [actionType, setActionType] = useState(initialData?.actionType || '');
   const [managerName, setManagerName] = useState(initialData?.managerName || '');
   const [description, setDescription] = useState(initialData?.description || '');
+  const [processedDate, setProcessedDate] = useState<string>(
+    initialData?.processedDate ||
+    initialData?.processed_at ||
+    new Date().toISOString().split('T')[0]
+  );
   const [status, setStatus] = useState<'in_progress' | 'completed'>(
     initialData?.status || 'in_progress'
   );
@@ -69,6 +84,7 @@ export function ActionModal({
           description: description || undefined,
           manager_name: managerName,
           status: status,
+          completed_at: processedDate,
         });
       } else {
         // 신규 등록 모드
@@ -78,6 +94,7 @@ export function ActionModal({
           action_type: actionType,
           description: description || undefined,
           manager_name: managerName,
+          completed_at: processedDate,
         });
       }
 
@@ -172,27 +189,26 @@ export function ActionModal({
             >
               유사호출부호 <span style={{ color: '#ef4444' }}>*</span>
             </label>
-            <select
-              value={callsignId}
-              onChange={(e) => setCallsignId(e.target.value)}
-              disabled={isLoading || !!actionId}
+            {/* 항상 텍스트 박스 (읽기 전용) */}
+            <input
+              type="text"
+              value={
+                callsigns.find((cs) => String(cs.id) === callsignId)
+                  ?.callsign_pair || ''
+              }
+              disabled
+              readOnly
               style={{
                 width: '100%',
                 padding: '10px 12px',
                 borderRadius: '8px',
                 border: '1px solid #e5e7eb',
                 fontSize: '14px',
-                opacity: isLoading || actionId ? 0.6 : 1,
-                cursor: isLoading || actionId ? 'not-allowed' : 'pointer',
+                backgroundColor: '#f3f4f6',
+                color: '#4b5563',
+                cursor: 'not-allowed',
               }}
-            >
-              <option value="">선택하세요</option>
-              {callsigns.map((cs) => (
-                <option key={cs.id} value={cs.id}>
-                  {cs.callsign_pair} ({cs.risk_level})
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* 조치 유형 */}
@@ -250,6 +266,35 @@ export function ActionModal({
               placeholder="담당자 이름"
               value={managerName}
               onChange={(e) => setManagerName(e.target.value)}
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                fontSize: '14px',
+                opacity: isLoading ? 0.6 : 1,
+              }}
+            />
+          </div>
+
+          {/* 처리일자 */}
+          <div>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '13px',
+                fontWeight: 600,
+                color: '#4b5563',
+                marginBottom: '6px',
+              }}
+            >
+              처리일자
+            </label>
+            <input
+              type="date"
+              value={processedDate}
+              onChange={(e) => setProcessedDate(e.target.value)}
               disabled={isLoading}
               style={{
                 width: '100%',

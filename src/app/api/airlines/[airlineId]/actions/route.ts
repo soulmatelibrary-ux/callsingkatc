@@ -271,6 +271,7 @@ export async function POST(
       description,
       manager_name: managerName,
       planned_due_date: plannedDueDate,
+      completed_at: completedAt,
     } = body;
 
     // 필수 필드 검증
@@ -312,9 +313,9 @@ export async function POST(
       return trx(
         `INSERT INTO actions (
           airline_id, callsign_id, action_type, description,
-          manager_name, planned_due_date,
+          manager_name, planned_due_date, completed_at,
           status, registered_by, registered_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         RETURNING *`,
         [
           airlineId,
@@ -323,6 +324,7 @@ export async function POST(
           description || null,
           managerName || null,
           plannedDueDate || null,
+          completedAt || null,
           'pending',
           payload.userId, // 현재 관리자 ID
           new Date().toISOString(),

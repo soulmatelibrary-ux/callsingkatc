@@ -169,6 +169,7 @@ export interface CreateActionRequest {
   manager_email?: string;
   responsible_staff?: string; // 항공사 담당자명
   planned_due_date?: string;
+  completed_at?: string; // 처리일자
 }
 
 export interface UpdateActionRequest {

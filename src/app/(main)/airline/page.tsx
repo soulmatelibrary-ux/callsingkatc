@@ -341,17 +341,6 @@ export default function AirlinePage() {
       <main className="flex min-h-screen bg-gray-50">
         {/* 왼쪽 사이드바 */}
         <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-4">
-          {/* 사이드바 헤더 */}
-          <div className="px-6 py-4 border-b border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-6 h-1 bg-primary rounded-full" />
-              <span className="text-primary font-bold text-[10px] tracking-widest uppercase">&nbsp;</span>
-            </div>
-            <h2 className="text-lg font-black text-gray-900 tracking-tight">&nbsp;</h2>
-            <p className="text-[10px] text-gray-400 font-bold mt-1">&nbsp;</p>
-            <p className="text-[10px] text-gray-400 font-medium mt-2">&nbsp;</p>
-          </div>
-
           {/* 사이드바 네비게이션 */}
           <nav className="flex-1 px-4 py-4 space-y-2">
             <button
@@ -639,6 +628,11 @@ export default function AirlinePage() {
                                     }
                                   });
 
+                                  // 항공사 코드 비교 (첫 3글자)
+                                  const myAirline = my.substring(0, 3);
+                                  const otherAirline = other.substring(0, 3);
+                                  const isSameAirline = myAirline === otherAirline;
+
                                   return (
                                     <div className="flex items-center gap-0.5">
                                       {/* 첫 번째 콜사인 - 파란색 텍스트 */}
@@ -658,13 +652,13 @@ export default function AirlinePage() {
                                       {/* 파이프 분리선 */}
                                       <span className="text-gray-400 font-bold text-sm px-0.5">|</span>
 
-                                      {/* 두 번째 콜사인 - 빨간색 텍스트 */}
+                                      {/* 두 번째 콜사인 - 같은 항공사면 파란색, 다르면 빨간색 */}
                                       <div className="flex items-center gap-0">
                                         {Array.from(other).map((char, idx) => (
                                           <span
                                             key={`other-${idx}`}
                                             className={`font-black text-2xl leading-tight ${
-                                              (char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : 'text-rose-700'
+                                              (char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : (isSameAirline ? 'text-blue-700' : 'text-rose-700')
                                             }`}
                                           >
                                             {char as string}
@@ -1003,6 +997,8 @@ export default function AirlinePage() {
           )}
           actionId={selectedAction.id}
           initialData={{
+            callsignId: String(selectedAction.callsign_id),
+            callsign_id: String(selectedAction.callsign_id),
             actionType: selectedAction.action_type,
             managerName: selectedAction.manager_name,
             description: selectedAction.description,
