@@ -66,6 +66,10 @@ export default function AirlinePage() {
   const [activeRange, setActiveRange] = useState<'custom' | 'today' | '1w' | '2w' | '1m'>('custom');
   const [errorTypeFilter, setErrorTypeFilter] = useState<'all' | '관제사 오류' | '조종사 오류' | '오류 미발생'>('all');
 
+  // 발생현황 탭용 state
+  const [incidentPage, setIncidentPage] = useState(1);
+  const [incidentLimit, setIncidentLimit] = useState(10);
+
   // 조치이력 탭용 state
   const [actionPage, setActionPage] = useState(1);
   const [actionLimit, setActionLimit] = useState(10);
@@ -86,6 +90,16 @@ export default function AirlinePage() {
     setActionPage(1);
   }, [actionStatusFilter, queryClient]);
 
+  // 에러 타입 필터 변경 시 페이지 리셋
+  useEffect(() => {
+    setIncidentPage(1);
+  }, [errorTypeFilter]);
+
+  // 페이지 첫 로드: 1개월 필터 자동 적용
+  useEffect(() => {
+    applyQuickRange('1m');
+  }, []);
+
 
   // 조치 목록 데이터
   const { data: actionsData, isLoading: actionsLoading } = useAirlineActions({
@@ -103,7 +117,7 @@ export default function AirlinePage() {
     limit: 1000,
   });
 
-  // 호출부호 목록 (incidents 및 조치 등록에 사용)
+  // 호출부호 목록 (모달 및 통계 계산용 전체 데이터)
   const { data: callsignsData, isLoading: callsignsLoading } = useAirlineCallsigns(airlineId, {
     limit: 1000,
   });
@@ -269,7 +283,8 @@ export default function AirlinePage() {
     '낮음': 1,
   };
 
-  const visibleIncidents = (() => {
+  // 전체 필터링된 incidents (통계용)
+  const allFilteredIncidents = (() => {
     const filtered =
       errorTypeFilter === 'all'
         ? incidentsWithoutCompleted
@@ -292,6 +307,13 @@ export default function AirlinePage() {
     });
   })();
 
+  // 페이지네이션 적용된 incidents (테이블 표시용)
+  const visibleIncidents = (() => {
+    const startIndex = (incidentPage - 1) * incidentLimit;
+    const endIndex = startIndex + incidentLimit;
+    return allFilteredIncidents.slice(startIndex, endIndex);
+  })();
+
   const selectedErrorLabel =
     errorTypeFilter === 'all' ? '전체' : errorTypeFilter;
 
@@ -299,31 +321,31 @@ export default function AirlinePage() {
     {
       key: '복창오류',
       label: '복창오류',
-      count: visibleIncidents.filter((i) => i.subError === '복창오류').length,
+      count: allFilteredIncidents.filter((i) => i.subError === '복창오류').length,
       color: '#6366f1',
     },
     {
       key: '무응답/재호출',
       label: '무응답/재호출',
-      count: visibleIncidents.filter((i) => i.subError === '무응답/재호출').length,
+      count: allFilteredIncidents.filter((i) => i.subError === '무응답/재호출').length,
       color: '#4f46e5',
     },
     {
       key: '고도이탈',
       label: '고도이탈',
-      count: visibleIncidents.filter((i) => i.subError === '고도이탈').length,
+      count: allFilteredIncidents.filter((i) => i.subError === '고도이탈').length,
       color: '#10b981',
     },
     {
       key: '비행경로이탈',
       label: '비행경로이탈',
-      count: visibleIncidents.filter((i) => i.subError === '비행경로이탈').length,
+      count: allFilteredIncidents.filter((i) => i.subError === '비행경로이탈').length,
       color: '#f97316',
     },
     {
       key: '기타',
       label: '기타',
-      count: visibleIncidents.filter(
+      count: allFilteredIncidents.filter(
         (i) =>
           i.subError &&
           !['복창오류', '무응답/재호출', '고도이탈', '비행경로이탈'].includes(
@@ -335,7 +357,7 @@ export default function AirlinePage() {
     {
       key: '오류 미발생',
       label: '오류 미발생',
-      count: visibleIncidents.filter((i) => i.errorType === '오류 미발생').length,
+      count: allFilteredIncidents.filter((i) => i.errorType === '오류 미발생').length,
       color: '#22c55e',
     },
   ];
@@ -546,7 +568,7 @@ export default function AirlinePage() {
                     <div>
                       <h3 className="text-xl font-black text-gray-900 tracking-tight">유사호출부호 발생현황</h3>
                       <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                        Risk analyzed callsign pairs ({visibleIncidents.length} cases)
+                        Risk analyzed callsign pairs ({allFilteredIncidents.length} cases)
                       </p>
                     </div>
                   </div>
@@ -703,7 +725,7 @@ export default function AirlinePage() {
                             </div>
 
                             {/* 두 번째 행: 상세 정보 - 개별 박스 */}
-                            <div className="px-8 py-5 bg-gray-50/40 grid grid-cols-4 gap-4">
+                            <div className="px-8 py-5 bg-gray-50/40 grid grid-cols-4 gap-4 hidden">
                               {/* 발생건수 */}
                               <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">발생건수</span>
@@ -770,7 +792,74 @@ export default function AirlinePage() {
                   </div>
                 </div>
 
-                {visibleIncidents.length === 0 && (
+                {/* 발생현황 페이지네이션 */}
+                {allFilteredIncidents.length > 0 && (
+                  <div className="mt-8 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                    <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        Showing {(incidentPage - 1) * incidentLimit + 1} - {Math.min(incidentPage * incidentLimit, allFilteredIncidents.length)} of {allFilteredIncidents.length} cases
+                      </span>
+                      <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 shadow-sm border border-gray-100 flex items-center gap-2">
+                        <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-3">Limit</span>
+                        <select
+                          value={incidentLimit}
+                          onChange={(e) => {
+                            setIncidentLimit(parseInt(e.target.value, 10));
+                            setIncidentPage(1);
+                          }}
+                          className="bg-transparent text-sm font-black text-gray-700 focus:outline-none cursor-pointer pr-4"
+                        >
+                          <option value="10">10 Rows</option>
+                          <option value="30">30 Rows</option>
+                          <option value="50">50 Rows</option>
+                          <option value="100">100 Rows</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* 페이지네이션 버튼 */}
+                    <div className="px-8 py-6 border-t border-gray-50 flex justify-center items-center gap-2">
+                      <button
+                        onClick={() => setIncidentPage(Math.max(1, incidentPage - 1))}
+                        disabled={incidentPage === 1}
+                        className="p-2 rounded-xl border border-gray-200 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
+                      >
+                        PREV
+                      </button>
+
+                      <div className="flex gap-1 mx-4">
+                        {Array.from({ length: Math.min(5, Math.ceil(allFilteredIncidents.length / incidentLimit)) }, (_, i) => {
+                          const totalPages = Math.ceil(allFilteredIncidents.length / incidentLimit);
+                          const startPage = Math.max(1, Math.min(incidentPage - 2, totalPages - 4));
+                          const pageNum = startPage + i;
+                          if (pageNum > totalPages) return null;
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setIncidentPage(pageNum)}
+                              className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${pageNum === incidentPage
+                                  ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
+                                  : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'
+                                }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        onClick={() => setIncidentPage(Math.min(Math.ceil(allFilteredIncidents.length / incidentLimit), incidentPage + 1))}
+                        disabled={incidentPage === Math.ceil(allFilteredIncidents.length / incidentLimit)}
+                        className="p-2 rounded-xl border border-gray-200 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
+                      >
+                        NEXT
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {allFilteredIncidents.length === 0 && (
                   <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100 mt-8">
                     <div className="text-4xl mb-4">✅</div>
                     <p className="text-gray-500 font-bold">등록된 유사호출부호 발생 이력이 없습니다</p>
@@ -836,36 +925,21 @@ export default function AirlinePage() {
                 {/* 상태 필터 탭 */}
                 <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/50 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm border border-gray-100">
                   <button
-                    onClick={() => {
-                      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
-                      setActionStatusFilter('all');
-                    setActionPage(1);
-                      setActionPage(1);
-                    }}
+                    onClick={() => setActionStatusFilter('all')}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'all' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     전체
                   </button>
                   <button
-                    onClick={() => {
-                      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
-                      setActionStatusFilter('in_progress');
-                    setActionPage(1);
-                      setActionPage(1);
-                    }}
+                    onClick={() => setActionStatusFilter('in_progress')}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     진행중
                   </button>
                   <button
-                    onClick={() => {
-                      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
-                      setActionStatusFilter('completed');
-                    setActionPage(1);
-                      setActionPage(1);
-                    }}
+                    onClick={() => setActionStatusFilter('completed')}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'completed' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
@@ -887,6 +961,7 @@ export default function AirlinePage() {
                       <table className="w-full">
                         <thead>
                           <tr className="bg-gray-50/30">
+                            <th className="px-8 py-4 text-center text-[11px] font-black text-gray-400 uppercase tracking-widest w-12">No.</th>
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Registered</th>
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Callsign Pair</th>
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Type</th>
@@ -901,17 +976,18 @@ export default function AirlinePage() {
                             const statusStyles =
                               action.status === 'in_progress' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50';
                             const registeredDate = action.registered_at ? new Date(action.registered_at).toLocaleDateString('ko-KR') : '-';
+                            const rowNumber = (actionPage - 1) * actionLimit + index + 1;
 
                             return (
-                              <tr 
-                                key={action.id} 
-                                className="group hover:bg-primary/[0.02] transition-colors cursor-pointer" 
+                              <tr
+                                key={action.id}
+                                className="group hover:bg-primary/[0.02] transition-colors cursor-pointer"
                                 onDoubleClick={() => {
                                   setSelectedCallsignForDetail(action.callsign);
                                   setIsCallsignDetailModalOpen(true);
                                 }}
                               >
-                                <td className="px-8 py-5 text-sm font-bold text-gray-500 text-center">{index + 1}</td>
+                                <td className="px-8 py-5 text-sm font-bold text-gray-500 text-center">{rowNumber}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-500">{registeredDate}</td>
                                 <td className="px-8 py-5 text-sm font-black text-gray-900 tracking-tight">{action.callsign?.callsign_pair || '-'}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.action_type}</td>
