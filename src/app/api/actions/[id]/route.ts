@@ -166,16 +166,25 @@ export async function PATCH(
       );
     }
 
-    // 업데이트 필드 구성
+    // 상태 로직: in_progress는 action row 삭제, completed는 row 존재 = 조치 업데이트
+    if (status === 'in_progress') {
+      // in_progress = 미조치 = action row 삭제
+      await transaction(async (trx) => {
+        return trx('DELETE FROM actions WHERE id = $1', [id]);
+      });
+
+      return NextResponse.json(
+        { message: '조치가 삭제되었습니다. (미조치 상태)' },
+        { status: 200 }
+      );
+    }
+
+    // 업데이트 필드 구성 (completed 또는 다른 상태 업데이트)
     let sql = 'UPDATE actions SET ';
     const fields: string[] = [];
     const values: any[] = [];
     let paramIndex = 1;
 
-    if (status !== undefined) {
-      fields.push(`status = $${paramIndex++}`);
-      values.push(status);
-    }
     if (description !== undefined) {
       fields.push(`description = $${paramIndex++}`);
       values.push(description);
@@ -235,7 +244,7 @@ export async function PATCH(
       description: updatedAction.description,
       manager_name: updatedAction.manager_name,
       planned_due_date: updatedAction.planned_due_date,
-      status: updatedAction.status,
+      status: 'completed', // action row 존재 = completed
       result_detail: updatedAction.result_detail,
       completed_at: updatedAction.completed_at,
       registered_by: updatedAction.registered_by,

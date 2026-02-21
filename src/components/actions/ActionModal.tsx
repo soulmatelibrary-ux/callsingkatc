@@ -39,7 +39,12 @@ export function ActionModal({
   onClose,
   onSuccess,
 }: ActionModalProps) {
-  const [callsignId, setCallsignId] = useState(selectedCallsign?.id || '');
+  const [callsignId, setCallsignId] = useState(
+    selectedCallsign?.id ||
+    initialData?.callsignId ||
+    initialData?.callsign_id ||
+    ''
+  );
   const [actionType, setActionType] = useState(initialData?.actionType || '');
   const [managerName, setManagerName] = useState(initialData?.managerName || '');
   const [description, setDescription] = useState(initialData?.description || '');
