@@ -715,7 +715,7 @@ export default function AirlinePage() {
                             </div>
 
                             {/* 두 번째 행: 상세 정보 - 개별 박스 */}
-                            <div className="px-8 py-5 bg-gray-50/40 grid grid-cols-4 gap-4 hidden">
+                            <div className="px-8 py-5 bg-gray-50/40 grid grid-cols-4 gap-4">
                               {/* 발생건수 */}
                               <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">발생건수</span>
