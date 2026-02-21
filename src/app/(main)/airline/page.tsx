@@ -157,6 +157,23 @@ export default function AirlinePage() {
     setAirlineName(name);
     if (id) {
       setAirlineId(id);
+    } else if (code) {
+      // id가 없으면 code로 항공사 조회해서 airlineId 설정
+      const fetchAirlineId = async () => {
+        try {
+          const response = await fetch(`/api/airlines?code=${code}`, {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          const result = await response.json();
+          if (result.data && result.data.length > 0) {
+            console.log('📍 항공사 ID 조회 완료:', result.data[0].id);
+            setAirlineId(result.data[0].id);
+          }
+        } catch (err) {
+          console.error('❌ 항공사 조회 오류:', err);
+        }
+      };
+      fetchAirlineId();
     }
     console.log('✅ 로딩 완료 - setLoading(false) 호출');
     setLoading(false);
@@ -552,10 +569,6 @@ export default function AirlinePage() {
               <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                   <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
                     <div>
-                      <h3 className="text-xl font-black text-gray-900 tracking-tight">유사호출부호 발생현황</h3>
-                      <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                        Risk analyzed callsign pairs ({allFilteredIncidents.length} cases)
-                      </p>
                     </div>
                   </div>
 

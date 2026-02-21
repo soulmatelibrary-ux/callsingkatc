@@ -7,20 +7,6 @@ import { Plane, Building2, ShieldCheck, Mail, Lock } from 'lucide-react';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/store/authStore';
 
-const airlines = [
-  { code: 'KAL', name: '대한항공 (KAL)' },
-  { code: 'AAR', name: '아시아나항공 (AAR)' },
-  { code: 'JJA', name: '제주항공 (JJA)' },
-  { code: 'JNA', name: '진에어 (JNA)' },
-  { code: 'TWB', name: '티웨이항공 (TWB)' },
-  { code: 'ABL', name: '에어부산 (ABL)' },
-  { code: 'ASV', name: '에어서울 (ASV)' },
-  { code: 'ESR', name: '이스타항공 (ESR)' },
-  { code: 'FGW', name: '플라이강원 (FGW)' },
-  { code: 'ARK', name: '에어로케이항공 (ARK)' },
-  { code: 'APZ', name: '에어프레미아 (APZ)' },
-];
-
 // 배경에 표시할 항공기 데이터 - 고정된 위치
 const radarAircraft = [
   { airline: 'KAL', flight: 'KAL652', level: 'FL320', speed: '480kts', color: 'rgba(59, 130, 246, 0.7)', top: '10%', left: '10%', size: 16 },
@@ -56,7 +42,6 @@ export default function Home() {
   const setAuth = useAuthStore((s) => s.setAuth);
   const setUser = useAuthStore((s) => s.setUser);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [selectedAirline, setSelectedAirline] = useState<string>('KAL');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -376,18 +361,6 @@ export default function Home() {
           animation: 'fadeIn 0.6s ease-out',
         }}
       >
-        {/* 로고 영역 */}
-        <div style={{
-          display: 'inline-flex',
-          padding: '6px 14px',
-          borderRadius: '10px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          marginBottom: '16px',
-          boxShadow: '0 8px 15px -3px rgba(0, 0, 0, 0.1)',
-        }}>
-          <img src="/logo_kac.png" alt="KAC Logo" style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
-        </div>
-
         {/* 제목 */}
         <h2
           style={{
@@ -468,39 +441,8 @@ export default function Home() {
             </button>
           </div>
 
-          {/* 항공사 선택, 이메일, 비밀번호 입력을 세로 배치 */}
+          {/* 이메일, 비밀번호 입력을 세로 배치 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
-            {!isAdmin && (
-              <div style={{ textAlign: 'left' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>항공사</label>
-                <div style={{ position: 'relative' }}>
-                  <select
-                    value={selectedAirline}
-                    onChange={(e) => setSelectedAirline(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '11px 16px',
-                      border: '1.5px solid rgba(226, 232, 240, 0.8)',
-                      borderRadius: '10px',
-                      fontSize: '14px',
-                      fontFamily: 'inherit',
-                      outline: 'none',
-                      background: '#ffffff',
-                      appearance: 'none',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {airlines.map((airline) => (
-                      <option key={airline.code} value={airline.code}>{airline.name}</option>
-                    ))}
-                  </select>
-                  <div style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#64748b' }}>
-                    ▼
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div style={{ textAlign: 'left' }}>
               <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: '#1e293b', marginBottom: '8px' }}>이메일</label>
               <div style={{ position: 'relative' }}>

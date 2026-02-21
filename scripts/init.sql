@@ -66,15 +66,15 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DE
 
 -- 국내 항공사 9개 데이터 삽입 (display_order 포함)
 INSERT INTO airlines (code, name_ko, name_en, display_order) VALUES
-('KAL', '대한항공', 'Korean Air', 1),
-('AAR', '아시아나항공', 'Asiana Airlines', 2),
-('JJA', '제주항공', 'Jeju Air', 3),
-('JNA', '진에어', 'Jin Air', 4),
-('TWB', '티웨이항공', 'T''way Air', 5),
-('ABL', '에어부산', 'Air Busan', 6),
-('ASV', '에어서울', 'Air Seoul', 7),
-('EOK', '이스타항공', 'Eastar Jet', 8),
-('FGW', '플라이강원', 'Fly Gangwon', 9)
+('KAL', '대한항공', 'KOREAN AIR', 1),
+('AAR', '아시아나항공', 'ASIANA AIRLINES', 2),
+('JJA', '제주항공', 'JEJUair', 3),
+('JNA', '진에어', 'JIN AIR', 4),
+('TWB', '티웨이항공', 't''way Air', 5),
+('ABL', '에어부산', 'AIR BUSAN', 6),
+('ASV', '에어서울', 'AIR SEOUL', 7),
+('EOK', '이스타항공', 'EASTAR JET', 8),
+('FGW', '플라이강원', 'Aero K', 9)
 ON CONFLICT (code) DO NOTHING;
 
 -- 기본 관리자 사용자 삽입 (비밀번호: Admin1234 - bcrypt hash)

@@ -34,6 +34,22 @@ function PlaneIcon() {
   );
 }
 
+// 항공사별 시그니쳐 색상
+function getAirlineTextColor(airlineCode?: string): string {
+  const colorMap: Record<string, string> = {
+    KAL: '#003478', // 대한항공: 진한 파란색
+    AAR: '#003478', // 아시아나: 파란색
+    JJA: '#FF6600', // 제주항공: 주황색
+    JNA: '#FFD700', // 진에어: 노란색
+    TWB: '#E31937', // 티웨이: 빨간색
+    ABL: '#003478', // 에어부산: 파란색
+    ASV: '#1BC47D', // 에어서울: 초록색
+    EOK: '#E31937', // 이스타: 빨간색
+    FGW: '#003478', // 에어로케이: 파란색
+  };
+  return colorMap[airlineCode || ''] || '#FFFFFF';
+}
+
 export function Header() {
   const router = useRouter();
   const { user, isAuthenticated, isAdmin, logout, fetchUserInfo } = useAuthStore((s) => ({
@@ -71,11 +87,14 @@ export function Header() {
         boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
       }}
     >
-      {/* 로고 + 시스템명 */}
-      <div className="flex items-center gap-3">
+      {/* 로고 + 시스템명 + 항공사 정보 */}
+      <div className="flex items-center gap-4">
+        {/* 로고 */}
         <span className="text-white p-2 bg-white/10 rounded-lg shadow-inner" aria-hidden="true">
           <PlaneIcon />
         </span>
+
+        {/* 시스템명 */}
         <div className="flex flex-col">
           <Link
             href={ROUTES.HOME}
@@ -87,15 +106,19 @@ export function Header() {
             유사호출부호 경고시스템
           </span>
         </div>
-      </div>
 
-      {/* 항공사 정보 */}
-      {isAuthenticated && user && user.airline?.name_ko && (
-        <div className="flex flex-col items-center absolute left-1/2 transform -translate-x-1/2">
-          <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider">AIRLINE</span>
-          <span className="text-white font-bold text-sm tracking-tight">{user.airline.name_ko}</span>
-        </div>
-      )}
+        {/* 항공사 정보 */}
+        {isAuthenticated && user && user.airline?.name_ko && (
+          <div className="flex flex-col justify-center ml-4 pl-4 border-l border-white/20">
+            <span
+              className="font-extrabold text-lg leading-tight tracking-tight"
+              style={{ color: getAirlineTextColor(user.airline.code) }}
+            >
+              {user.airline.name_en ? `${user.airline.name_en} ${user.airline.name_ko}` : user.airline.name_ko}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* 우측 영역 */}
       <nav className="flex items-center gap-3" aria-label="사용자 네비게이션">
