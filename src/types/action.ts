@@ -198,6 +198,19 @@ export interface ActionListResponse {
   };
 }
 
+export interface ActionStatisticsResponse {
+  total: number;
+  completionRate: number;
+  averageCompletionDays: number;
+  statusCounts: {
+    waiting: number;
+    in_progress: number;
+    completed: number;
+  };
+  typeDistribution: Array<{ name: string; count: number; percentage: number }>;
+  monthlyTrend: Array<{ month: string; count: number }>;
+}
+
 /**
  * 호출부호 목록 조회 응답 타입
  */

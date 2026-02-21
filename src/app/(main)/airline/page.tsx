@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { parseJsonCookie } from '@/lib/cookies';
 import { ROUTES } from '@/lib/constants';
-import { useAirlineActions, useAirlineCallsigns } from '@/hooks/useActions';
+import { useAirlineActions, useAirlineActionStats, useAirlineCallsigns } from '@/hooks/useActions';
 import { useAuthStore } from '@/store/authStore';
 import { ActionModal } from '@/components/actions/ActionModal';
 
@@ -119,6 +119,8 @@ export default function AirlinePage() {
     limit: 1000,
   });
 
+  const { data: actionStats, isLoading: actionStatsLoading } = useAirlineActionStats(airlineId);
+
   useEffect(() => {
     console.log('🔄 airline/page useEffect 실행됨');
 
@@ -184,6 +186,15 @@ export default function AirlinePage() {
     '높음': '#f59e0b',
     '낮음': '#16a34a',
     '매우낮음': '#0891b2',
+  };
+
+  const formatDisplayDate = (value?: string | null) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return '-';
+    }
+    return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
 
   function handleStartDateChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -278,6 +289,50 @@ export default function AirlinePage() {
 
   // 전체 진행 중 건수는 API에서 제공하는 pagination.total을 사용 (표시 개수와 다를 수 있음)
   const totalIncidentCount = callsignsData?.pagination?.total ?? visibleIncidentCount;
+
+  const callsignDetailMeta = selectedCallsignForDetail
+    ? {
+      occurrenceCount:
+        selectedCallsignForDetail.occurrence_count ??
+        selectedCallsignForDetail.occurrenceCount ??
+        0,
+      firstOccurredAt:
+        selectedCallsignForDetail.firstDate ??
+        selectedCallsignForDetail.created_at ??
+        selectedCallsignForDetail.createdAt ??
+        null,
+      lastOccurredAt:
+        selectedCallsignForDetail.lastDate ??
+        selectedCallsignForDetail.last_occurred_at ??
+        selectedCallsignForDetail.lastOccurredAt ??
+        null,
+      similarity:
+        selectedCallsignForDetail.similarity ??
+        selectedCallsignForDetail.similarityLevel ??
+        '-',
+      riskLevel:
+        selectedCallsignForDetail.risk_level ??
+        selectedCallsignForDetail.riskLevel ??
+        selectedCallsignForDetail.risk ??
+        '-',
+      myCallsign:
+        selectedCallsignForDetail.my_callsign ??
+        selectedCallsignForDetail.myCallsign ??
+        '-',
+      otherCallsign:
+        selectedCallsignForDetail.other_callsign ??
+        selectedCallsignForDetail.otherCallsign ??
+        '-',
+      errorType:
+        selectedCallsignForDetail.error_type ??
+        selectedCallsignForDetail.errorType ??
+        '-',
+      subError:
+        selectedCallsignForDetail.sub_error ??
+        selectedCallsignForDetail.subError ??
+        '-',
+    }
+    : null;
 
   // 에러 타입별 동적 통계 생성
   const errorTypeConfig: Record<string, { label: string; bgColor: string; textColor: string; description: string }> = {
@@ -946,7 +1001,13 @@ export default function AirlinePage() {
                                 key={action.id}
                                 className="group hover:bg-primary/[0.02] transition-colors cursor-pointer"
                                 onDoubleClick={() => {
-                                  setSelectedCallsignForDetail(action.callsign);
+                                  const targetId = action.callsign_id || action.callsignId || action.callsign?.id;
+                                  const detailFromIncidents = callsignsData?.data.find(
+                                    (cs) => cs.id === targetId,
+                                  );
+                                  const detailPayload = detailFromIncidents || action.callsign;
+                                  if (!detailPayload) return;
+                                  setSelectedCallsignForDetail(detailPayload);
                                   setIsCallsignDetailModalOpen(true);
                                 }}
                               >
@@ -1316,7 +1377,16 @@ export default function AirlinePage() {
                   발생건수
                 </p>
                 <p style={{ fontSize: '20px', fontWeight: 700, color: '#ef6c00' }}>
-                  {selectedCallsignForDetail.occurrence_count}건
+                  {callsignDetailMeta?.occurrenceCount ?? 0}건
+                </p>
+              </div>
+
+              <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                  최초 발생일
+                </p>
+                <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+                  {formatDisplayDate(callsignDetailMeta?.firstOccurredAt)}
                 </p>
               </div>
 
@@ -1325,9 +1395,7 @@ export default function AirlinePage() {
                   최근 발생일
                 </p>
                 <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
-                  {selectedCallsignForDetail.last_occurred_at
-                    ? new Date(selectedCallsignForDetail.last_occurred_at).toLocaleDateString('ko-KR')
-                    : '-'}
+                  {formatDisplayDate(callsignDetailMeta?.lastOccurredAt)}
                 </p>
               </div>
 
@@ -1336,7 +1404,7 @@ export default function AirlinePage() {
                   유사성
                 </p>
                 <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
-                  {selectedCallsignForDetail.similarity || '-'}
+                  {callsignDetailMeta?.similarity || '-'}
                 </p>
               </div>
 
@@ -1345,7 +1413,7 @@ export default function AirlinePage() {
                   오류가능성
                 </p>
                 <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
-                  {selectedCallsignForDetail.risk_level || '-'}
+                  {callsignDetailMeta?.riskLevel || '-'}
                 </p>
               </div>
             </div>
@@ -1363,25 +1431,25 @@ export default function AirlinePage() {
                 <div>
                   <span style={{ color: '#6b7280' }}>자사 호출부호: </span>
                   <span style={{ fontWeight: 600, color: '#111827' }}>
-                    {selectedCallsignForDetail.my_callsign}
+                    {callsignDetailMeta?.myCallsign}
                   </span>
                 </div>
                 <div>
                   <span style={{ color: '#6b7280' }}>타사 호출부호: </span>
                   <span style={{ fontWeight: 600, color: '#111827' }}>
-                    {selectedCallsignForDetail.other_callsign}
+                    {callsignDetailMeta?.otherCallsign}
                   </span>
                 </div>
                 <div>
                   <span style={{ color: '#6b7280' }}>오류 유형: </span>
                   <span style={{ fontWeight: 600, color: '#111827' }}>
-                    {selectedCallsignForDetail.error_type || '-'}
+                    {callsignDetailMeta?.errorType || '-'}
                   </span>
                 </div>
                 <div>
                   <span style={{ color: '#6b7280' }}>세부 오류: </span>
                   <span style={{ fontWeight: 600, color: '#111827' }}>
-                    {selectedCallsignForDetail.sub_error || '-'}
+                    {callsignDetailMeta?.subError || '-'}
                   </span>
                 </div>
               </div>

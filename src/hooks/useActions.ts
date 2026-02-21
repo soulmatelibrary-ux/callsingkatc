@@ -16,6 +16,7 @@ import {
   CallsignListResponse,
   CreateActionRequest,
   UpdateActionRequest,
+  ActionStatisticsResponse,
 } from '@/types/action';
 
 /**
@@ -226,6 +227,42 @@ export function useAirlineCallsigns(
     },
     enabled: !!accessToken && !!airlineId,
     staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * 항공사별 조치 통계 조회
+ */
+export function useAirlineActionStats(airlineId?: string) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery({
+    queryKey: ['airline-action-stats', airlineId],
+    queryFn: async () => {
+      if (!accessToken) {
+        throw new Error('인증 토큰이 없습니다.');
+      }
+
+      if (!airlineId) {
+        throw new Error('항공사 ID가 필요합니다.');
+      }
+
+      const response = await fetch(`/api/airlines/${airlineId}/actions/stats`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('조치 통계 조회 실패');
+      }
+
+      const data = (await response.json()) as ActionStatisticsResponse;
+      return data;
+    },
+    enabled: !!accessToken && !!airlineId,
+    staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
   });
 }
