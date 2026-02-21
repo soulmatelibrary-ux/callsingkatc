@@ -34,18 +34,18 @@ function PlaneIcon() {
   );
 }
 
-// 항공사별 시그니쳐 색상
+// 항공사별 시그니쳐 색상 (파란 배경에서 색 대비 고려)
 function getAirlineTextColor(airlineCode?: string): string {
   const colorMap: Record<string, string> = {
-    KAL: '#003478', // 대한항공: 진한 파란색
-    AAR: '#003478', // 아시아나: 파란색
-    JJA: '#FF6600', // 제주항공: 주황색
-    JNA: '#FFD700', // 진에어: 노란색
-    TWB: '#E31937', // 티웨이: 빨간색
-    ABL: '#003478', // 에어부산: 파란색
-    ASV: '#1BC47D', // 에어서울: 초록색
-    EOK: '#E31937', // 이스타: 빨간색
-    FGW: '#003478', // 에어로케이: 파란색
+    KAL: '#FFFFFF', // 대한항공: 흰색 (파란색 배경에서 대비 부족)
+    AAR: '#FFFFFF', // 아시아나: 흰색 (파란색 배경에서 대비 부족)
+    JJA: '#FF6600', // 제주항공: 주황색 (색 대비 좋음)
+    JNA: '#FFD700', // 진에어: 노란색 (색 대비 좋음)
+    TWB: '#E31937', // 티웨이: 빨간색 (색 대비 좋음)
+    ABL: '#FFFFFF', // 에어부산: 흰색 (파란색 배경에서 대비 부족)
+    ASV: '#1BC47D', // 에어서울: 초록색 (색 대비 좋음)
+    EOK: '#E31937', // 이스타: 빨간색 (색 대비 좋음)
+    FGW: '#FFFFFF', // 플라이강원: 흰색 (파란색 배경에서 대비 부족)
   };
   return colorMap[airlineCode || ''] || '#FFFFFF';
 }
