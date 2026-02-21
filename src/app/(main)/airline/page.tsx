@@ -52,7 +52,7 @@ export default function AirlinePage() {
   const [airlineCode, setAirlineCode] = useState<string>('');
   const [airlineName, setAirlineName] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'incidents' | 'actions'>('incidents');
+  const [activeTab, setActiveTab] = useState<'incidents' | 'actions' | 'statistics'>('incidents');
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState<any | null>(null);
   const [startDate, setStartDate] = useState<string>(() => {
@@ -420,6 +420,17 @@ export default function AirlinePage() {
             >
               <span className="text-lg">📋</span>
               <span>조치이력</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('statistics')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-none text-sm font-black tracking-tight transition-all text-left ${activeTab === 'statistics'
+                ? 'bg-rose-700 text-white shadow-lg shadow-rose-700/20'
+                : 'text-gray-500 hover:bg-gray-100'
+                }`}
+            >
+              <span className="text-lg">📈</span>
+              <span>통계</span>
             </button>
           </nav>
         </aside>
@@ -991,6 +1002,173 @@ export default function AirlinePage() {
                     <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">No action history found</p>
                   </div>
                 )}
+              </>
+            )}
+
+            {/* 통계 탭 */}
+            {activeTab === 'statistics' && (
+              <>
+                {/* 통계 헤더 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden mb-8">
+                  <div className="px-8 py-6 border-b border-gray-50 bg-[#00205b] text-white">
+                    <h3 className="text-xl font-black text-white tracking-tight">조치 관리 통계</h3>
+                    <p className="text-xs font-bold text-gray-300 mt-1 uppercase tracking-widest">
+                      Action Management Statistics
+                    </p>
+                  </div>
+                </div>
+
+                {/* 핵심 3개 통계 카드 */}
+                <div className="grid grid-cols-3 gap-6 mb-8">
+                  {/* 총 조치 건수 */}
+                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">총 조치 건수</p>
+                    <p className="text-4xl font-black text-gray-700">{actionsData?.data.length || 0}</p>
+                    <p className="text-xs text-gray-500 font-bold mt-2">건</p>
+                  </div>
+
+                  {/* 완료율 */}
+                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">완료율</p>
+                    <p className="text-4xl font-black text-emerald-600">
+                      {actionsData?.data.length
+                        ? Math.round(
+                          ((actionsData.data.filter((a: any) => a.status === 'completed').length /
+                            actionsData.data.length) *
+                            100)
+                        )
+                        : 0}
+                    </p>
+                    <p className="text-xs text-gray-500 font-bold mt-2">%</p>
+                  </div>
+
+                  {/* 평균 처리 기간 */}
+                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">평균 처리 기간</p>
+                    <p className="text-4xl font-black text-blue-600">
+                      {actionsData?.data.length
+                        ? (() => {
+                          const completedActions = actionsData.data.filter((a: any) => a.status === 'completed');
+                          if (completedActions.length === 0) return 0;
+                          const totalDays = completedActions.reduce((sum: number, a: any) => {
+                            if (!a.registered_at || !a.completed_at) return sum;
+                            const start = new Date(a.registered_at).getTime();
+                            const end = new Date(a.completed_at).getTime();
+                            return sum + Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                          }, 0);
+                          return Math.round(totalDays / completedActions.length);
+                        })()
+                        : 0}
+                    </p>
+                    <p className="text-xs text-gray-500 font-bold mt-2">일</p>
+                  </div>
+                </div>
+
+                {/* 조치 유형별 분포 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 mb-8">
+                  <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">조치 유형별 분포</h4>
+                  <div className="space-y-4">
+                    {(() => {
+                      const typeMap: Record<string, number> = {};
+                      actionsData?.data.forEach((action: any) => {
+                        const type = action.action_type || '미정의';
+                        typeMap[type] = (typeMap[type] || 0) + 1;
+                      });
+                      const total = actionsData?.data.length || 1;
+                      const types = Object.entries(typeMap).sort((a, b) => b[1] - a[1]);
+
+                      return types.map(([type, count], idx) => {
+                        const percentage = Math.round((count / total) * 100);
+                        const colors = [
+                          { bar: 'bg-rose-500', text: 'text-rose-600' },
+                          { bar: 'bg-amber-500', text: 'text-amber-600' },
+                          { bar: 'bg-blue-500', text: 'text-blue-600' },
+                          { bar: 'bg-emerald-500', text: 'text-emerald-600' },
+                          { bar: 'bg-purple-500', text: 'text-purple-600' },
+                          { bar: 'bg-indigo-500', text: 'text-indigo-600' },
+                        ];
+                        const color = colors[idx % colors.length];
+
+                        return (
+                          <div key={type} className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-bold text-gray-700">{type}</span>
+                              <span className={`text-sm font-black ${color.text}`}>{count}건 ({percentage}%)</span>
+                            </div>
+                            <div className="w-full bg-gray-100 rounded-none h-3 overflow-hidden">
+                              <div
+                                className={`${color.bar} h-full transition-all`}
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                {/* 상태별 분포 */}
+                <div className="grid grid-cols-2 gap-6 mb-8">
+                  {/* 상태별 집계 */}
+                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6">
+                    <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">상태별 집계</h4>
+                    <div className="space-y-4">
+                      {(() => {
+                        const statusMap = {
+                          pending: { label: '대기 중', color: 'text-amber-600', bgColor: 'bg-amber-50' },
+                          in_progress: { label: '진행 중', color: 'text-blue-600', bgColor: 'bg-blue-50' },
+                          completed: { label: '완료', color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
+                        };
+
+                        const counts = {
+                          pending: actionsData?.data.filter((a: any) => a.status === 'pending').length || 0,
+                          in_progress: actionsData?.data.filter((a: any) => a.status === 'in_progress').length || 0,
+                          completed: actionsData?.data.filter((a: any) => a.status === 'completed').length || 0,
+                        };
+
+                        return Object.entries(statusMap).map(([status, { label, color, bgColor }]) => (
+                          <div key={status} className={`${bgColor} rounded-none p-4`}>
+                            <p className={`text-xs font-bold uppercase tracking-widest ${color} mb-2`}>{label}</p>
+                            <p className={`text-3xl font-black ${color}`}>{counts[status as keyof typeof counts]}</p>
+                            <p className="text-xs text-gray-500 font-bold mt-2">건</p>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* 월별 추이 요약 */}
+                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6">
+                    <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">월별 조치 현황</h4>
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {(() => {
+                        const monthMap: Record<string, number> = {};
+                        actionsData?.data.forEach((action: any) => {
+                          if (!action.registered_at) return;
+                          const date = new Date(action.registered_at);
+                          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                          monthMap[monthKey] = (monthMap[monthKey] || 0) + 1;
+                        });
+
+                        const months = Object.entries(monthMap)
+                          .sort(([a], [b]) => b.localeCompare(a))
+                          .slice(0, 6);
+
+                        return months.length > 0 ? (
+                          months.map(([month, count]) => (
+                            <div key={month} className="flex items-center justify-between pb-3 border-b border-gray-100 last:border-b-0">
+                              <span className="text-sm font-bold text-gray-600">{month}</span>
+                              <span className="text-sm font-black text-rose-600">{count}건</span>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-center text-gray-400 text-sm py-8">조치 데이터가 없습니다</p>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
               </>
             )}
           </div>
