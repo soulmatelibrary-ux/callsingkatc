@@ -137,6 +137,7 @@ export async function PATCH(
     // 요청 본문
     const {
       status,
+      action_type,
       description,
       manager_name,
       planned_due_date,
@@ -195,6 +196,10 @@ export async function PATCH(
     const values: any[] = [];
     let paramIndex = 1;
 
+    if (action_type !== undefined) {
+      fields.push(`action_type = $${paramIndex++}`);
+      values.push(action_type);
+    }
     if (description !== undefined) {
       fields.push(`description = $${paramIndex++}`);
       values.push(description);
@@ -263,6 +268,18 @@ export async function PATCH(
       reviewed_by: updatedAction.reviewed_by,
       reviewed_at: updatedAction.reviewed_at,
       review_comment: updatedAction.review_comment,
+      callsignId: updatedAction.callsign_id,
+      actionType: updatedAction.action_type,
+      managerName: updatedAction.manager_name,
+      plannedDueDate: updatedAction.planned_due_date,
+      resultDetail: updatedAction.result_detail,
+      completedAt: updatedAction.completed_at,
+      registeredBy: updatedAction.registered_by,
+      registeredAt: updatedAction.registered_at,
+      updatedAt: updatedAction.updated_at,
+      reviewedBy: updatedAction.reviewed_by,
+      reviewedAt: updatedAction.reviewed_at,
+      reviewComment: updatedAction.review_comment,
     });
   } catch (error) {
     console.error('조치 업데이트 오류:', error);

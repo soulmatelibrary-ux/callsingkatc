@@ -86,6 +86,7 @@ export function ActionModal({
         // 수정 모드
         await updateMutation.mutateAsync({
           id: actionId,
+          action_type: actionType,
           description: description || undefined,
           manager_name: managerName,
           status: status,
