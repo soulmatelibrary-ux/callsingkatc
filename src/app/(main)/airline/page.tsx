@@ -80,6 +80,13 @@ export default function AirlinePage() {
   const [isCallsignDetailModalOpen, setIsCallsignDetailModalOpen] = useState(false);
   const accessToken = useAuthStore((s) => s.accessToken);
 
+  // 상태 필터 변경 시 캐시 완전 초기화
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
+    setActionPage(1);
+  }, [actionStatusFilter, queryClient]);
+
+
   // 조치 목록 데이터
   const { data: actionsData, isLoading: actionsLoading } = useAirlineActions({
     airlineId: airlineId,
@@ -887,7 +894,7 @@ export default function AirlinePage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                          {actionsData.data.map((action) => {
+                          {actionsData.data.map((action, index) => {
                             const statusLabel = action.status === 'in_progress' ? '진행중' : '완료';
                             const statusStyles =
                               action.status === 'in_progress' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50';
@@ -902,6 +909,7 @@ export default function AirlinePage() {
                                   setIsCallsignDetailModalOpen(true);
                                 }}
                               >
+                                <td className="px-8 py-5 text-sm font-bold text-gray-500 text-center">{index + 1}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-500">{registeredDate}</td>
                                 <td className="px-8 py-5 text-sm font-black text-gray-900 tracking-tight">{action.callsign?.callsign_pair || '-'}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.action_type}</td>
