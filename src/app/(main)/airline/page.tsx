@@ -238,9 +238,70 @@ export default function AirlinePage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-gray-600">로딩 중...</div>
-      </div>
-    );
-  }
+                </div>
+
+                {/* 요약 통계 */}
+                {total > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                      <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
+                      <div className="relative flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total Cases</p>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <p className="text-5xl font-black text-gray-900 tracking-tighter">{total}</p>
+                          <span className="text-sm font-bold text-gray-400">건</span>
+                        </div>
+                        <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">분석 기간 내 전체 발생 건수</p>
+                      </div>
+                    </div>
+
+                    {/* 동적으로 생성된 에러 타입별 카드 */}
+                    {errorTypeStats.map((stat) => (
+                      <div
+                        key={stat.type}
+                        onClick={() => setErrorTypeFilter(errorTypeFilter === stat.type ? 'all' : stat.type as any)}
+                        className={`group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === stat.type ? `ring-2 ring-opacity-50 shadow-opacity-10` : ''
+                          }`}
+                        style={
+                          errorTypeFilter === stat.type
+                            ? {
+                              boxShadow: `0 0 0 2px var(--ring-color), 0 20px 40px var(--shadow-color)`,
+                              '--ring-color': stat.textColor.replace('text-', '--').match(/text-(\w+-\d+)/)?.[1],
+                            } as any
+                            : {}
+                        }
+                      >
+                        <div
+                          className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
+                          style={{ backgroundColor: stat.textColor.replace('text-', 'rgb(') + ')' }}
+                        />
+                        <div className="relative flex flex-col h-full">
+                          <div className="flex justify-between items-start mb-4">
+                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                              {stat.label}
+                            </p>
+                            {total > 0 && (
+                              <span className={`text-[10px] font-black px-2 py-1 rounded-none ${stat.bgColor} ${stat.textColor}`}>
+                                {stat.percentage}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-baseline gap-1">
+                            <p className={`text-5xl font-black tracking-tighter ${stat.textColor}`}>{stat.count}</p>
+                            <span className="text-sm font-bold text-gray-400">건</span>
+                          </div>
+                          <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">
+                            {stat.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 조회 기간 필터 */}
 
   // DB에서 가져온 callsigns 데이터를 incidents 형태로 변환
   const incidents = callsignsData?.data.map((cs) => ({
@@ -744,67 +805,6 @@ export default function AirlinePage() {
                     <p className="text-gray-500 font-bold">등록된 유사호출부호 발생 이력이 없습니다</p>
                   </div>
                 )}
-
-                {/* 요약 통계 */}
-                {total > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-                      <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
-                      <div className="relative flex flex-col h-full">
-                        <div className="flex justify-between items-start mb-4">
-                          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total Cases</p>
-                        </div>
-                        <div className="flex items-baseline gap-1">
-                          <p className="text-5xl font-black text-gray-900 tracking-tighter">{total}</p>
-                          <span className="text-sm font-bold text-gray-400">건</span>
-                        </div>
-                        <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">분석 기간 내 전체 발생 건수</p>
-                      </div>
-                    </div>
-
-                    {/* 동적으로 생성된 에러 타입별 카드 */}
-                    {errorTypeStats.map((stat) => (
-                      <div
-                        key={stat.type}
-                        onClick={() => setErrorTypeFilter(errorTypeFilter === stat.type ? 'all' : stat.type as any)}
-                        className={`group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === stat.type ? `ring-2 ring-opacity-50 shadow-opacity-10` : ''
-                          }`}
-                        style={
-                          errorTypeFilter === stat.type
-                            ? {
-                              boxShadow: `0 0 0 2px var(--ring-color), 0 20px 40px var(--shadow-color)`,
-                              '--ring-color': stat.textColor.replace('text-', '--').match(/text-(\w+-\d+)/)?.[1],
-                            } as any
-                            : {}
-                        }
-                      >
-                        <div
-                          className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
-                          style={{ backgroundColor: stat.textColor.replace('text-', 'rgb(') + ')' }}
-                        />
-                        <div className="relative flex flex-col h-full">
-                          <div className="flex justify-between items-start mb-4">
-                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
-                              {stat.label}
-                            </p>
-                            {total > 0 && (
-                              <span className={`text-[10px] font-black px-2 py-1 rounded-none ${stat.bgColor} ${stat.textColor}`}>
-                                {stat.percentage}%
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-baseline gap-1">
-                            <p className={`text-5xl font-black tracking-tighter ${stat.textColor}`}>{stat.count}</p>
-                            <span className="text-sm font-bold text-gray-400">건</span>
-                          </div>
-                          <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">
-                            {stat.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </>
             )}
 
@@ -1009,14 +1009,14 @@ export default function AirlinePage() {
             {activeTab === 'statistics' && (
               <>
                 {/* 통계 헤더 */}
-                <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden mb-8">
+                {/* <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden mb-8">
                   <div className="px-8 py-6 border-b border-gray-50 bg-[#00205b] text-white">
                     <h3 className="text-xl font-black text-white tracking-tight">조치 관리 통계</h3>
                     <p className="text-xs font-bold text-gray-300 mt-1 uppercase tracking-widest">
                       Action Management Statistics
                     </p>
                   </div>
-                </div>
+                </div> */}
 
                 {/* 핵심 3개 통계 카드 */}
                 <div className="grid grid-cols-3 gap-6 mb-8">
