@@ -570,6 +570,8 @@ export default function AirlinePage() {
                     <div>
                       <h3 className="text-xl font-black text-white tracking-tight">유사호출부호 발생현황</h3>
                       <p className="text-xs font-bold text-gray-300 mt-1 uppercase tracking-widest">
+                        Risk analyzed callsign pairs ({allFilteredIncidents.length} cases)
+                      </p>
                     </div>
                   </div>
 
@@ -628,7 +630,7 @@ export default function AirlinePage() {
                           <div
                             key={incident.id}
                             className={`border-b-2 border-gray-100 last:border-b-0 border-l-4 ${incident.risk === '매우높음' ? 'border-l-red-600' :
-                                incident.risk === '높음' ? 'border-l-amber-500' : 'border-l-emerald-600'
+                              incident.risk === '높음' ? 'border-l-amber-500' : 'border-l-emerald-600'
                               }`}
                           >
                             {/* 첫 번째 행: 호출부호 | 분류 정보 태그 | 조치 버튼 */}
@@ -699,7 +701,7 @@ export default function AirlinePage() {
                               {/* 분류 정보 태그 - 호출부호 바로 옆 */}
                               <div className="flex flex-wrap gap-2 items-center">
                                 <span className={`inline-block text-[10px] font-bold px-2.5 py-1 rounded-none ${incident.errorType === '관제사 오류' ? 'text-rose-600 bg-rose-50' :
-                                    incident.errorType === '조종사 오류' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'
+                                  incident.errorType === '조종사 오류' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'
                                   }`}>
                                   {incident.errorType}
                                 </span>
@@ -724,7 +726,7 @@ export default function AirlinePage() {
                               <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">발생건수</span>
                                 <span className={`text-lg font-black ${incident.risk === '매우높음' ? 'text-rose-600' :
-                                    incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
+                                  incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
                                   }`}>
                                   {incident.count}건
                                 </span>
@@ -753,7 +755,7 @@ export default function AirlinePage() {
                               <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">오류가능성</span>
                                 <span className={`text-sm font-bold ${incident.risk === '매우높음' ? 'text-rose-600' :
-                                    incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
+                                  incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
                                   }`}>
                                   {incident.risk}
                                 </span>
