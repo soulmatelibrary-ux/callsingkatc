@@ -60,11 +60,13 @@ export const ROUTES = {
   PENDING: '/pending',
   AIRLINE: '/airline',
   DASHBOARD: '/dashboard',
+  ANNOUNCEMENTS: '/announcements',
   ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',
   ADMIN_PASSWORD_RESET: '/admin/password-reset',
   ADMIN_AIRLINES: '/admin/airlines',
   ADMIN_ACTIONS: '/admin/actions',
+  ADMIN_ANNOUNCEMENTS: '/admin/announcements',
 };
 
 /**
@@ -96,4 +98,45 @@ export const AIRLINES = [
 export const USER_ROLE = {
   ADMIN: 'admin',
   USER: 'user',
+} as const;
+
+/**
+ * 공지사항 긴급도 레벨
+ */
+export const ANNOUNCEMENT_LEVEL = {
+  WARNING: 'warning',    // 🚨 경고 (빨강)
+  INFO: 'info',          // 📢 일반 (파랑)
+  SUCCESS: 'success',    // ✅ 완료 (초록)
+} as const;
+
+/**
+ * 공지사항 상태
+ */
+export const ANNOUNCEMENT_STATUS = {
+  ACTIVE: 'active',      // 현재 표시 중
+  EXPIRED: 'expired',    // 종료됨
+} as const;
+
+/**
+ * 공지사항 긴급도 색상 맵
+ */
+export const ANNOUNCEMENT_LEVEL_COLORS = {
+  warning: {
+    bg: 'bg-red-50',
+    border: 'border-red-300',
+    text: 'text-red-900',
+    badge: 'bg-red-100 text-red-800',
+  },
+  info: {
+    bg: 'bg-blue-50',
+    border: 'border-blue-300',
+    text: 'text-blue-900',
+    badge: 'bg-blue-100 text-blue-800',
+  },
+  success: {
+    bg: 'bg-green-50',
+    border: 'border-green-300',
+    text: 'text-green-900',
+    badge: 'bg-green-100 text-green-800',
+  },
 } as const;

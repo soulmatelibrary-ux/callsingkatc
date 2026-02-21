@@ -192,10 +192,10 @@ export async function POST(request: NextRequest) {
             `INSERT INTO callsigns
               (airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
                other_airline_code, error_type, sub_error, risk_level, similarity,
-               file_upload_id, uploaded_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+               file_upload_id, uploaded_at, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), 'in_progress')
              ON CONFLICT (airline_code, callsign_pair)
-             DO UPDATE SET updated_at = NOW()
+             DO UPDATE SET updated_at = NOW(), status = 'in_progress'
              RETURNING id, (xmax = 0) AS inserted`,
             [
               airlineId,
