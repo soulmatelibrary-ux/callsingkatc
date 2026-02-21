@@ -304,7 +304,7 @@ export function useCreateAction() {
     },
     onSuccess: () => {
       // 조치 목록 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
+      queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
     },
   });
 }
@@ -349,8 +349,8 @@ export function useUpdateAction() {
     },
     onSuccess: () => {
       // 조치 목록, 호출부호 목록, 상세 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
-      queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
+      queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['airline-callsigns'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['action'] });
     },
   });
@@ -392,8 +392,8 @@ export function useDeleteAction() {
     },
     onSuccess: () => {
       // 조치 목록, 호출부호 목록 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
-      queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
+      queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['airline-callsigns'], exact: false });
     },
   });
 }
