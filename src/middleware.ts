@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // 보호되는 라우트
-const protectedRoutes = ['/airline', '/admin', '/dashboard'];
+const protectedRoutes = ['/airline', '/admin', '/dashboard', '/announcements'];
 const authRoutes = ['/login', '/signup', '/forgot-password', '/change-password'];
 
 export function middleware(request: NextRequest) {

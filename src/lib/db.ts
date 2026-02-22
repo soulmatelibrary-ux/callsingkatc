@@ -5,11 +5,12 @@
 import { Pool, QueryResult } from 'pg';
 
 // 연결 풀 생성 (재사용)
+// 참고: DB_PASSWORD는 환경변수로 필수 제공되어야 함 (런타임 검증)
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
   user: process.env.DB_USER || 'katc1',
-  password: process.env.DB_PASSWORD || 'katc1_secure_password_2024',
+  password: process.env.DB_PASSWORD || '',  // 빌드 시 빈 문자열, 런타임에 검증
   database: process.env.DB_NAME || 'katc1_auth',
 });
 

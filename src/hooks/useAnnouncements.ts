@@ -222,9 +222,13 @@ export function useViewAnnouncement() {
         queryKey: announcementQueryKeys.detail(announcementId),
       });
 
-      // 이력 캐시 무효화
+      // 이력 캐시 무효화 (모든 필터 조건의 history 캐시를 무효화)
       queryClient.invalidateQueries({
-        queryKey: announcementQueryKeys.history({}),
+        queryKey: announcementQueryKeys.all(),
+        predicate: (query) => {
+          const queryKey = query.queryKey as (string | object)[];
+          return queryKey.length >= 2 && queryKey[1] === 'history';
+        },
       });
     },
   });

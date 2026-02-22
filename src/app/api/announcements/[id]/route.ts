@@ -57,7 +57,7 @@ export async function GET(
 
     const user = userResult.rows[0];
 
-    // 3. 공지사항 조회
+    // 3. 공지사항 조회 (활성화된 것만, viewCount 포함)
     const announcementResult = await query(
       `
       SELECT
@@ -65,9 +65,16 @@ export async function GET(
         start_date as "startDate", end_date as "endDate",
         target_airlines as "targetAirlines",
         created_by as "createdBy", created_at as "createdAt",
-        updated_by as "updatedBy", updated_at as "updatedAt"
+        updated_by as "updatedBy", updated_at as "updatedAt",
+        is_active as "isActive",
+        CASE
+          WHEN start_date <= NOW() AND end_date >= NOW() THEN 'active'
+          ELSE 'expired'
+        END as status,
+        (SELECT COUNT(*)::int FROM announcement_views WHERE announcement_id = $1)::int as "viewCount"
       FROM announcements
       WHERE id = $1
+        AND is_active = true
         AND (
           target_airlines IS NULL
           OR $2 = ANY(string_to_array(target_airlines, ','))

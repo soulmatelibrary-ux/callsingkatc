@@ -139,10 +139,11 @@ export function useAirlineActions(filters?: {
 
 /**
  * 호출부호 목록 조회 (인증 필요)
- * 필터: riskLevel
+ * 필터: airlineId(선택), riskLevel
  * 페이지네이션 지원
  */
 export function useCallsigns(filters?: {
+  airlineId?: string;
   riskLevel?: string;
   page?: number;
   limit?: number;
@@ -152,13 +153,14 @@ export function useCallsigns(filters?: {
   const limit = filters?.limit || 20;
 
   return useQuery({
-    queryKey: ['callsigns', filters?.riskLevel, page, limit],
+    queryKey: ['callsigns', filters?.airlineId, filters?.riskLevel, page, limit],
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('인증 토큰이 없습니다.');
       }
 
       const params = new URLSearchParams();
+      if (filters?.airlineId) params.append('airlineId', filters.airlineId);
       if (filters?.riskLevel) params.append('riskLevel', filters.riskLevel);
       params.append('page', String(page));
       params.append('limit', String(limit));

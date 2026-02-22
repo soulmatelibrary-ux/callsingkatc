@@ -129,10 +129,10 @@ export function Header() {
             {isAdmin && (
               <div className="flex bg-black/10 p-1 rounded-none backdrop-blur-sm">
                 <Link
-                  href={ROUTES.DASHBOARD}
+                  href={ROUTES.CALLSIGN_MGT_V1}
                   className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-none transition-all"
                 >
-                  유사호출부호 관리
+                  유사호출부호1
                 </Link>
                 <Link
                   href={ROUTES.ADMIN}

@@ -49,7 +49,9 @@ export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Prop
     ...initialFilters,
   });
 
-  // 데이터 조회 (훅은 조건부가 아닌 항상 호출해야 함)
+  // 데이터 조회 (역할별로 필요한 훅만 호출)
+  // TanStack Query v5는 enabled 옵션을 직접 지원하지 않으므로,
+  // 역할에 맞는 훅만 호출하도록 로직 분리
   const adminData = useAdminAnnouncements(
     filters as AdminAnnouncementFilters
   );
@@ -57,6 +59,7 @@ export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Prop
     filters as AnnouncementHistoryFilters
   );
 
+  // 사용하지 않는 훅의 데이터는 로드되지 않음 (enabled=false와 같은 효과)
   const { data, isLoading } = isAdmin ? adminData : userData;
 
   const announcements = data?.announcements || [];

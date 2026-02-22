@@ -4,9 +4,19 @@
 
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key_change_in_production';
+const JWT_SECRET = process.env.JWT_SECRET;
 const ACCESS_TOKEN_EXPIRES = '1h';
 const REFRESH_TOKEN_EXPIRES = '7d';
+
+/**
+ * JWT_SECRET 검증 (런타임)
+ */
+function validateJwtSecret(): string {
+  if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET 환경변수가 설정되지 않았습니다. 보안상 필수 설정입니다.');
+  }
+  return JWT_SECRET;
+}
 
 interface TokenPayload {
   userId: string;
@@ -20,7 +30,8 @@ interface TokenPayload {
  * accessToken 생성
  */
 export function generateAccessToken(payload: TokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, {
+  const secret = validateJwtSecret();
+  return jwt.sign(payload, secret, {
     expiresIn: ACCESS_TOKEN_EXPIRES,
   });
 }
@@ -29,7 +40,8 @@ export function generateAccessToken(payload: TokenPayload): string {
  * refreshToken 생성
  */
 export function generateRefreshToken(userId: string): string {
-  return jwt.sign({ userId }, JWT_SECRET, {
+  const secret = validateJwtSecret();
+  return jwt.sign({ userId }, secret, {
     expiresIn: REFRESH_TOKEN_EXPIRES,
   });
 }
@@ -39,7 +51,8 @@ export function generateRefreshToken(userId: string): string {
  */
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
+    const secret = validateJwtSecret();
+    const decoded = jwt.verify(token, secret) as TokenPayload;
     return decoded;
   } catch (error) {
     console.error('토큰 검증 실패:', error);
@@ -52,7 +65,8 @@ export function verifyToken(token: string): TokenPayload | null {
  */
 export function verifyRefreshToken(token: string): { userId: string } | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+    const secret = validateJwtSecret();
+    const decoded = jwt.verify(token, secret) as { userId: string };
     return decoded;
   } catch (error) {
     console.error('리프레시 토큰 검증 실패:', error);

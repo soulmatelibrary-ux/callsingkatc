@@ -67,6 +67,7 @@ export const ROUTES = {
   ADMIN_AIRLINES: '/admin/airlines',
   ADMIN_ACTIONS: '/admin/actions',
   ADMIN_ANNOUNCEMENTS: '/admin/announcements',
+  CALLSIGN_MGT_V1: '/admin/callsign-mgmt-v1',
 };
 
 /**

@@ -48,9 +48,9 @@ export async function PATCH(
       );
     }
 
-    // 2. 공지사항 존재 확인
+    // 2. 공지사항 존재 확인 및 기존 데이터 조회
     const existResult = await query(
-      `SELECT id FROM announcements WHERE id = $1`,
+      `SELECT id, start_date as "startDate", end_date as "endDate" FROM announcements WHERE id = $1`,
       [params.id]
     );
 
@@ -60,6 +60,8 @@ export async function PATCH(
         { status: 404 }
       );
     }
+
+    const existing = existResult.rows[0];
 
     // 3. 요청 데이터 파싱
     const body = await request.json();
@@ -121,10 +123,13 @@ export async function PATCH(
       );
     }
 
-    // 5. 시간 범위 검증
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+    // 5. 시간 범위 검증 (부분 업데이트 시 기존 값과 비교)
+    const finalStartDate = startDate !== undefined ? startDate : existing.startDate;
+    const finalEndDate = endDate !== undefined ? endDate : existing.endDate;
+
+    if (finalStartDate && finalEndDate) {
+      const start = new Date(finalStartDate);
+      const end = new Date(finalEndDate);
       if (start >= end) {
         return NextResponse.json(
           { error: '시작일은 종료일보다 전에 있어야 합니다.' },

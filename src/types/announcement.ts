@@ -57,7 +57,7 @@ export interface ActiveAnnouncementsResponse {
 
 // 공지사항 이력 응답
 export interface AnnouncementHistoryResponse {
-  announcements: Announcement[];
+  announcements: Array<Announcement & { status?: 'active' | 'expired'; isViewed?: boolean }>;
   total: number;
   page: number;
   limit: number;
@@ -67,6 +67,8 @@ export interface AnnouncementHistoryResponse {
 export interface AnnouncementDetailResponse extends Announcement {
   isViewed: boolean;
   viewedAt: string | null;
+  status?: 'active' | 'expired';
+  viewCount?: number;
 }
 
 // 공지사항 이력 필터

@@ -1,0 +1,78 @@
+'use client';
+
+import { useState } from 'react';
+import { OverviewTab } from '@/components/callsign-mgmt-v1/OverviewTab';
+import { ActionsTab } from '@/components/callsign-mgmt-v1/ActionsTab';
+import { StatisticsTab } from '@/components/callsign-mgmt-v1/StatisticsTab';
+import { Sidebar } from '@/components/callsign-mgmt-v1/Sidebar';
+
+export const dynamic = 'force-dynamic';
+
+export default function CallsignMgmtV1Page() {
+  const [activeTab, setActiveTab] = useState<'overview' | 'actions' | 'stats' | 'upload'>('overview');
+
+  const menuItems = [
+    { id: 'overview', label: '전체현황', icon: '📊' },
+    { id: 'actions', label: '항공사조치', icon: '✈️' },
+    { id: 'stats', label: '통계', icon: '📈' },
+    { id: 'upload', label: '엑셀입력', icon: '📁' },
+  ];
+
+  return (
+    <div className="flex flex-col bg-[#f8fafc] selection:bg-primary/10 min-h-full">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 pt-8 pb-10">
+        {/* 페이지 헤더 */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-200 pb-8 mb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-8 h-1 bg-primary rounded-full" />
+              <span className="text-primary font-bold text-sm tracking-widest uppercase">
+                System Management
+              </span>
+            </div>
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight">유사호출부호 관리 V1</h1>
+            <p className="mt-2 text-gray-500 font-medium">
+              항공교통본부 관리자 통합 대시보드 - 유사호출부호 업로드 및 항공사 조치 현황
+            </p>
+          </div>
+        </div>
+
+        {/* 메인 콘텐츠: 왼쪽 메뉴 + 오른쪽 콘텐츠 */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* 왼쪽 메뉴 */}
+          <div className="md:col-span-1">
+            <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden sticky top-24">
+              <div className="p-6 border-b border-gray-50">
+                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">메뉴</h3>
+              </div>
+              <nav className="divide-y divide-gray-50">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id as any)}
+                    className={`w-full px-6 py-4 text-left font-bold transition-all ${
+                      activeTab === item.id
+                        ? 'bg-primary/10 text-primary border-l-4 border-primary'
+                        : 'text-gray-700 hover:bg-gray-50 border-l-4 border-transparent'
+                    }`}
+                  >
+                    <span className="mr-3">{item.icon}</span>
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          {/* 오른쪽 콘텐츠 */}
+          <div className="md:col-span-3">
+            {activeTab === 'overview' && <OverviewTab />}
+            {activeTab === 'actions' && <ActionsTab />}
+            {activeTab === 'stats' && <StatisticsTab />}
+            {activeTab === 'upload' && <Sidebar />}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

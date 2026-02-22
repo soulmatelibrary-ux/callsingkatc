@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useCreateAnnouncement, useUpdateAnnouncement } from '@/hooks/useAnnouncements';
-import { ANNOUNCEMENT_LEVEL, AIRLINES } from '@/lib/constants';
+import { useAirlines } from '@/hooks/useAirlines';
+import { ANNOUNCEMENT_LEVEL } from '@/lib/constants';
 import { Announcement } from '@/types/announcement';
 
 interface Props {
@@ -35,6 +36,7 @@ function getDefaultDates() {
 export function AnnouncementForm({ announcement, onSuccess }: Props) {
   const isEdit = !!announcement;
   const defaultDates = getDefaultDates();
+  const { data: airlines = [] } = useAirlines();
 
   const [form, setForm] = useState({
     title: announcement?.title || '',

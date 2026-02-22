@@ -61,7 +61,58 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 3. 기본 쿼리
+    // 3. WHERE 조건 부분을 먼저 구성
+    let whereClause = 'WHERE 1=1';
+    const queryParams: any[] = [];
+
+    // 4. 필터 적용 (날짜 형식 검증)
+    const dateFormatRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (dateFrom && !dateFormatRegex.test(dateFrom)) {
+      return NextResponse.json(
+        { error: '시작 날짜는 YYYY-MM-DD 형식이어야 합니다.' },
+        { status: 400 }
+      );
+    }
+
+    if (dateTo && !dateFormatRegex.test(dateTo)) {
+      return NextResponse.json(
+        { error: '종료 날짜는 YYYY-MM-DD 형식이어야 합니다.' },
+        { status: 400 }
+      );
+    }
+
+    if (level && ['warning', 'info', 'success'].includes(level)) {
+      whereClause += ` AND a.level = $${queryParams.length + 1}`;
+      queryParams.push(level);
+    }
+
+    if (status !== 'all') {
+      if (status === 'active') {
+        whereClause += ` AND a.start_date <= NOW() AND a.end_date >= NOW()`;
+      } else if (status === 'expired') {
+        whereClause += ` AND (a.start_date > NOW() OR a.end_date < NOW())`;
+      }
+    }
+
+    if (dateFrom) {
+      whereClause += ` AND a.start_date >= $${queryParams.length + 1}::DATE`;
+      queryParams.push(dateFrom);
+    }
+
+    if (dateTo) {
+      whereClause += ` AND a.start_date <= $${queryParams.length + 1}::DATE + INTERVAL '1 day'`;
+      queryParams.push(dateTo);
+    }
+
+    // 5. COUNT 쿼리 실행 (subquery 안전함)
+    const countResult = await query(
+      `SELECT COUNT(*)::int as count FROM announcements a ${whereClause}`,
+      queryParams
+    );
+    const total = parseInt(countResult.rows[0].count, 10);
+
+    // 6. 데이터 쿼리 구성
     let sql = `
       SELECT
         a.id, a.title, a.content, a.level,
@@ -77,41 +128,8 @@ export async function GET(request: NextRequest) {
         (SELECT COUNT(*) FROM announcement_views WHERE announcement_id = a.id)::int as "viewCount"
       FROM announcements a
       LEFT JOIN users u ON a.created_by = u.id
-      WHERE 1=1
+      ${whereClause}
     `;
-
-    const queryParams: any[] = [];
-
-    // 4. 필터 적용
-    if (level && ['warning', 'info', 'success'].includes(level)) {
-      sql += ` AND a.level = $${queryParams.length + 1}`;
-      queryParams.push(level);
-    }
-
-    if (status !== 'all') {
-      if (status === 'active') {
-        sql += ` AND a.start_date <= NOW() AND a.end_date >= NOW()`;
-      } else if (status === 'expired') {
-        sql += ` AND (a.start_date > NOW() OR a.end_date < NOW())`;
-      }
-    }
-
-    if (dateFrom) {
-      sql += ` AND a.start_date >= $${queryParams.length + 1}::DATE`;
-      queryParams.push(dateFrom);
-    }
-
-    if (dateTo) {
-      sql += ` AND a.start_date <= $${queryParams.length + 1}::DATE + INTERVAL '1 day'`;
-      queryParams.push(dateTo);
-    }
-
-    // 5. 페이지네이션
-    const countResult = await query(
-      sql.replace(/SELECT[\s\S]*FROM/, 'SELECT COUNT(*) as count FROM'),
-      queryParams
-    );
-    const total = countResult.rows[0].count;
 
     sql += ` ORDER BY a.start_date DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
     queryParams.push(limit, offset);
@@ -166,6 +184,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 제목/내용 길이 검증
+    if (typeof title !== 'string' || title.length > 255) {
+      return NextResponse.json(
+        { error: '제목은 최대 255자여야 합니다.' },
+        { status: 400 }
+      );
+    }
+
+    if (typeof content !== 'string' || content.length > 10000) {
+      return NextResponse.json(
+        { error: '내용은 최대 10,000자여야 합니다.' },
+        { status: 400 }
+      );
+    }
+
+    if (title.trim().length === 0 || content.trim().length === 0) {
+      return NextResponse.json(
+        { error: '제목과 내용은 공백만으로 구성될 수 없습니다.' },
+        { status: 400 }
+      );
+    }
+
     if (!startDate || !endDate) {
       return NextResponse.json(
         { error: '시작일과 종료일은 필수입니다.' },
@@ -185,7 +225,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. 긴급도 검증
-    const validLevel = ['warning', 'info', 'success'].includes(level) ? level : 'info';
+    if (!['warning', 'info', 'success'].includes(level)) {
+      return NextResponse.json(
+        { error: "긴급도는 'warning', 'info', 'success' 중 하나여야 합니다." },
+        { status: 400 }
+      );
+    }
+
+    const validLevel = level;
 
     // 4. 대상 항공사 문자열 변환
     const targetAirlinesStr = targetAirlines && targetAirlines.length > 0
