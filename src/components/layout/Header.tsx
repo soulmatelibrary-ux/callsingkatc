@@ -118,13 +118,15 @@ export function Header() {
               {user.email}
             </span>
 
-            {/* 유사호출부호 관리 (항상 표시) */}
-            <Link
-              href={ROUTES.CALLSIGN_MANAGEMENT}
-              className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-none transition-all"
-            >
-              유사호출부호
-            </Link>
+            {/* 유사호출부호 관리 (관리자만) */}
+            {isAdmin && (
+              <Link
+                href={ROUTES.CALLSIGN_MANAGEMENT}
+                className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-none transition-all"
+              >
+                유사호출부호
+              </Link>
+            )}
 
             {isAdmin && (
               <Link
