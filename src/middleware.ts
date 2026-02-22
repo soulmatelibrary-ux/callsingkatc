@@ -84,6 +84,7 @@ export const config = {
     // 보호 라우트
     '/airline/:path*',
     '/admin/:path*',
+    '/callsign-management/:path*',
     // 인증 라우트
     '/login',
     '/forgot-password',
