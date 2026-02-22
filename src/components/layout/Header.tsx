@@ -101,13 +101,16 @@ export function Header() {
 
       {/* 우측 영역 */}
       <nav className="flex items-center gap-3" aria-label="사용자 네비게이션">
-        <button
-          type="button"
-          onClick={() => router.push(ROUTES.DASHBOARD)}
-          className="px-4 py-2 text-white/90 text-sm font-bold rounded-none bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
-        >
-          테스트
-        </button>
+        {/* 테스트 버튼 (관리자만) */}
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => router.push(ROUTES.DASHBOARD)}
+            className="px-4 py-2 text-white/90 text-sm font-bold rounded-none bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
+          >
+            테스트
+          </button>
+        )}
         {isAuthenticated && user ? (
           <>
             {/* 사용자 이메일 표시 */}
