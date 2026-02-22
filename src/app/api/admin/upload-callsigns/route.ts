@@ -124,9 +124,21 @@ export async function POST(request: NextRequest) {
           const airlineCode = String(row[5] || '').trim();
           
           // 항공사 코드가 우리 시스템의 항공사 코드에 매핑되는지 확인
-          // EOK -> EOK, VJC -> (외항사), UAE -> (외항사) 등
-          // 우리 항공사만 필터링 (KAL, AAR, JJA, JNA, TWB, ABL, ASV, EOK, FGW)
-          const domesticAirlines = ['KAL', 'AAR', 'JJA', 'JNA', 'TWB', 'ABL', 'ASV', 'EOK', 'FGW'];
+          // 우리 시스템에서 관리하는 국내 항공사만 필터링
+          // 참고: docs/02-design/AIRLINES_DATA.md
+          const domesticAirlines = [
+            'KAL', // 대한항공
+            'AAR', // 아시아나항공
+            'JJA', // 제주항공
+            'JNA', // 진에어
+            'TWB', // 티웨이항공
+            'ABL', // 에어부산
+            'ASV', // 에어서울
+            'ESR', // 이스타항공
+            'FGW', // 플라이강원
+            'ARK', // 에어로케이항공
+            'APZ', // 에어프레미아
+          ];
           
           // 편명1과 편명2에서 항공사 코드 추출 (예: KAL852 -> KAL)
           const airlineCode1 = callsign1.replace(/[0-9]/g, '').trim();
@@ -284,11 +296,15 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Step 4: 각 callsign의 occurrence_count를 callsign_occurrences 개수로 업데이트
+      // Step 4: 각 callsign의 occurrence_count와 last_occurred_at 업데이트
       await query(
         `UPDATE callsigns c
          SET occurrence_count = (
            SELECT COUNT(*) FROM callsign_occurrences
+           WHERE callsign_id = c.id
+         ),
+         last_occurred_at = (
+           SELECT MAX(occurred_date) FROM callsign_occurrences
            WHERE callsign_id = c.id
          )
          WHERE file_upload_id = $1`,

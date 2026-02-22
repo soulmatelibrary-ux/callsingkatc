@@ -1,9 +1,18 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useCallsigns } from '@/hooks/useActions';
 import { useAirlines } from '@/hooks/useAirlines';
+import { useAuthStore } from '@/store/authStore';
 import { StatCard } from './StatCard';
+
+interface StatsResponse {
+  total: number;
+  veryHigh: number;
+  high: number;
+  low: number;
+}
 
 export function OverviewTab() {
   const [selectedAirline, setSelectedAirline] = useState<string>('');
@@ -11,6 +20,7 @@ export function OverviewTab() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const pageSizeOptions = [10, 30, 50, 100];
+  const accessToken = useAuthStore((s) => s.accessToken);
 
   const airlinesQuery = useAirlines();
   const callsignsQuery = useCallsigns({
@@ -20,16 +30,42 @@ export function OverviewTab() {
     limit,
   });
 
-  // KPI 데이터 계산
-  const stats = useMemo(() => {
-    const data = callsignsQuery.data?.data || [];
-    return {
-      total: data.length,
-      veryHigh: data.filter(c => c.risk_level === '매우높음').length,
-      high: data.filter(c => c.risk_level === '높음').length,
-      low: data.filter(c => c.risk_level === '낮음').length,
-    };
-  }, [callsignsQuery.data]);
+  // 전체 통계 조회
+  const statsQuery = useQuery({
+    queryKey: ['callsigns-stats', selectedAirline, selectedRiskLevel],
+    queryFn: async () => {
+      if (!accessToken) {
+        throw new Error('인증 토큰이 없습니다.');
+      }
+
+      const params = new URLSearchParams();
+      if (selectedAirline) params.append('airlineId', selectedAirline);
+      if (selectedRiskLevel) params.append('riskLevel', selectedRiskLevel);
+
+      const response = await fetch(`/api/callsigns/stats?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('통계 조회 실패');
+      }
+
+      return (await response.json()) as StatsResponse;
+    },
+    enabled: !!accessToken,
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+
+  // KPI 데이터
+  const stats = statsQuery.data || {
+    total: 0,
+    veryHigh: 0,
+    high: 0,
+    low: 0,
+  };
 
   const rows = callsignsQuery.data?.data ?? [];
   const pagination = callsignsQuery.data?.pagination;

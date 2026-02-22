@@ -19,13 +19,11 @@ export function ActionsTab() {
 
   // 상태별 색상 및 라벨
   const statusColors: Record<string, string> = {
-    pending: 'bg-amber-50 text-amber-600 border-amber-100',
     in_progress: 'bg-blue-50 text-blue-600 border-blue-100',
     completed: 'bg-emerald-50 text-emerald-600 border-emerald-100',
   };
 
   const statusLabels: Record<string, string> = {
-    pending: '대기중',
     in_progress: '진행중',
     completed: '완료',
   };
@@ -91,7 +89,6 @@ export function ActionsTab() {
               className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
             >
               <option value="">상태 선택</option>
-              <option value="pending">대기중</option>
               <option value="in_progress">진행중</option>
               <option value="completed">완료</option>
             </select>

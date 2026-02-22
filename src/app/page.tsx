@@ -221,7 +221,7 @@ export default function Home() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@kac.or.kr"
-                      className="w-full pl-14 pr-6 py-5 bg-black/40 border border-white/5 rounded-none text-white placeholder-white/20 text-[17px] font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all shadow-inner"
+                      className="w-full pl-14 pr-6 py-3 bg-black/40 border border-white/5 rounded-none text-white placeholder-white/20 text-[17px] font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all shadow-inner"
                       required
                     />
                   </div>
@@ -238,7 +238,7 @@ export default function Home() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-14 pr-6 py-5 bg-black/40 border border-white/5 rounded-none text-white placeholder-white/20 text-[17px] tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all font-mono shadow-inner"
+                      className="w-full pl-14 pr-6 py-3 bg-black/40 border border-white/5 rounded-none text-white placeholder-white/20 text-[17px] tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all font-mono shadow-inner"
                       required
                     />
                   </div>
@@ -264,7 +264,7 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full py-5.5 mt-8 rounded-none text-base font-black text-white bg-blue-600 hover:bg-blue-500 shadow-2xl shadow-blue-600/30 active:scale-[0.98] transition-all tracking-[0.3em] uppercase ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full py-3 mt-8 rounded-none text-base font-black text-white bg-blue-600 hover:bg-blue-500 shadow-2xl shadow-blue-600/30 active:scale-[0.98] transition-all tracking-[0.3em] uppercase ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isSubmitting ? 'LOGGING IN...' : 'LOGIN'}
                 </button>

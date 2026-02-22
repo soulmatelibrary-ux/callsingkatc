@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 프로덕션 서버 실행 스크립트
-# - Docker 컨테이너가 없으면 생성, 있으면 기존 데이터 유지하며 시작
+# - PostgreSQL Docker 컨테이너 시작 (app은 로컬에서 실행)
 # - Next.js를 빌드 후 프로덕션 서버로 포트 3000에서 실행
 
 set -e
@@ -10,19 +10,19 @@ PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
 
 # ===============================
-# Docker 상태 확인 및 시작 (데이터베이스 초기화 없음)
+# PostgreSQL 컨테이너 시작 (로컬 앱 실행용)
 # ===============================
-echo "Docker 상태 확인 중..."
+echo "PostgreSQL 컨테이너 시작 중..."
 
 if [ -f "docker-compose.yml" ]; then
   # 컨테이너가 이미 존재하는지 확인
   if docker ps -a --filter "name=katc1-postgres" | grep -q katc1-postgres; then
     echo "✅ PostgreSQL 컨테이너가 이미 존재합니다. (기존 데이터 유지하며 시작)"
-    docker-compose start
+    docker-compose start postgres
   else
     echo "PostgreSQL 컨테이너를 생성합니다..."
-    docker-compose up -d
-    echo "✅ Docker 컨테이너 생성 완료"
+    docker-compose up -d postgres
+    echo "✅ PostgreSQL 컨테이너 생성 완료"
     sleep 3  # DB 초기화 시간 확보
   fi
 else

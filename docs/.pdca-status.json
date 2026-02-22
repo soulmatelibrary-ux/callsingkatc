@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-22T12:10:18.615Z",
+  "lastUpdated": "2026-02-22T12:51:41.201Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -52,9 +52,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:37:49.180Z",
-        "lastUpdated": "2026-02-22T12:10:18.615Z"
+        "lastUpdated": "2026-02-22T12:33:36.300Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/next.config.js"
+      "lastFile": "/Users/sein/Desktop/katc1/start.sh"
     },
     "api": {
       "phase": "do",
@@ -325,9 +325,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T11:17:32.652Z",
-        "lastUpdated": "2026-02-19T11:19:50.010Z"
+        "lastUpdated": "2026-02-22T12:47:31.644Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/stats/route.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/callsigns/stats/route.ts"
     },
     "password-reset": {
       "phase": "do",
@@ -390,9 +390,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:58.733Z",
-        "lastUpdated": "2026-02-22T00:24:01.204Z"
+        "lastUpdated": "2026-02-22T12:43:09.808Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/airlines/[airlineId]/callsigns/route.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/callsigns/route.ts"
     },
     "upload-callsigns": {
       "phase": "do",
@@ -403,7 +403,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T09:06:56.111Z",
-        "lastUpdated": "2026-02-21T15:09:30.783Z"
+        "lastUpdated": "2026-02-22T12:40:36.830Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/upload-callsigns/route.ts"
     },
@@ -524,9 +524,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-22T04:14:02.865Z",
-        "lastUpdated": "2026-02-22T05:29:00.618Z"
+        "lastUpdated": "2026-02-22T12:51:41.201Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/callsign-management/page.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/components/callsign-management/ActionsTab.tsx"
     },
     "tmp": {
       "phase": "do",
@@ -563,7 +563,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-22T12:10:18.615Z"
+    "lastActivity": "2026-02-22T12:51:41.201Z"
   },
   "history": [
     {
@@ -5753,6 +5753,72 @@
     {
       "timestamp": "2026-02-22T12:10:18.615Z",
       "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:21:35.432Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:33:34.129Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:33:36.300Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:40:36.830Z",
+      "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:42:58.825Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:43:03.943Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:43:09.809Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:47:31.644Z",
+      "feature": "stats",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:47:39.246Z",
+      "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:51:39.498Z",
+      "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T12:51:41.201Z",
+      "feature": "callsign-management",
       "phase": "do",
       "action": "updated"
     }

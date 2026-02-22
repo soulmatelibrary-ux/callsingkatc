@@ -49,19 +49,12 @@ export async function GET(request: NextRequest) {
         c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
         c.occurrence_count, c.last_occurred_at, c.file_upload_id, c.uploaded_at,
         c.created_at, c.updated_at,
-        la.id as latest_action_id,
-        la.status as latest_action_status,
-        la.responsible_staff as latest_action_responsible_staff,
-        la.manager_name as latest_action_manager_name,
-        la.updated_at as latest_action_updated_at
+        NULL::uuid as latest_action_id,
+        NULL::varchar as latest_action_status,
+        NULL::varchar as latest_action_responsible_staff,
+        NULL::varchar as latest_action_manager_name,
+        NULL::timestamp as latest_action_updated_at
       FROM callsigns c
-      LEFT JOIN LATERAL (
-        SELECT id, status, responsible_staff, manager_name, updated_at
-        FROM actions
-        WHERE callsign_id = c.id
-        ORDER BY updated_at DESC
-        LIMIT 1
-      ) la ON TRUE
       WHERE 1=1
     `;
     const params: any[] = [];
