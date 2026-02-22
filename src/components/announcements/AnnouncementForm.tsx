@@ -18,9 +18,23 @@ interface Props {
  * - 유효성 검사 (시간 범위 등)
  * - 항공사 선택 (전체 또는 특정)
  * - 로딩/에러 상태
+ * - 기본값: 오늘부터 7일간
  */
+function getDefaultDates() {
+  const today = new Date();
+  const nextWeek = new Date(today);
+  nextWeek.setDate(nextWeek.getDate() + 7);
+
+  // ISO 문자열에서 시간 부분 제거 (YYYY-MM-DDTHH:mm 형식)
+  const startDate = today.toISOString().slice(0, 16);
+  const endDate = nextWeek.toISOString().slice(0, 16);
+
+  return { startDate, endDate };
+}
+
 export function AnnouncementForm({ announcement, onSuccess }: Props) {
   const isEdit = !!announcement;
+  const defaultDates = getDefaultDates();
 
   const [form, setForm] = useState({
     title: announcement?.title || '',
@@ -28,10 +42,10 @@ export function AnnouncementForm({ announcement, onSuccess }: Props) {
     level: announcement?.level || 'info' as 'warning' | 'info' | 'success',
     startDate: announcement?.startDate
       ? new Date(announcement.startDate).toISOString().slice(0, 16)
-      : '',
+      : defaultDates.startDate,
     endDate: announcement?.endDate
       ? new Date(announcement.endDate).toISOString().slice(0, 16)
-      : '',
+      : defaultDates.endDate,
     targetAirlines: announcement?.targetAirlines
       ? announcement.targetAirlines.split(',')
       : [],

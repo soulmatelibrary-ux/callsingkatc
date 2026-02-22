@@ -40,7 +40,12 @@ export async function GET(request: NextRequest) {
 
     // 2. 사용자 정보 조회 (airline_id 확인)
     const userResult = await query(
-      `SELECT id, airline_id, role FROM users WHERE id = $1`,
+      `
+      SELECT u.id, u.airline_id, u.role, a.code as airline_code
+      FROM users u
+      LEFT JOIN airlines a ON u.airline_id = a.id
+      WHERE u.id = $1
+      `,
       [payload.userId]
     );
 
@@ -72,7 +77,7 @@ export async function GET(request: NextRequest) {
       ORDER BY start_date DESC
     `;
 
-    const result = await query(sql, [user.airline_id]);
+    const result = await query(sql, [user.airline_code]);
 
     return NextResponse.json({
       announcements: result.rows,

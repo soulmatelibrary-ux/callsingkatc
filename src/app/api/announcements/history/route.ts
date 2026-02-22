@@ -43,7 +43,12 @@ export async function GET(request: NextRequest) {
 
     // 2. 사용자 정보 조회
     const userResult = await query(
-      `SELECT id, airline_id FROM users WHERE id = $1`,
+      `
+      SELECT u.id, u.airline_id, a.code as airline_code
+      FROM users u
+      LEFT JOIN airlines a ON u.airline_id = a.id
+      WHERE u.id = $1
+      `,
       [payload.userId]
     );
 
@@ -86,7 +91,7 @@ export async function GET(request: NextRequest) {
       )
     `;
 
-    const queryParams: any[] = [user.id, user.airline_id];
+    const queryParams: any[] = [user.id, user.airline_code];
 
     // 5. 필터 적용
     if (level && ['warning', 'info', 'success'].includes(level)) {

@@ -53,7 +53,7 @@ export default function AirlinePage() {
   const [airlineCode, setAirlineCode] = useState<string>('');
   const [airlineName, setAirlineName] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'incidents' | 'actions' | 'statistics'>('incidents');
+  const [activeTab, setActiveTab] = useState<'incidents' | 'actions' | 'statistics' | 'announcements'>('incidents');
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState<any | null>(null);
   const [startDate, setStartDate] = useState<string>(() => {
@@ -588,6 +588,17 @@ export default function AirlinePage() {
             >
               <span className="text-lg">📈</span>
               <span>통계</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('announcements')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-none text-sm font-black tracking-tight transition-all text-left ${activeTab === 'announcements'
+                ? 'bg-rose-700 text-white shadow-lg shadow-rose-700/20'
+                : 'text-gray-500 hover:bg-gray-100'
+                }`}
+            >
+              <span className="text-lg">📢</span>
+              <span>공지사항</span>
             </button>
           </nav>
         </aside>
@@ -1162,6 +1173,43 @@ export default function AirlinePage() {
                 incidents={allFilteredIncidents}
               />
             )}
+
+            {/* 공지사항 탭 */}
+            {activeTab === 'announcements' && (
+              <div className="space-y-6">
+                {/* 공지사항 요약 카드 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-none p-6 border border-blue-200 shadow-sm">
+                    <div className="text-3xl mb-2">📢</div>
+                    <p className="text-xs font-black text-blue-600 uppercase tracking-widest mb-1">공지사항</p>
+                    <p className="text-2xl font-black text-gray-900">-</p>
+                    <p className="text-xs text-gray-600 mt-2">활성 공지사항</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-none p-6 border border-amber-200 shadow-sm">
+                    <div className="text-3xl mb-2">🚨</div>
+                    <p className="text-xs font-black text-amber-600 uppercase tracking-widest mb-1">긴급공지</p>
+                    <p className="text-2xl font-black text-gray-900">-</p>
+                    <p className="text-xs text-gray-600 mt-2">경고 레벨</p>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-none p-6 border border-green-200 shadow-sm">
+                    <div className="text-3xl mb-2">✅</div>
+                    <p className="text-xs font-black text-green-600 uppercase tracking-widest mb-1">완료</p>
+                    <p className="text-2xl font-black text-gray-900">-</p>
+                    <p className="text-xs text-gray-600 mt-2">완료 공지사항</p>
+                  </div>
+                </div>
+
+                {/* 공지사항 이력 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-12 text-center">
+                  <div className="text-5xl mb-4">📭</div>
+                  <h3 className="text-lg font-black text-gray-900 mb-2 tracking-tight">공지사항 이력</h3>
+                  <p className="text-gray-500 font-bold">표시할 공지사항이 없습니다</p>
+                  <p className="text-gray-400 text-sm mt-2">관리자가 새로운 공지사항을 등록하면 여기에 표시됩니다</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -1397,7 +1445,7 @@ export default function AirlinePage() {
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ fontSize: '14px', fontWeight: '500', color: '#ffffff' }}>
-              유사호출부호 경고시스템 | 한국공항공사
+              유사호출부호 경고시스템 | 한국공항공사 · 항공교통본부
             </div>
             <div style={{ display: 'flex', gap: '20px', fontSize: '13px' }}>
               <div>
@@ -1421,7 +1469,7 @@ export default function AirlinePage() {
             color: '#9ca3af',
             textAlign: 'center',
           }}>
-            © 2026 한국공항공사. 유사호출부호 경고시스템은 항공기 안전운항을 위해 개발되었습니다.
+            © 2026 한국공항공사 · 항공교통본부. 유사호출부호 경고시스템은 항공기 안전운항을 위해 개발되었습니다.
           </div>
         </div>
       </footer>

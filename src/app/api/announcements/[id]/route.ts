@@ -39,7 +39,12 @@ export async function GET(
 
     // 2. 사용자 정보 조회
     const userResult = await query(
-      `SELECT id, airline_id FROM users WHERE id = $1`,
+      `
+      SELECT u.id, u.airline_id, a.code as airline_code
+      FROM users u
+      LEFT JOIN airlines a ON u.airline_id = a.id
+      WHERE u.id = $1
+      `,
       [payload.userId]
     );
 
@@ -68,7 +73,7 @@ export async function GET(
           OR $2 = ANY(string_to_array(target_airlines, ','))
         )
       `,
-      [params.id, user.airline_id]
+      [params.id, user.airline_code]
     );
 
     if (announcementResult.rows.length === 0) {
