@@ -112,7 +112,21 @@ export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Prop
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          {/* 검색 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              검색 (제목/내용)
+            </label>
+            <input
+              type="text"
+              placeholder="검색어 입력..."
+              value={(filters as any).search || ''}
+              onChange={e => handleFilterChange('search', e.target.value || undefined)}
+              className="w-full border rounded px-3 py-2 text-sm"
+            />
+          </div>
+
           {/* 긴급도 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -7,6 +7,7 @@
  *   - status: active|expired|all (선택사항)
  *   - dateFrom: YYYY-MM-DD (선택사항)
  *   - dateTo: YYYY-MM-DD (선택사항)
+ *   - search: 제목/내용 검색 (선택사항)
  *   - page: 페이지 번호 (기본값: 1)
  *   - limit: 페이지 크기 (기본값: 20, 최대: 100)
  *
@@ -57,6 +58,7 @@ export async function GET(request: NextRequest) {
     const status = request.nextUrl.searchParams.get('status') || 'all';
     const dateFrom = request.nextUrl.searchParams.get('dateFrom');
     const dateTo = request.nextUrl.searchParams.get('dateTo');
+    const search = request.nextUrl.searchParams.get('search');
     const page = Math.max(1, parseInt(request.nextUrl.searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
@@ -103,6 +105,12 @@ export async function GET(request: NextRequest) {
     if (dateTo) {
       whereClause += ` AND a.start_date <= $${queryParams.length + 1}::DATE + INTERVAL '1 day'`;
       queryParams.push(dateTo);
+    }
+
+    // 제목/내용 검색
+    if (search) {
+      whereClause += ` AND (a.title ILIKE $${queryParams.length + 1} OR a.content ILIKE $${queryParams.length + 1})`;
+      queryParams.push(`%${search}%`);
     }
 
     // 5. COUNT 쿼리 실행 (subquery 안전함)

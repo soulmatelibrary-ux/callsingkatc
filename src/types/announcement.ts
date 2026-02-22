@@ -77,6 +77,7 @@ export interface AnnouncementHistoryFilters {
   status?: 'active' | 'expired' | 'all';
   dateFrom?: string;
   dateTo?: string;
+  search?: string;  // 제목/내용 검색
   page?: number;
   limit?: number;
 }
@@ -87,6 +88,7 @@ export interface AdminAnnouncementFilters {
   status?: 'active' | 'expired' | 'all';
   dateFrom?: string;
   dateTo?: string;
+  search?: string;  // 제목/내용 검색
   page?: number;
   limit?: number;
 }

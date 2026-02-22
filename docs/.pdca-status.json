@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-22T04:18:57.088Z",
+  "lastUpdated": "2026-02-22T05:00:55.078Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -50,9 +50,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:37:49.180Z",
-        "lastUpdated": "2026-02-22T04:14:43.923Z"
+        "lastUpdated": "2026-02-22T04:29:42.807Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/lib/constants.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/hooks/useAnnouncements.ts"
     },
     "api": {
       "phase": "do",
@@ -102,7 +102,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:41:18.945Z",
-        "lastUpdated": "2026-02-22T04:16:18.178Z"
+        "lastUpdated": "2026-02-22T04:23:42.975Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/components/layout/Header.tsx"
     },
@@ -456,9 +456,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:06.344Z",
-        "lastUpdated": "2026-02-22T03:29:27.139Z"
+        "lastUpdated": "2026-02-22T05:00:55.078Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/announcements/AnnouncementForm.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/components/announcements/AnnouncementTable.tsx"
     },
     "history": {
       "phase": "do",
@@ -469,7 +469,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:17.641Z",
-        "lastUpdated": "2026-02-22T03:28:50.872Z"
+        "lastUpdated": "2026-02-22T04:58:59.782Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/announcements/history/route.ts"
     },
@@ -535,7 +535,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-22T04:18:57.088Z"
+    "lastActivity": "2026-02-22T05:00:55.078Z"
   },
   "history": [
     {
@@ -5431,6 +5431,84 @@
     {
       "timestamp": "2026-02-22T04:18:57.088Z",
       "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:21:29.556Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:23:42.975Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:24:51.256Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:25:39.037Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:25:45.950Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:26:00.572Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:29:07.194Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:29:14.269Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:29:28.287Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:29:42.807Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:58:59.782Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:59:30.540Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T05:00:55.078Z",
+      "feature": "announcements",
       "phase": "do",
       "action": "updated"
     }

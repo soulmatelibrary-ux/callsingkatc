@@ -78,6 +78,7 @@ export function useAnnouncementHistory(
     status = 'all',
     dateFrom,
     dateTo,
+    search,
     page = 1,
     limit = 20,
   } = filters;
@@ -90,6 +91,7 @@ export function useAnnouncementHistory(
       if (status) params.append('status', status);
       if (dateFrom) params.append('dateFrom', dateFrom);
       if (dateTo) params.append('dateTo', dateTo);
+      if (search) params.append('search', search);
       params.append('page', page.toString());
       params.append('limit', limit.toString());
 
@@ -154,6 +156,7 @@ export function useAdminAnnouncements(
     status = 'all',
     dateFrom,
     dateTo,
+    search,
     page = 1,
     limit = 20,
   } = filters;
@@ -166,6 +169,7 @@ export function useAdminAnnouncements(
       if (status) params.append('status', status);
       if (dateFrom) params.append('dateFrom', dateFrom);
       if (dateTo) params.append('dateTo', dateTo);
+      if (search) params.append('search', search);
       params.append('page', page.toString());
       params.append('limit', limit.toString());
 
