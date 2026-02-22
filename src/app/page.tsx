@@ -94,8 +94,8 @@ export default function Home() {
           setIsSubmitting(false);
           return;
         }
-        // 관리자 첫 페이지는 대시보드
-        router.push(ROUTES.AIRLINE);
+        // 관리자 페이지: /admin/callsign-management
+        router.push('/admin/callsign-management');
       } else {
         // 항공사 로그인
         if (result.user.role === 'admin') {

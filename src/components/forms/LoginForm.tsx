@@ -75,7 +75,7 @@ export function LoginForm() {
       } else {
         // 정상 로그인 - 역할에 따라 리다이렉트
         if (result.user.role === 'admin') {
-          router.push(ROUTES.AIRLINE);
+          router.push('/admin/callsign-management');
         } else {
           router.push('/airline');
         }
