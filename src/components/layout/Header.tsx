@@ -164,7 +164,7 @@ export function Header() {
 
             {isAdmin && (
               <Link
-                href={ROUTES.ADMIN}
+                href="/admin/users?tab=users"
                 className="px-6 py-2.5 bg-white/20 text-white text-xs font-black uppercase tracking-widest rounded-none border border-white/20 hover:bg-white/30 transition-all"
               >
                 관리자 페이지

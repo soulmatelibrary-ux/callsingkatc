@@ -45,8 +45,8 @@ export function AdminSidebar() {
     ];
 
     return (
-        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-[calc(100vh-64px)] overflow-y-auto sticky top-[64px]">
-            <div className="px-6 py-8 mb-2">
+        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-screen overflow-y-auto sticky top-0">
+            <div className="px-6 py-4 mb-0">
                 <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
                     Admin Terminal
                 </h2>
