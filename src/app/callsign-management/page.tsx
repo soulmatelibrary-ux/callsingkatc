@@ -37,7 +37,7 @@ export default function CallsignManagementPublicPage() {
       <Header />
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* 왼쪽 메뉴 */}
-        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-[calc(100vh-64px)] overflow-y-auto">
+        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-[calc(100vh-64px)] overflow-y-auto sticky top-[64px]">
           <div className="px-6 py-8 mb-2">
             <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
               유사호출부호 관리

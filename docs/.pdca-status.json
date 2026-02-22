@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-22T05:27:06.288Z",
+  "lastUpdated": "2026-02-22T05:29:00.618Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -102,9 +102,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:41:18.945Z",
-        "lastUpdated": "2026-02-22T04:23:42.975Z"
+        "lastUpdated": "2026-02-22T05:28:37.887Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/layout/Header.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/components/layout/AdminSidebar.tsx"
     },
     "forms": {
       "phase": "do",
@@ -496,9 +496,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-22T02:47:15.995Z",
-        "lastUpdated": "2026-02-22T04:14:36.568Z"
+        "lastUpdated": "2026-02-22T05:28:51.259Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/callsign-mgmt-v1/page.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/callsign-mgmt-v1/layout.tsx"
     },
     "uploads": {
       "phase": "do",
@@ -522,7 +522,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-22T04:14:02.865Z",
-        "lastUpdated": "2026-02-22T04:18:57.088Z"
+        "lastUpdated": "2026-02-22T05:29:00.618Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/callsign-management/page.tsx"
     }
@@ -535,7 +535,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-22T05:27:06.288Z"
+    "lastActivity": "2026-02-22T05:29:00.618Z"
   },
   "history": [
     {
@@ -5521,6 +5521,24 @@
     {
       "timestamp": "2026-02-22T05:27:06.288Z",
       "feature": "password-reset",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T05:28:37.887Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T05:28:51.259Z",
+      "feature": "callsign-mgmt-v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T05:29:00.618Z",
+      "feature": "callsign-management",
       "phase": "do",
       "action": "updated"
     }
