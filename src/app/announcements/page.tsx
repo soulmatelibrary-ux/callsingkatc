@@ -1,8 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { redirect } from 'next/navigation';
 import { AnnouncementTable } from '@/components/announcements/AnnouncementTable';
+import { AnnouncementDetailModal } from '@/components/announcements/AnnouncementDetailModal';
+import { Announcement } from '@/types/announcement';
 
 /**
  * /announcements - 사용자 공지사항 이력 페이지
@@ -15,6 +18,7 @@ import { AnnouncementTable } from '@/components/announcements/AnnouncementTable'
  */
 export default function AnnouncementsPage() {
   const { user, accessToken } = useAuthStore();
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
 
   // 미인증 사용자 리다이렉트
   if (!accessToken || !user) {
@@ -40,8 +44,20 @@ export default function AnnouncementsPage() {
 
       {/* 콘텐츠 */}
       <div className="w-full px-4 py-8">
-        <AnnouncementTable isAdmin={false} />
+        <AnnouncementTable
+          isAdmin={false}
+          onSelectAnnouncement={setSelectedAnnouncement}
+        />
       </div>
+
+      {/* 상세 모달 */}
+      {selectedAnnouncement && (
+        <AnnouncementDetailModal
+          announcement={selectedAnnouncement}
+          onClose={() => setSelectedAnnouncement(null)}
+          isAdmin={false}
+        />
+      )}
     </div>
   );
 }

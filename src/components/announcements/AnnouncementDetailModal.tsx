@@ -173,29 +173,31 @@ export function AnnouncementDetailModal({
         </div>
 
         {/* 하단 버튼 */}
-        {isAdmin && (
-          <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex gap-2 justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 rounded border text-gray-700 hover:bg-gray-100 font-medium transition"
-            >
-              닫기
-            </button>
-            <button
-              onClick={() => onEdit?.(announcement)}
-              className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white font-medium transition"
-            >
-              수정
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition"
-            >
-              {isDeleting ? '삭제 중...' : '삭제'}
-            </button>
-          </div>
-        )}
+        <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex gap-2 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded border text-gray-700 hover:bg-gray-100 font-medium transition"
+          >
+            닫기
+          </button>
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => onEdit?.(announcement)}
+                className="px-4 py-2 rounded bg-blue-500 hover:bg-blue-600 text-white font-medium transition"
+              >
+                수정
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition"
+              >
+                {isDeleting ? '삭제 중...' : '삭제'}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
