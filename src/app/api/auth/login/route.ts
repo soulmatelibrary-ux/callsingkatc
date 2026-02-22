@@ -10,7 +10,8 @@ import { generateAccessToken, generateRefreshToken } from '@/lib/jwt';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const body = await request.json();
+    const { email, password } = body;
 
     // 유효성 검사
     if (!email || !password) {
@@ -126,14 +127,15 @@ export async function POST(request: NextRequest) {
     });
 
     // user 쿠키 설정 (라우트 보호 및 세션 확인용)
-    response.cookies.set('user', JSON.stringify({
+    const userCookieValue = encodeURIComponent(JSON.stringify({
       id: sanitizedUser.id,
       email: sanitizedUser.email,
       role: sanitizedUser.role,
       status: sanitizedUser.status,
       airline_id: sanitizedUser.airline_id,
       airline: sanitizedUser.airline,
-    }), {
+    }));
+    response.cookies.set('user', userCookieValue, {
       httpOnly: false, // 클라이언트에서 접근 가능
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

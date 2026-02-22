@@ -134,7 +134,7 @@ export default function Home() {
       {/* 헤더 로고 */}
       <header className="absolute top-10 left-10 z-20 animate-in fade-in slide-in-from-top-4 duration-1000">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/20 flex items-center justify-center backdrop-blur-md shadow-2xl">
+          <div className="w-12 h-12 rounded-none bg-blue-600/20 border border-blue-500/20 flex items-center justify-center backdrop-blur-md shadow-2xl">
             <Plane className="w-7 h-7 text-blue-400" />
           </div>
           <div>
@@ -152,7 +152,7 @@ export default function Home() {
 
         {/* 왼쪽 메인 슬로건 영역 */}
         <div className="flex-1 text-left animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200 fill-mode-both">
-          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-400/20 mb-10">
+          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-none bg-blue-500/10 border border-blue-400/20 mb-10">
             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
             <span className="text-[11px] font-black text-blue-400 uppercase tracking-widest leading-none">실시간 영공 감시 중</span>
           </div>
@@ -182,7 +182,7 @@ export default function Home() {
 
         {/* 오른쪽 로그인 영역 */}
         <div className="w-full max-w-[460px] animate-in fade-in slide-in-from-right-8 duration-1000 delay-400 fill-mode-both">
-          <div className="bg-slate-900/75 backdrop-blur-[28px] rounded-[48px] p-8 md:p-10 border border-white/5 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden">
+          <div className="bg-slate-900/75 backdrop-blur-[28px] rounded-none p-8 md:p-10 border border-white/5 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden">
             <div className="absolute -top-32 -right-32 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
 
             <div className="relative z-10">
@@ -192,18 +192,18 @@ export default function Home() {
               </div>
 
               {/* 탭 스타일 */}
-              <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-8 shadow-2xl">
+              <div className="flex bg-black/40 p-1 rounded-none border border-white/5 mb-8 shadow-2xl">
                 <button
                   type="button"
                   onClick={() => setIsAdmin(false)}
-                  className={`flex-1 py-3.5 rounded-[18px] text-sm font-bold transition-all duration-300 ${!isAdmin ? 'bg-white/10 text-white border border-white/5 shadow-xl' : 'text-white/40 hover:text-white'}`}
+                  className={`flex-1 py-3.5 rounded-none text-[13px] font-bold transition-all duration-300 ${!isAdmin ? 'bg-white/10 text-white border border-white/5 shadow-xl' : 'text-white/40 hover:text-white'}`}
                 >
                   항공사 업무
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsAdmin(true)}
-                  className={`flex-1 py-3.5 rounded-[18px] text-sm font-bold transition-all duration-300 ${isAdmin ? 'bg-white/10 text-white border border-white/5 shadow-xl' : 'text-white/40 hover:text-white'}`}
+                  className={`flex-1 py-3.5 rounded-none text-[13px] font-bold transition-all duration-300 ${isAdmin ? 'bg-white/10 text-white border border-white/5 shadow-xl' : 'text-white/40 hover:text-white'}`}
                 >
                   운영 관리자
                 </button>
@@ -221,7 +221,7 @@ export default function Home() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@kac.or.kr"
-                      className="w-full pl-14 pr-6 py-4.5 bg-black/40 border border-white/5 rounded-2xl text-white placeholder-white/20 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all shadow-inner"
+                      className="w-full pl-14 pr-6 py-5 bg-black/40 border border-white/5 rounded-none text-white placeholder-white/20 text-[17px] font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all shadow-inner"
                       required
                     />
                   </div>
@@ -238,14 +238,14 @@ export default function Home() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-14 pr-6 py-4.5 bg-black/40 border border-white/5 rounded-2xl text-white placeholder-white/20 text-sm tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all font-mono shadow-inner"
+                      className="w-full pl-14 pr-6 py-5 bg-black/40 border border-white/5 rounded-none text-white placeholder-white/20 text-[17px] tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all font-mono shadow-inner"
                       required
                     />
                   </div>
                 </div>
 
                 {error && (
-                  <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-xl text-xs font-bold animate-in fade-in zoom-in-95 duration-300">
+                  <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-3 rounded-none text-xs font-bold animate-in fade-in zoom-in-95 duration-300">
                     {error}
                   </div>
                 )}
@@ -253,7 +253,7 @@ export default function Home() {
                 <div className="flex items-center justify-between pt-2">
                   <label className="flex items-center group cursor-pointer">
                     <input type="checkbox" className="hidden peer" />
-                    <div className="w-5 h-5 rounded-lg border border-white/10 bg-white/5 peer-checked:bg-blue-600 peer-checked:border-blue-500 flex items-center justify-center transition-all group-hover:bg-white/10">
+                    <div className="w-5 h-5 rounded-none border border-white/10 bg-white/5 peer-checked:bg-blue-600 peer-checked:border-blue-500 flex items-center justify-center transition-all group-hover:bg-white/10">
                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" /></svg>
                     </div>
                     <span className="ml-3 text-[13px] font-semibold text-white/40 group-hover:text-white/70 transition-colors">로그인 상태 유지</span>
@@ -264,9 +264,9 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full py-5.5 mt-6 rounded-2xl text-base font-black text-white bg-blue-600 hover:bg-blue-500 shadow-2xl shadow-blue-600/30 active:scale-[0.98] transition-all tracking-[0.3em] uppercase ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full py-5.5 mt-8 rounded-none text-base font-black text-white bg-blue-600 hover:bg-blue-500 shadow-2xl shadow-blue-600/30 active:scale-[0.98] transition-all tracking-[0.3em] uppercase ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {isSubmitting ? '접속 중...' : '접속하기'}
+                  {isSubmitting ? 'LOGGING IN...' : 'LOGIN'}
                 </button>
               </form>
 

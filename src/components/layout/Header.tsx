@@ -116,8 +116,6 @@ export function Header() {
           </span>
           <div className="flex items-center gap-3 mt-1.5">
             <p className="text-cyan-400 text-[10px] font-black uppercase tracking-[0.4em]">KAC Aviation Safety Portal</p>
-            <span className="w-1 h-1 rounded-full bg-white/20"></span>
-            <p className="text-white/30 text-[10px] font-bold uppercase tracking-[0.4em]">Integrated Terminal v2.0</p>
           </div>
         </Link>
 
