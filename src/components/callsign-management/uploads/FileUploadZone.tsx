@@ -14,6 +14,7 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { accessToken } = useAuthStore((s) => ({ accessToken: s.accessToken }));
 
@@ -21,14 +22,25 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files.length > 0) {
-      handleFile(e.dataTransfer.files[0]);
+      handleFileSelect(e.dataTransfer.files[0]);
     }
   };
 
-  const handleFile = async (file: File) => {
+  const handleFileSelect = (file: File) => {
     // 파일 타입 검증
     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
       setError('.xlsx 또는 .xls 파일만 지원합니다.');
+      setSelectedFile(null);
+      return;
+    }
+
+    setSelectedFile(file);
+    setError(null);
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      setError('업로드할 파일을 선택해주세요.');
       return;
     }
 
@@ -37,7 +49,7 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
     setError(null);
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', selectedFile);
 
     try {
       // 진행률 시뮬레이션
@@ -62,6 +74,10 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
 
       const data = await res.json();
       onUploadComplete(data);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '업로드 실패');
       console.error(err);
@@ -92,16 +108,28 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
         <div className="mb-4 flex justify-center">
           <NanoIcon icon={UploadCloud} color="primary" size="lg" />
         </div>
-        <p className="text-sm font-bold text-gray-600 mb-2">파일을 드래그하거나 클릭해서 선택</p>
-        <p className="text-xs text-gray-400">.xlsx, .xls 파일만 지원 (최대 10MB)</p>
+        <div className="text-sm font-bold text-gray-600 mb-2">
+          {selectedFile ? selectedFile.name : '파일을 드래그하거나 클릭해서 선택'}
+        </div>
+        <p className="text-xs text-gray-400">
+          {selectedFile ? `${(selectedFile.size / 1024).toFixed(1)} KB` : '.xlsx, .xls 파일만 지원 (최대 10MB)'}
+        </p>
         <input
           ref={fileInputRef}
           type="file"
           accept=".xlsx,.xls"
-          onChange={(e) => e.target.files && handleFile(e.target.files[0])}
+          onChange={(e) => e.target.files && handleFileSelect(e.target.files[0])}
           className="hidden"
         />
       </div>
+
+      <button
+        onClick={handleUpload}
+        disabled={!selectedFile || isUploading}
+        className="w-full mt-6 px-6 py-3 bg-primary text-white font-bold rounded-none shadow-sm hover:bg-navy disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+      >
+        {isUploading ? '업로드 중...' : '업로드'}
+      </button>
 
       {/* 진행률 */}
       {isUploading && (
@@ -134,6 +162,19 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
           {error}
         </div>
       )}
+
+      <div className="mt-8 pt-6 border-t border-gray-100">
+        <h4 className="text-sm font-black text-gray-700 mb-3">📋 Excel 형식 안내</h4>
+        <ul className="text-xs text-gray-500 space-y-2 text-left">
+          <li>• 국내 항공사 데이터만 자동으로 필터링됩니다.</li>
+          <li>• 편명1 또는 편명2에서 국내 항공사 코드를 추출합니다.</li>
+          <li>• 유사도 및 오류발생가능성 정보가 자동 매핑됩니다.</li>
+          <li>• 중복된 유사호출부호 쌍은 자동 업데이트됩니다.</li>
+          <li className="pt-2 border-t border-dashed border-gray-200">
+            <strong>필수 컬럼:</strong> 편명1, 편명2 (나머지는 선택사항)
+          </li>
+        </ul>
+      </div>
     </div>
   );
 }
