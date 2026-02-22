@@ -66,7 +66,16 @@ export async function GET(request: NextRequest) {
     }
 
     // 정렬 및 페이지네이션
-    sql += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    // 1순위: 위험도 (높음 > 중간 > 낮음), 2순위: 발생회수 (많은 순)
+    sql += ` ORDER BY
+      CASE
+        WHEN risk_level = '매우높음' THEN 3
+        WHEN risk_level = '높음' THEN 2
+        WHEN risk_level = '낮음' THEN 1
+        ELSE 0
+      END DESC,
+      occurrence_count DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const result = await query(sql, params);

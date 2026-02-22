@@ -12,23 +12,38 @@ interface Props {
 }
 
 /**
+ * 현재 월의 1일부터 오늘까지의 기본 날짜 범위 계산
+ */
+function getDefaultDateRange(): { dateFrom: string; dateTo: string } {
+  const today = new Date();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const dateFrom = firstDay.toISOString().split('T')[0];
+  const dateTo = today.toISOString().split('T')[0];
+
+  return { dateFrom, dateTo };
+}
+
+/**
  * AnnouncementTable - 공지사항 이력 테이블
  *
  * 기능:
- * - 필터: 긴급도, 상태, 기간
+ * - 필터: 긴급도, 상태, 기간 (기본값: 현재 월 1일부터 오늘까지)
  * - 페이지네이션
  * - 읽음 여부 표시
  * - 관리자/사용자 모드
  */
 export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Props) {
+  const defaultDates = getDefaultDateRange();
+
   // 필터 상태
   const [filters, setFilters] = useState<
     AnnouncementHistoryFilters | AdminAnnouncementFilters
   >({
     level: undefined,
     status: 'all',
-    dateFrom: '',
-    dateTo: '',
+    dateFrom: defaultDates.dateFrom,
+    dateTo: defaultDates.dateTo,
     page: 1,
     limit: 20,
     ...initialFilters,
@@ -61,11 +76,12 @@ export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Prop
 
   // 필터 초기화
   const handleResetFilters = () => {
+    const defaultDates = getDefaultDateRange();
     setFilters({
       level: undefined,
       status: 'all',
-      dateFrom: '',
-      dateTo: '',
+      dateFrom: defaultDates.dateFrom,
+      dateTo: defaultDates.dateTo,
       page: 1,
       limit: 20,
     });

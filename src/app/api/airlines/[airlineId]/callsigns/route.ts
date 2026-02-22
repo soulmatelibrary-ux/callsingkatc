@@ -91,7 +91,15 @@ export async function GET(
          AND NOT EXISTS (
            SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
          )
-       ORDER BY occurrence_count DESC NULLS LAST, last_occurred_at DESC NULLS LAST
+       ORDER BY
+         CASE
+           WHEN risk_level = '매우높음' THEN 3
+           WHEN risk_level = '높음' THEN 2
+           WHEN risk_level = '낮음' THEN 1
+           ELSE 0
+         END DESC,
+         occurrence_count DESC NULLS LAST,
+         last_occurred_at DESC NULLS LAST
        LIMIT $2 OFFSET $3`,
       [airlineCode, limit, offset]
     );

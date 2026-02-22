@@ -104,14 +104,14 @@ export function Header() {
           </span>
         </Link>
 
-        {/* 항공사 정보 */}
-        {isAuthenticated && user && user.airline?.name_ko && (
+        {/* 항공사/기관 정보 */}
+        {isAuthenticated && user && (
           <div className="flex flex-col justify-center ml-4 pl-4 border-l border-white/20">
             <span
               className="font-extrabold text-lg leading-tight tracking-tight"
-              style={{ color: getAirlineTextColor(user.airline.code) }}
+              style={{ color: isAdmin ? '#FFFFFF' : getAirlineTextColor(user.airline?.code) }}
             >
-              {user.airline.name_en ? `${user.airline.name_en} ${user.airline.name_ko}` : user.airline.name_ko}
+              {isAdmin ? '항공교통본부' : (user.airline?.name_en ? `${user.airline.name_en} ${user.airline.name_ko}` : user.airline?.name_ko)}
             </span>
           </div>
         )}
