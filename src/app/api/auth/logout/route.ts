@@ -19,6 +19,7 @@ async function handleLogout(request: NextRequest) {
     path: '/',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
   });
 
   // user 쿠키도 삭제
@@ -27,7 +28,12 @@ async function handleLogout(request: NextRequest) {
     value: '',
     maxAge: 0,
     path: '/',
+    httpOnly: false,
+    sameSite: 'lax',
   });
+
+  // 로그 기록
+  console.log('[LOGOUT] 쿠키 삭제 완료');
 
   return response;
 }

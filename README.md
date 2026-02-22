@@ -193,12 +193,13 @@ npm run start
 ## 🧪 테스트 계정
 
 ### 관리자
-- Email: `admin@katc1.com`
-- Password: `Admin12345`
+- Email: `admin@katc.com`
+- Email: `lsi117@airport.co.kr`
+- Password: `Starred3!`
 
 ### 일반 사용자 (대한항공)
 - Email: `user@kal.com`
-- Password: `User12345`
+- Password: `Starred3!`
 
 > ⚠️ 프로덕션 환경에서는 반드시 변경하세요!
 

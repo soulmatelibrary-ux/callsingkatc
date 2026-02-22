@@ -55,11 +55,16 @@ export function Header() {
   async function handleLogout() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
+      // 쿠키 삭제 후 약간의 딜레이 제공
+      await new Promise(resolve => setTimeout(resolve, 100));
     } catch {
       // 서버 오류여도 클라이언트 상태는 초기화
     } finally {
       logout();
-      router.push(ROUTES.HOME);
+      // 로그인 페이지로 명확하게 이동
+      router.push(ROUTES.LOGIN);
+      // 페이지 새로고침으로 미들웨어 재실행
+      router.refresh();
     }
   }
 
