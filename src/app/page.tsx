@@ -37,7 +37,7 @@ export default function Home() {
           const data = await response.json();
           if (data.user) {
             setUser(data.user);
-            const target = data.user.role === 'admin' ? ROUTES.AIRLINE : ROUTES.AIRLINE;
+            const target = data.user.role === 'admin' ? ROUTES.ADMIN : ROUTES.AIRLINE;
             router.replace(target);
             return;
           }

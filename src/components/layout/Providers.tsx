@@ -27,12 +27,16 @@ function AuthInitializer({ children }: ProvidersProps) {
       const hasRefreshToken =
         typeof document !== 'undefined' && document.cookie.includes('refreshToken=');
 
+      console.log('[AuthInitializer] refreshToken exists:', hasRefreshToken);
+
       if (!hasRefreshToken) {
+        console.log('[AuthInitializer] No refreshToken, initialization complete (not logged in)');
         setIsInitialized(true);
         return;
       }
 
       try {
+        console.log('[AuthInitializer] Attempting to refresh token...');
         // refreshToken 쿠키로부터 새로운 accessToken 생성
         const response = await fetch('/api/auth/refresh', {
           method: 'POST',
@@ -41,12 +45,15 @@ function AuthInitializer({ children }: ProvidersProps) {
 
         if (response.ok) {
           const data = await response.json();
+          console.log('[AuthInitializer] Token refresh successful, user:', data.user.email);
           // accessToken과 user 정보 동시에 저장
           authStore.setAuth(data.user, data.accessToken);
+        } else {
+          console.warn('[AuthInitializer] Token refresh failed:', response.status);
         }
         // 토큰 갱신 실패 또는 성공 → 초기화 완료 (로그인 상태 아님)
       } catch (error) {
-        console.error('세션 복원 실패:', error);
+        console.error('[AuthInitializer] Session restoration error:', error);
       } finally {
         setIsInitialized(true);
       }
