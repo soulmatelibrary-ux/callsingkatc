@@ -295,6 +295,7 @@ export async function POST(
       manager_name: managerName,
       planned_due_date: plannedDueDate,
       completed_at: completedAt,
+      status: requestStatus,
     } = body;
 
     // 필수 필드 검증
@@ -333,6 +334,8 @@ export async function POST(
 
     // completedAt이 없으면 현재 시각 사용
     const completedTimestamp = completedAt || new Date().toISOString();
+    // 상태: 요청에서 받으면 그 값 사용, 없으면 'in_progress' 기본값
+    const actionStatus = requestStatus || 'in_progress';
 
     // 조치 생성 (트랜잭션)
     const result = await transaction(async (trx) => {
@@ -351,7 +354,7 @@ export async function POST(
           managerName || null,
           plannedDueDate || null,
           completedTimestamp,
-          'completed',
+          actionStatus,
           payload.userId, // 현재 관리자 ID
           new Date().toISOString(),
           new Date().toISOString(),
