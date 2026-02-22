@@ -9,6 +9,7 @@ import { AnnouncementHistoryFilters, AdminAnnouncementFilters } from '@/types/an
 interface Props {
   isAdmin?: boolean;
   initialFilters?: AnnouncementHistoryFilters | AdminAnnouncementFilters;
+  onSelectAnnouncement?: (announcement: any) => void;
 }
 
 /**
@@ -33,7 +34,7 @@ function getDefaultDateRange(): { dateFrom: string; dateTo: string } {
  * - 읽음 여부 표시
  * - 관리자/사용자 모드
  */
-export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Props) {
+export function AnnouncementTable({ isAdmin = false, initialFilters = {}, onSelectAnnouncement }: Props) {
   const defaultDates = getDefaultDateRange();
 
   // 필터 상태
@@ -242,12 +243,12 @@ export function AnnouncementTable({ isAdmin = false, initialFilters = {} }: Prop
                     >
                       {/* 제목 */}
                       <td className="px-4 py-3">
-                        <Link
-                          href={`/announcements/${announcement.id}`}
-                          className="text-blue-600 hover:underline font-medium"
+                        <button
+                          onClick={() => onSelectAnnouncement?.(announcement)}
+                          className="text-blue-600 hover:underline font-medium text-left"
                         >
                           {announcement.title}
-                        </Link>
+                        </button>
                       </td>
 
                       {/* 긴급도 */}

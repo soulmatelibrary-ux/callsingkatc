@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { redirect } from 'next/navigation';
 import { AnnouncementTable } from '@/components/announcements/AnnouncementTable';
-import { AnnouncementForm } from '@/components/announcements/AnnouncementForm';
+import { AnnouncementFormModal } from '@/components/announcements/AnnouncementFormModal';
+import { AnnouncementDetailModal } from '@/components/announcements/AnnouncementDetailModal';
+import { AdminAnnouncementResponse, Announcement } from '@/types/announcement';
 
 /**
  * /admin/announcements - 관리자 공지사항 관리 페이지
@@ -17,7 +19,13 @@ import { AnnouncementForm } from '@/components/announcements/AnnouncementForm';
  */
 export default function AdminAnnouncementsPage() {
   const { user, accessToken } = useAuthStore();
-  const [showForm, setShowForm] = useState(false);
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<
+    AdminAnnouncementResponse | Announcement | null
+  >(null);
+  const [editAnnouncement, setEditAnnouncement] = useState<
+    AdminAnnouncementResponse | Announcement | null
+  >(null);
 
   // 미인증 사용자 리다이렉트
   if (!accessToken || !user) {
@@ -28,6 +36,13 @@ export default function AdminAnnouncementsPage() {
   if (user.role !== 'admin') {
     redirect('/announcements');
   }
+
+  // 상세 모달에서 수정 버튼 클릭 시
+  const handleEditFromDetail = (announcement: AdminAnnouncementResponse | Announcement) => {
+    setSelectedAnnouncement(null);
+    setEditAnnouncement(announcement);
+    setShowFormModal(true);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -42,29 +57,51 @@ export default function AdminAnnouncementsPage() {
               </p>
             </div>
             <button
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => {
+                setEditAnnouncement(null);
+                setShowFormModal(true);
+              }}
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-medium transition"
             >
-              {showForm ? '닫기' : '+ 공지사항 작성'}
+              + 공지사항 작성
             </button>
           </div>
         </div>
       </div>
 
       {/* 콘텐츠 */}
-      <div className="w-full px-4 py-6 space-y-8">
-        {/* 폼 */}
-        {showForm && (
-          <AnnouncementForm
-            onSuccess={() => {
-              setShowForm(false);
-            }}
-          />
-        )}
-
+      <div className="w-full px-4 py-6">
         {/* 테이블 */}
-        <AnnouncementTable isAdmin={true} />
+        <AnnouncementTable
+          isAdmin={true}
+          onSelectAnnouncement={setSelectedAnnouncement}
+        />
       </div>
+
+      {/* 작성/수정 모달 */}
+      {showFormModal && (
+        <AnnouncementFormModal
+          announcement={editAnnouncement || undefined}
+          onClose={() => {
+            setShowFormModal(false);
+            setEditAnnouncement(null);
+          }}
+          onSuccess={() => {
+            setShowFormModal(false);
+            setEditAnnouncement(null);
+          }}
+        />
+      )}
+
+      {/* 상세 모달 */}
+      {selectedAnnouncement && (
+        <AnnouncementDetailModal
+          announcement={selectedAnnouncement}
+          onClose={() => setSelectedAnnouncement(null)}
+          isAdmin={true}
+          onEdit={handleEditFromDetail}
+        />
+      )}
     </div>
   );
 }
