@@ -8,6 +8,7 @@ import { ROUTES } from '@/lib/constants';
 import { useAirlineActions, useAirlineActionStats, useAirlineCallsigns } from '@/hooks/useActions';
 import { useAuthStore } from '@/store/authStore';
 import { ActionModal } from '@/components/actions/ActionModal';
+import { AirlineStatisticsTab } from '@/components/airline/AirlineStatisticsTab';
 
 const AL: Record<string, { n: string }> = {
   KAL: { n: '대한항공' },
@@ -1149,164 +1150,17 @@ export default function AirlinePage() {
 
             {/* 통계 탭 */}
             {activeTab === 'statistics' && (
-              <>
-                <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-none mb-8">
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="w-10 h-10 bg-indigo-50 text-indigo-700 rounded-none flex items-center justify-center">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">통계 조회 기간</p>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="date"
-                          value={statsStartDate}
-                          onChange={handleStatsStartDateChange}
-                          className="border border-gray-200 rounded-none px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                        />
-                        <span className="text-gray-400 font-bold">~</span>
-                        <input
-                          type="date"
-                          value={statsEndDate}
-                          onChange={handleStatsEndDateChange}
-                          className="border border-gray-200 rounded-none px-3 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                    {[
-                      { label: '오늘', value: 'today' },
-                      { label: '1주', value: '1w' },
-                      { label: '2주', value: '2w' },
-                      { label: '1개월', value: '1m' },
-                    ].map((range) => (
-                      <button
-                        key={range.value}
-                        onClick={() => applyStatsQuickRange(range.value as 'today' | '1w' | '2w' | '1m')}
-                        className={`px-4 py-2 text-xs font-black rounded-none border transition-all ${statsActiveRange === range.value
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-none'
-                          : 'text-gray-500 border-gray-200 hover:text-gray-900 hover:border-gray-400'
-                          }`}
-                      >
-                        {range.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {actionStatsLoading ? (
-                  <div className="bg-white rounded-none shadow-sm border border-gray-100 p-20 text-center">
-                    <div className="text-4xl mb-4">📊</div>
-                    <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">통계 데이터를 불러오는 중입니다...</p>
-                  </div>
-                ) : (
-                  <>
-                    {/* 핵심 3개 통계 카드 */}
-                    <div className="grid grid-cols-3 gap-6 mb-8">
-                      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">총 조치 건수</p>
-                        <p className="text-4xl font-black text-gray-700">{actionStats?.total ?? 0}</p>
-                        <p className="text-xs text-gray-500 font-bold mt-2">건</p>
-                      </div>
-
-                      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">완료율</p>
-                        <p className="text-4xl font-black text-emerald-600">{actionStats?.completionRate ?? 0}</p>
-                        <p className="text-xs text-gray-500 font-bold mt-2">%</p>
-                      </div>
-
-                      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 flex flex-col">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">평균 처리 기간</p>
-                        <p className="text-4xl font-black text-blue-600">{actionStats?.averageCompletionDays ?? 0}</p>
-                        <p className="text-xs text-gray-500 font-bold mt-2">일</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6 mb-8">
-                      <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">조치 유형별 분포</h4>
-                      <div className="space-y-4">
-                        {typeDistribution.length > 0 ? (
-                          typeDistribution.map((item, idx) => {
-                            const colors = [
-                              { bar: 'bg-rose-500', text: 'text-rose-600' },
-                              { bar: 'bg-amber-500', text: 'text-amber-600' },
-                              { bar: 'bg-blue-500', text: 'text-blue-600' },
-                              { bar: 'bg-emerald-500', text: 'text-emerald-600' },
-                              { bar: 'bg-purple-500', text: 'text-purple-600' },
-                              { bar: 'bg-indigo-500', text: 'text-indigo-600' },
-                            ];
-                            const color = colors[idx % colors.length];
-
-                            return (
-                              <div key={`${item.name}-${idx}`} className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm font-bold text-gray-700">{item.name}</span>
-                                  <span className={`text-sm font-black ${color.text}`}>
-                                    {item.count}건 ({item.percentage}%)
-                                  </span>
-                                </div>
-                                <div className="w-full bg-gray-100 rounded-none h-3 overflow-hidden">
-                                  <div className={`${color.bar} h-full transition-all`} style={{ width: `${item.percentage}%` }} />
-                                </div>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <p className="text-center text-gray-400 text-sm py-8">조치 데이터가 없습니다</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-6 mb-8">
-                      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6">
-                        <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">상태별 집계</h4>
-                        <div className="space-y-4">
-                          {(() => {
-                            const statusMap = {
-                              waiting: { label: '대기 중', color: 'text-amber-600', bgColor: 'bg-amber-50' },
-                              in_progress: { label: '진행 중', color: 'text-blue-600', bgColor: 'bg-blue-50' },
-                              completed: { label: '완료', color: 'text-emerald-600', bgColor: 'bg-emerald-50' },
-                            } as const;
-
-                            return (Object.entries(statusMap) as Array<[
-                              keyof typeof statusMap,
-                              { label: string; color: string; bgColor: string }
-                            ]>).map(([statusKey, meta]) => (
-                              <div key={statusKey} className={`${meta.bgColor} rounded-none p-4`}>
-                                <p className={`text-xs font-bold uppercase tracking-widest ${meta.color} mb-2`}>{meta.label}</p>
-                                <p className={`text-3xl font-black ${meta.color}`}>
-                                  {statusCounts[statusKey] ?? 0}
-                                </p>
-                                <p className="text-xs text-gray-500 font-bold mt-2">건</p>
-                              </div>
-                            ));
-                          })()}
-                        </div>
-                      </div>
-
-                      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-6">
-                        <h4 className="text-sm font-black text-gray-700 uppercase tracking-widest mb-6">월별 조치 현황</h4>
-                        <div className="space-y-3 max-h-96 overflow-y-auto">
-                          {monthlyTrend.length > 0 ? (
-                            monthlyTrend.map((trend) => (
-                              <div key={trend.month} className="flex items-center justify-between pb-3 border-b border-gray-100 last:border-b-0">
-                                <span className="text-sm font-bold text-gray-600">{trend.month}</span>
-                                <span className="text-sm font-black text-rose-600">{trend.count}건</span>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-center text-gray-400 text-sm py-8">조치 데이터가 없습니다</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </>
+              <AirlineStatisticsTab
+                statsStartDate={statsStartDate}
+                statsEndDate={statsEndDate}
+                onStatsStartDateChange={handleStatsStartDateChange}
+                onStatsEndDateChange={handleStatsEndDateChange}
+                statsActiveRange={statsActiveRange}
+                onApplyStatsQuickRange={applyStatsQuickRange}
+                actionStatsLoading={actionStatsLoading}
+                actionStats={actionStats}
+                incidents={allFilteredIncidents}
+              />
             )}
           </div>
         </div>

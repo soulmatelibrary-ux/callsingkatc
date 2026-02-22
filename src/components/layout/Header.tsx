@@ -126,23 +126,8 @@ export function Header() {
               {user.email}
             </span>
 
-            {!isAdmin && (
-              <Link
-                href={ROUTES.ANNOUNCEMENTS}
-                className="px-4 py-2 text-white/90 hover:text-white text-sm font-bold rounded-none transition-all"
-              >
-                📢 공지사항
-              </Link>
-            )}
-
             {isAdmin && (
               <div className="flex bg-black/10 p-1 rounded-none backdrop-blur-sm">
-                <Link
-                  href={ROUTES.ANNOUNCEMENTS}
-                  className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-none transition-all"
-                >
-                  공지사항
-                </Link>
                 <Link
                   href={ROUTES.DASHBOARD}
                   className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-none transition-all"

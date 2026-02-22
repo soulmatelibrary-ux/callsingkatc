@@ -79,14 +79,17 @@ export async function GET(request: NextRequest) {
 
     // 검색 조건 (유사호출부호, 조치유형, 담당자)
     if (search && search.trim()) {
+      const searchValue = `%${search.trim()}%`;
+      const callsignPlaceholder = `$${queryParams.length + 1}`;
+      const actionTypePlaceholder = `$${queryParams.length + 2}`;
+      const managerPlaceholder = `$${queryParams.length + 3}`;
+
       sql += ` AND (
-        cs.callsign_pair ILIKE $${queryParams.length + 1}
-        OR a.action_type ILIKE $${queryParams.length + 1}
-        OR a.manager_name ILIKE $${queryParams.length + 1}
+        cs.callsign_pair ILIKE ${callsignPlaceholder}
+        OR a.action_type ILIKE ${actionTypePlaceholder}
+        OR a.manager_name ILIKE ${managerPlaceholder}
       )`;
-      queryParams.push(`%${search.trim()}%`);
-      queryParams.push(`%${search.trim()}%`);
-      queryParams.push(`%${search.trim()}%`);
+      queryParams.push(searchValue, searchValue, searchValue);
     }
 
     // 날짜 필터
@@ -123,14 +126,17 @@ export async function GET(request: NextRequest) {
     }
 
     if (search && search.trim()) {
+      const searchValue = `%${search.trim()}%`;
+      const callsignPlaceholder = `$${countParams.length + 1}`;
+      const actionTypePlaceholder = `$${countParams.length + 2}`;
+      const managerPlaceholder = `$${countParams.length + 3}`;
+
       countSql += ` AND (
-        cs.callsign_pair ILIKE $${countParams.length + 1}
-        OR a.action_type ILIKE $${countParams.length + 1}
-        OR a.manager_name ILIKE $${countParams.length + 1}
+        cs.callsign_pair ILIKE ${callsignPlaceholder}
+        OR a.action_type ILIKE ${actionTypePlaceholder}
+        OR a.manager_name ILIKE ${managerPlaceholder}
       )`;
-      countParams.push(`%${search.trim()}%`);
-      countParams.push(`%${search.trim()}%`);
-      countParams.push(`%${search.trim()}%`);
+      countParams.push(searchValue, searchValue, searchValue);
     }
 
     if (dateFrom) {
