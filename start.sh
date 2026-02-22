@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# 개발 서버 실행 스크립트
+# 프로덕션 서버 실행 스크립트
 # - 도커가 실행중이지 않으면 docker-compose up -d로 실행 (DB 첫 초기화)
 # - 이미 실행중이면 통과 (기존 데이터 보존)
-# - Next.js dev 서버를 포트 3000에서 실행
+# - Next.js를 빌드 후 프로덕션 서버로 포트 3000에서 실행
 
 set -e
 
@@ -43,9 +43,13 @@ if [ ! -d "node_modules" ]; then
 fi
 
 echo ""
-echo "Next.js 개발 서버를 포트 3000에서 실행합니다."
+echo "Next.js 프로덕션 빌드를 시작합니다..."
+npm run build
+
+echo ""
+echo "Next.js 프로덕션 서버를 포트 3000에서 실행합니다."
 echo "종료하려면 Ctrl+C를 누르세요."
 echo ""
 
 # 포트 3000 고정
-PORT=3000 npm run dev
+PORT=3000 npm start
