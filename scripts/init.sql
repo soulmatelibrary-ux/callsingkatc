@@ -82,7 +82,7 @@ ON CONFLICT (code) DO NOTHING;
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
 SELECT
   'admin@katc.com',
-  '$2b$10$8NB3YMh5Q6Kx.V.LLKmFGe.c9e5rRhk9Lxy.xfV8m6YjC9YjzLPKm',
+  '$2b$10$Lt/H/23KNwU4ctxRXoGr1OjUddKuCxpxVJ2M3NZrgxc37WWrGGzoa',
   airlines.id,
   'active',
   'admin',
@@ -90,6 +90,19 @@ SELECT
   false
 FROM airlines
 WHERE airlines.code = 'KAL'
+ON CONFLICT (email) DO NOTHING;
+
+-- 샘플 항공사 사용자 삽입 (비밀번호: User1234)
+-- 테스트용 사용자 계정 (프로덕션 환경에서는 제거해야 함)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT 'kal-user@katc.com', '$2b$10$3uZyHJQMHHXF9VXCjGQ.iuQPvCJzZxBXczRY6q7p.kRBCEv1NWr7K', id, 'active', 'user', true, false
+FROM airlines WHERE code = 'KAL'
+UNION ALL
+SELECT 'aar-user@katc.com', '$2b$10$3uZyHJQMHHXF9VXCjGQ.iuQPvCJzZxBXczRY6q7p.kRBCEv1NWr7K', id, 'active', 'user', true, false
+FROM airlines WHERE code = 'AAR'
+UNION ALL
+SELECT 'jja-user@katc.com', '$2b$10$3uZyHJQMHHXF9VXCjGQ.iuQPvCJzZxBXczRY6q7p.kRBCEv1NWr7K', id, 'active', 'user', true, false
+FROM airlines WHERE code = 'JJA'
 ON CONFLICT (email) DO NOTHING;
 
 -- ================================================================
@@ -283,6 +296,82 @@ SELECT
   '조종사 오류', '고도이탈', '매우높음', '높음', 4
 FROM airlines WHERE airlines.code = 'KAL'
 ON CONFLICT (airline_code, callsign_pair) DO NOTHING;
+
+-- ================================================================
+-- Phase 4 샘플 조치 데이터 (actions + action_history)
+-- ================================================================
+
+-- 조치 샘플 데이터 (관리자가 등록한 조치들)
+INSERT INTO actions
+  (airline_id, callsign_id, action_type, description, manager_name, manager_email,
+   planned_due_date, status, result_detail, completed_at, registered_by, registered_at, updated_at)
+SELECT
+  airlines.id,
+  cs.id,
+  '편명 변경',
+  'KAL852 호출부호 변경을 위한 사전 협의 및 시스템 수정',
+  '김항공',
+  'kim@katc.com',
+  CURRENT_DATE + INTERVAL '7 days',
+  'in_progress',
+  NULL,
+  NULL,
+  users.id,
+  NOW(),
+  NOW()
+FROM airlines
+JOIN callsigns cs ON airlines.id = cs.airline_id AND cs.callsign_pair = 'KAL852 | KAL851'
+JOIN users ON users.email = 'admin@katc.com'
+WHERE airlines.code = 'KAL'
+ON CONFLICT DO NOTHING;
+
+-- 조치 샘플 데이터 2 (완료된 조치)
+INSERT INTO actions
+  (airline_id, callsign_id, action_type, description, manager_name, manager_email,
+   planned_due_date, status, result_detail, completed_at, registered_by, registered_at, updated_at)
+SELECT
+  airlines.id,
+  cs.id,
+  '브리핑 시행',
+  'KAL789 호출부호 관련 안전 브리핑 실시 (조종사 및 관제사 대상)',
+  '이안전',
+  'lee@katc.com',
+  CURRENT_DATE - INTERVAL '3 days',
+  'completed',
+  '2월 20일 서울 항공 운항팀 브리핑 완료, 2월 21일 제주 운항팀 브리핑 완료',
+  NOW() - INTERVAL '1 days',
+  users.id,
+  NOW() - INTERVAL '5 days',
+  NOW() - INTERVAL '1 days'
+FROM airlines
+JOIN callsigns cs ON airlines.id = cs.airline_id AND cs.callsign_pair = 'KAL789 | AAR789'
+JOIN users ON users.email = 'admin@katc.com'
+WHERE airlines.code = 'KAL'
+ON CONFLICT DO NOTHING;
+
+-- 조치 샘플 데이터 3 (진행중)
+INSERT INTO actions
+  (airline_id, callsign_id, action_type, description, manager_name, manager_email,
+   planned_due_date, status, result_detail, completed_at, registered_by, registered_at, updated_at)
+SELECT
+  airlines.id,
+  cs.id,
+  '모니터링 강화',
+  'KAL456 호출부호의 교신 빈도 증가에 따른 강화된 모니터링 체계 도입',
+  '박운항',
+  'park@katc.com',
+  CURRENT_DATE + INTERVAL '5 days',
+  'in_progress',
+  NULL,
+  NULL,
+  users.id,
+  NOW() - INTERVAL '2 days',
+  NOW()
+FROM airlines
+JOIN callsigns cs ON airlines.id = cs.airline_id AND cs.callsign_pair = 'KAL456 | AAR456'
+JOIN users ON users.email = 'admin@katc.com'
+WHERE airlines.code = 'KAL'
+ON CONFLICT DO NOTHING;
 
 -- ================================================================
 -- Phase 5: 공지사항 관리 시스템
