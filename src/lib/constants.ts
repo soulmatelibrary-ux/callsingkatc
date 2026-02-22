@@ -59,7 +59,7 @@ export const ROUTES = {
   CHANGE_PASSWORD: '/change-password',
   PENDING: '/pending',
   AIRLINE: '/airline',
-  DASHBOARD: '/dashboard',
+  DASHBOARD: '/admin/dashboard',
   ANNOUNCEMENTS: '/announcements',
   ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',

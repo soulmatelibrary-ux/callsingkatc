@@ -98,7 +98,7 @@ WHERE cs.airline_id = $1
    ```
 
 2. **대시보드 접속**
-   - URL: `http://localhost:3000/dashboard`
+  - URL: `http://localhost:3000/admin/dashboard`
    - 사용자 로그인 필요
 
 3. **"조치이력" 탭 확인**

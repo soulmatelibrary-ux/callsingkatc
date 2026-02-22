@@ -10,13 +10,11 @@
 "use client";
 
 import Link from "next/link";
-import { Header } from "@/components/layout/Header";
 import { PasswordResetSection } from "@/components/admin/PasswordResetSection";
 
 export default function AdminPasswordResetPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 pb-10 space-y-6">
         <div className="flex items-center gap-3">
           <Link

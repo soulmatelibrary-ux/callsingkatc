@@ -214,8 +214,8 @@ export default function DashboardPage() {
 
   const dashboardTabs: Array<{ id: DashboardTab; label: string; icon: string }> = [
     { id: 'callsigns', label: '유사호출부호목록', icon: '📋' },
-    { id: 'actions', label: '조치 이력', icon: '📝' },
     { id: 'upload', label: 'Excel 업로드', icon: '📄' },
+    { id: 'actions', label: '조치 이력', icon: '📝' },
   ];
 
   const actionSummary = useMemo<ActionSummary>(() => {
@@ -284,6 +284,15 @@ export default function DashboardPage() {
                 </button>
               );
             })}
+            {isAdmin && (
+              <button
+                onClick={() => router.push('/admin/actions')}
+                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 text-gray-600 hover:bg-gray-50 border-transparent hover:border-gray-300 mt-4"
+              >
+                <span className="text-lg opacity-90">✅</span>
+                <span>조치 관리</span>
+              </button>
+            )}
           </nav>
         </aside>
 

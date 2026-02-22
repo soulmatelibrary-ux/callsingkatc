@@ -45,6 +45,23 @@ const nextConfig = {
       },
     ];
   },
+  redirects: async () => {
+    return [
+      {
+        source: '/dashboard',
+        destination: '/admin/dashboard',
+        permanent: false,
+      },
+    ];
+  },
+  rewrites: async () => {
+    return [
+      {
+        source: '/admin/dashboard',
+        destination: '/dashboard',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

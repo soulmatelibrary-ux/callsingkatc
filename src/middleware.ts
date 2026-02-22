@@ -44,7 +44,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  const defaultRedirect = userRole === 'admin' ? '/dashboard' : '/airline';
+  const defaultRedirect = userRole === 'admin' ? '/admin/dashboard' : '/airline';
 
   console.log('[Middleware] isLoggedIn:', isLoggedIn, 'isProtectedRoute:', isProtectedRoute, 'isAuthRoute:', isAuthRoute);
 
