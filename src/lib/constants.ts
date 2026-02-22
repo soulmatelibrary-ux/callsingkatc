@@ -67,6 +67,9 @@ export const ROUTES = {
   ADMIN_AIRLINES: '/admin/airlines',
   ADMIN_ACTIONS: '/admin/actions',
   ADMIN_ANNOUNCEMENTS: '/admin/announcements',
+  ADMIN_CALLSIGN_MANAGEMENT: '/admin/callsign-management',
+  CALLSIGN_MANAGEMENT: '/callsign-management',
+  // 레거시 (역호환성)
   CALLSIGN_MGT_V1: '/callsign-mgmt-v1',
 };
 

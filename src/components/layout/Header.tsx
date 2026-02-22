@@ -13,25 +13,10 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
+import { NanoIcon } from '@/components/ui/NanoIcon';
+import { Plane } from 'lucide-react';
 
-function PlaneIcon() {
-  return (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-      />
-    </svg>
-  );
-}
+// function PlaneIcon() removed, using NanoIcon instead
 
 // 항공사별 시그니쳐 색상 (파란 배경에서 색 대비 고려)
 function getAirlineTextColor(airlineCode?: string): string {
@@ -87,11 +72,9 @@ export function Header() {
       }}
     >
       {/* 로고 + 시스템명 + 항공사 정보 */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         {/* 로고 아이콘 */}
-        <span className="text-white p-2 bg-white/10 rounded-full shadow-lg" aria-hidden="true">
-          <PlaneIcon />
-        </span>
+        <NanoIcon icon={Plane} color="info" size="md" />
 
         {/* 시스템명 */}
         <Link
@@ -117,14 +100,14 @@ export function Header() {
       </div>
 
       {/* 우측 영역 */}
-        <nav className="flex items-center gap-3" aria-label="사용자 네비게이션">
-          <button
-            type="button"
-            onClick={() => router.push(ROUTES.DASHBOARD)}
-            className="px-4 py-2 text-white/90 text-sm font-bold rounded-none bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
-          >
-            테스트
-          </button>
+      <nav className="flex items-center gap-3" aria-label="사용자 네비게이션">
+        <button
+          type="button"
+          onClick={() => router.push(ROUTES.DASHBOARD)}
+          className="px-4 py-2 text-white/90 text-sm font-bold rounded-none bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
+        >
+          테스트
+        </button>
         {isAuthenticated && user ? (
           <>
             {/* 사용자 이메일 표시 */}
@@ -132,21 +115,21 @@ export function Header() {
               {user.email}
             </span>
 
+            {/* 유사호출부호 관리 (항상 표시) */}
+            <Link
+              href={ROUTES.CALLSIGN_MANAGEMENT}
+              className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-none transition-all"
+            >
+              유사호출부호
+            </Link>
+
             {isAdmin && (
-              <div className="flex bg-black/10 p-1 rounded-none backdrop-blur-sm">
-                <Link
-                  href={ROUTES.CALLSIGN_MGT_V1}
-                  className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-none transition-all"
-                >
-                  유사호출부호1
-                </Link>
-                <Link
-                  href={ROUTES.ADMIN}
-                  className="px-4 py-2 bg-white/20 text-white text-sm font-extrabold rounded-none shadow-sm"
-                >
-                  관리자 페이지
-                </Link>
-              </div>
+              <Link
+                href={ROUTES.ADMIN}
+                className="px-4 py-2 bg-white/20 text-white text-sm font-extrabold rounded-none shadow-sm"
+              >
+                관리자 페이지
+              </Link>
             )}
 
             {/* 로그아웃 */}

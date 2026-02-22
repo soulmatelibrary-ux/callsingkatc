@@ -2,6 +2,8 @@
 
 import { useState, useRef } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { NanoIcon } from '@/components/ui/NanoIcon';
+import { FileSpreadsheet, UploadCloud } from 'lucide-react';
 
 interface FileUploadZoneProps {
   onUploadComplete: (result: any) => void;
@@ -71,7 +73,10 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
 
   return (
     <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
-      <h3 className="text-lg font-black text-gray-900 mb-6">📁 엑셀 업로드</h3>
+      <div className="flex items-center gap-3 mb-6">
+        <NanoIcon icon={FileSpreadsheet} color="orange" size="sm" />
+        <h3 className="text-lg font-black text-gray-900">엑셀 업로드</h3>
+      </div>
 
       <div
         className={`relative border-2 border-dashed rounded-none p-8 text-center transition-all cursor-pointer ${isDragging ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary hover:bg-primary/5'
@@ -84,19 +89,9 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
         onDragLeave={() => setIsDragging(false)}
         onClick={() => fileInputRef.current?.click()}
       >
-        <svg
-          className="w-12 h-12 mx-auto mb-4 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3v-6"
-          />
-        </svg>
+        <div className="mb-4 flex justify-center">
+          <NanoIcon icon={UploadCloud} color="primary" size="lg" />
+        </div>
         <p className="text-sm font-bold text-gray-600 mb-2">파일을 드래그하거나 클릭해서 선택</p>
         <p className="text-xs text-gray-400">.xlsx, .xls 파일만 지원 (최대 10MB)</p>
         <input

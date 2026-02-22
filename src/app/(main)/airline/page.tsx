@@ -9,6 +9,13 @@ import { useAirlineActions, useAirlineActionStats, useAirlineCallsigns } from '@
 import { useAuthStore } from '@/store/authStore';
 import { ActionModal } from '@/components/actions/ActionModal';
 import { AirlineStatisticsTab } from '@/components/airline/AirlineStatisticsTab';
+import { NanoIcon } from '@/components/ui/NanoIcon';
+import {
+  BarChart3,
+  ClipboardList,
+  TrendingUp,
+  Megaphone
+} from 'lucide-react';
 
 const AL: Record<string, { n: string }> = {
   KAL: { n: '대한항공' },
@@ -554,52 +561,42 @@ export default function AirlinePage() {
     <>
       <main className="flex min-h-screen bg-gray-50">
         {/* 왼쪽 사이드바 */}
-        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col">
+        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-0 shrink-0 h-[calc(100vh-64px)] overflow-y-auto">
+          <div className="px-6 py-8 mb-2">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
+              Airline Service
+            </h2>
+          </div>
           {/* 사이드바 네비게이션 */}
-          <nav className="flex-1 px-4 py-4 space-y-2">
-            <button
-              onClick={() => setActiveTab('incidents')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-none text-sm font-black tracking-tight transition-all text-left ${activeTab === 'incidents'
-                ? 'bg-rose-700 text-white shadow-lg shadow-rose-700/20' // Changed to bg-rose-700
-                : 'text-gray-500 hover:bg-gray-100'
-                }`}
-            >
-              <span className="text-lg">📊</span>
-              <span>발생현황</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('actions')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-none text-sm font-black tracking-tight transition-all text-left ${activeTab === 'actions'
-                ? 'bg-rose-700 text-white shadow-lg shadow-rose-700/20' // Changed to bg-rose-700
-                : 'text-gray-500 hover:bg-gray-100'
-                }`}
-            >
-              <span className="text-lg">📋</span>
-              <span>조치이력</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('statistics')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-none text-sm font-black tracking-tight transition-all text-left ${activeTab === 'statistics'
-                ? 'bg-rose-700 text-white shadow-lg shadow-rose-700/20'
-                : 'text-gray-500 hover:bg-gray-100'
-                }`}
-            >
-              <span className="text-lg">📈</span>
-              <span>통계</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('announcements')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-none text-sm font-black tracking-tight transition-all text-left ${activeTab === 'announcements'
-                ? 'bg-rose-700 text-white shadow-lg shadow-rose-700/20'
-                : 'text-gray-500 hover:bg-gray-100'
-                }`}
-            >
-              <span className="text-lg">📢</span>
-              <span>공지사항</span>
-            </button>
+          <nav className="flex-1 px-4 space-y-2">
+            {[
+              { id: 'incidents', label: '발생현황', icon: BarChart3, color: 'primary' },
+              { id: 'actions', label: '조치이력', icon: ClipboardList, color: 'info' },
+              { id: 'statistics', label: '통계', icon: TrendingUp, color: 'success' },
+              { id: 'announcements', label: '공지사항', icon: Megaphone, color: 'orange' },
+            ].map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as any)}
+                  className={`w-full group flex items-center gap-4 px-4 py-4 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 ${isActive
+                    ? 'bg-navy text-white shadow-[0_10px_20px_rgba(30,58,95,0.2)] border-rose-700'
+                    : 'text-gray-500 hover:bg-gray-50 border-transparent hover:border-gray-200'
+                    }`}
+                >
+                  <NanoIcon
+                    icon={item.icon as any}
+                    color={item.color as any}
+                    size="sm"
+                    isActive={isActive}
+                  />
+                  <span className={`transition-all duration-300 ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
           </nav>
         </aside>
 

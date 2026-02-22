@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-22T04:01:31.532Z",
+  "lastUpdated": "2026-02-22T04:16:48.408Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -36,7 +36,8 @@
     "history",
     "announcement-system - Gap analysis verification",
     "callsign-mgmt-v1",
-    "uploads"
+    "uploads",
+    "callsign-management"
   ],
   "primaryFeature": "katc1",
   "features": {
@@ -49,9 +50,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:37:49.180Z",
-        "lastUpdated": "2026-02-22T03:29:32.748Z"
+        "lastUpdated": "2026-02-22T04:14:43.923Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/hooks/useAnnouncements.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/lib/constants.ts"
     },
     "api": {
       "phase": "do",
@@ -101,7 +102,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:41:18.945Z",
-        "lastUpdated": "2026-02-22T02:47:00.890Z"
+        "lastUpdated": "2026-02-22T04:16:18.178Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/components/layout/Header.tsx"
     },
@@ -231,7 +232,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:44:52.743Z",
-        "lastUpdated": "2026-02-21T14:20:10.056Z"
+        "lastUpdated": "2026-02-22T04:16:48.408Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/dashboard/page.tsx"
     },
@@ -495,7 +496,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-22T02:47:15.995Z",
-        "lastUpdated": "2026-02-22T04:01:31.532Z"
+        "lastUpdated": "2026-02-22T04:14:36.568Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/callsign-mgmt-v1/page.tsx"
     },
@@ -511,6 +512,19 @@
         "lastUpdated": "2026-02-22T03:35:23.968Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/components/callsign-mgmt-v1/uploads/UploadResult.tsx"
+    },
+    "callsign-management": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-22T04:14:02.865Z",
+        "lastUpdated": "2026-02-22T04:14:12.831Z"
+      },
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/callsign-management/page.tsx"
     }
   },
   "pipeline": {
@@ -521,7 +535,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-22T04:01:31.532Z"
+    "lastActivity": "2026-02-22T04:16:48.408Z"
   },
   "history": [
     {
@@ -5369,6 +5383,48 @@
     {
       "timestamp": "2026-02-22T04:01:31.532Z",
       "feature": "callsign-mgmt-v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:14:02.865Z",
+      "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:14:12.831Z",
+      "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:14:23.322Z",
+      "feature": "callsign-mgmt-v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:14:36.568Z",
+      "feature": "callsign-mgmt-v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:14:43.923Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:16:18.178Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T04:16:48.408Z",
+      "feature": "dashboard",
       "phase": "do",
       "action": "updated"
     }

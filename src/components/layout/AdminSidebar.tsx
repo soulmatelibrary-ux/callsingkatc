@@ -3,6 +3,15 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { NanoIcon } from '@/components/ui/NanoIcon';
+import {
+    LayoutDashboard,
+    Users,
+    Plane,
+    Megaphone,
+    CheckCircle2,
+    LockKeyhole
+} from 'lucide-react';
 
 export function AdminSidebar() {
     const pathname = usePathname();
@@ -29,35 +38,42 @@ export function AdminSidebar() {
     }, [pathname, searchParams]);
 
     const menuItems = [
-        { id: 'dashboard', label: '대시보드', href: '/admin', icon: '📊' },
-        { id: 'users', label: '사용자 관리', href: '/admin/users?tab=users', icon: '👥' },
-        { id: 'airlines', label: '항공사 관리', href: '/admin/users?tab=airlines', icon: '✈️' },
-        { id: 'announcements', label: '공지사항 관리', href: '/admin/announcements', icon: '📢' },
-        { id: 'actions', label: '조치 관리', href: '/admin/actions', icon: '✅' },
-        { id: 'password', label: '비밀번호 초기화', href: '/admin/users?tab=password', icon: '🔒' },
+        { id: 'dashboard', label: '대시보드', href: '/admin', icon: LayoutDashboard, color: 'primary' },
+        { id: 'users', label: '사용자 관리', href: '/admin/users?tab=users', icon: Users, color: 'info' },
+        { id: 'airlines', label: '항공사 관리', href: '/admin/users?tab=airlines', icon: Plane, color: 'purple' },
+        { id: 'announcements', label: '공지사항 관리', href: '/admin/announcements', icon: Megaphone, color: 'orange' },
+        { id: 'actions', label: '조치 관리', href: '/admin/actions', icon: CheckCircle2, color: 'success' },
+        { id: 'password', label: '비밀번호 초기화', href: '/admin/users?tab=password', icon: LockKeyhole, color: 'danger' },
     ];
 
     return (
         <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-[calc(100vh-64px)] overflow-y-auto">
-            <div className="px-6 mb-6">
-                <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest">
-                    Admin Menu
+            <div className="px-6 py-8 mb-2">
+                <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
+                    Admin Terminal
                 </h2>
             </div>
-            <nav className="flex-1 px-4 space-y-1">
+            <nav className="flex-1 px-4 space-y-2">
                 {menuItems.map((item) => {
                     const isActive = activeMenu === item.id;
                     return (
                         <Link
                             key={item.id}
                             href={item.href}
-                            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 ${isActive
-                                    ? 'bg-navy text-white shadow-md border-primary'
-                                    : 'text-gray-600 hover:bg-gray-50 border-transparent hover:border-gray-300'
+                            className={`w-full group flex items-center gap-4 px-4 py-4 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 ${isActive
+                                ? 'bg-navy text-white shadow-[0_10px_20px_rgba(30,58,95,0.2)] border-primary'
+                                : 'text-gray-500 hover:bg-gray-50 border-transparent hover:border-gray-200'
                                 }`}
                         >
-                            <span className="text-lg opacity-90">{item.icon}</span>
-                            <span>{item.label}</span>
+                            <NanoIcon
+                                icon={item.icon as any}
+                                color={item.color as any}
+                                size="sm"
+                                isActive={isActive}
+                            />
+                            <span className={`transition-all duration-300 ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
+                                {item.label}
+                            </span>
                         </Link>
                     );
                 })}

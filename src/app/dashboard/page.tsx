@@ -14,6 +14,13 @@ import {
 import { ActionDetailModal } from '@/components/actions/ActionDetailModal';
 import { Action } from '@/types/action';
 import * as XLSX from 'xlsx';
+import { NanoIcon } from '@/components/ui/NanoIcon';
+import {
+  BarChart3,
+  FileSpreadsheet,
+  ClipboardList,
+  CheckCircle2
+} from 'lucide-react';
 
 type DashboardTab = 'callsigns' | 'actions' | 'upload';
 
@@ -212,10 +219,10 @@ export default function DashboardPage() {
     completed: '완료',
   };
 
-  const dashboardTabs: Array<{ id: DashboardTab; label: string; icon: string }> = [
-    { id: 'callsigns', label: '유사호출부호목록', icon: '📋' },
-    { id: 'upload', label: 'Excel 업로드', icon: '📄' },
-    { id: 'actions', label: '조치 이력', icon: '📝' },
+  const dashboardTabs: Array<{ id: DashboardTab; label: string; icon: any; color: any }> = [
+    { id: 'callsigns', label: '유사호출부호목록', icon: BarChart3, color: 'primary' },
+    { id: 'upload', label: 'Excel 업로드', icon: FileSpreadsheet, color: 'orange' },
+    { id: 'actions', label: '조치 이력', icon: ClipboardList, color: 'success' },
   ];
 
   const actionSummary = useMemo<ActionSummary>(() => {
@@ -261,36 +268,45 @@ export default function DashboardPage() {
       <Header />
       <div className="flex flex-1 h-svh overflow-hidden">
         {/* 사이드바 */}
-        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col shrink-0 h-full overflow-y-auto">
-          <div className="px-6 mb-6">
-            <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest">
-              Dashboard Menu
+        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-full overflow-y-auto">
+          <div className="px-6 py-8 mb-2">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
+              Dashboard Terminal
             </h2>
           </div>
-          <nav className="flex-1 px-4 space-y-1">
+          <nav className="flex-1 px-4 space-y-2">
             {dashboardTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as DashboardTab)}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 ${isActive
-                    ? 'bg-navy text-white shadow-md border-primary'
-                    : 'text-gray-600 hover:bg-gray-50 border-transparent hover:border-gray-300'
+                  className={`w-full group flex items-center gap-4 px-4 py-4 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 ${isActive
+                    ? 'bg-navy text-white shadow-[0_10px_20px_rgba(30,58,95,0.2)] border-primary'
+                    : 'text-gray-500 hover:bg-gray-50 border-transparent hover:border-gray-200'
                     }`}
                 >
-                  <span className="text-lg opacity-90">{tab.icon}</span>
-                  <span>{tab.label}</span>
+                  <NanoIcon
+                    icon={tab.icon}
+                    color={tab.color}
+                    size="sm"
+                    isActive={isActive}
+                  />
+                  <span className={`transition-all duration-300 ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
+                    {tab.label}
+                  </span>
                 </button>
               );
             })}
             {isAdmin && (
               <button
                 onClick={() => router.push('/admin/actions')}
-                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 text-gray-600 hover:bg-gray-50 border-transparent hover:border-gray-300 mt-4"
+                className="w-full group flex items-center gap-4 px-4 py-4 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 text-gray-500 hover:bg-gray-50 border-transparent hover:border-gray-200 mt-4"
               >
-                <span className="text-lg opacity-90">✅</span>
-                <span>조치 관리</span>
+                <NanoIcon icon={CheckCircle2} color="info" size="sm" />
+                <span className="group-hover:translate-x-1 transition-transform">
+                  조치 관리
+                </span>
               </button>
             )}
           </nav>
@@ -309,10 +325,10 @@ export default function DashboardPage() {
             </div>
             <button
               type="button"
-              onClick={() => router.push(ROUTES.CALLSIGN_MGT_V1)}
+              onClick={() => router.push(ROUTES.CALLSIGN_MANAGEMENT)}
               className="inline-flex items-center justify-center px-5 py-3 bg-primary text-white font-bold rounded-none shadow-sm hover:bg-navy transition-colors"
             >
-              유사호출부호 1 바로가기
+              유사호출부호 바로가기
             </button>
           </div>
           {/* 호출부호 목록 섹션 */}

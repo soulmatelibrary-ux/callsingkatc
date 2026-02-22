@@ -4,6 +4,13 @@ import { Header } from '@/components/layout/Header';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ROUTES } from '@/lib/constants';
+import { NanoIcon } from '@/components/ui/NanoIcon';
+import {
+  BarChart3,
+  Plane,
+  TrendingUp,
+  FileSpreadsheet
+} from 'lucide-react';
 
 export default function CallsignMgmtV1Layout({
   children,
@@ -15,10 +22,10 @@ export default function CallsignMgmtV1Layout({
   const activeTab = searchParams.get('tab') || 'overview';
 
   const menuItems = [
-    { id: 'overview', label: '전체현황', href: ROUTES.CALLSIGN_MGT_V1, icon: '📊' },
-    { id: 'actions', label: '항공사조치', href: `${ROUTES.CALLSIGN_MGT_V1}?tab=actions`, icon: '✈️' },
-    { id: 'stats', label: '통계', href: `${ROUTES.CALLSIGN_MGT_V1}?tab=stats`, icon: '📈' },
-    { id: 'upload', label: '엑셀입력', href: `${ROUTES.CALLSIGN_MGT_V1}?tab=upload`, icon: '📁' },
+    { id: 'overview', label: '전체현황', href: ROUTES.CALLSIGN_MGT_V1, icon: BarChart3, color: 'primary' },
+    { id: 'actions', label: '항공사조치', href: `${ROUTES.CALLSIGN_MGT_V1}?tab=actions`, icon: Plane, color: 'info' },
+    { id: 'stats', label: '통계', href: `${ROUTES.CALLSIGN_MGT_V1}?tab=stats`, icon: TrendingUp, color: 'success' },
+    { id: 'upload', label: '엑셀입력', href: `${ROUTES.CALLSIGN_MGT_V1}?tab=upload`, icon: FileSpreadsheet, color: 'orange' },
   ];
 
   return (
@@ -27,25 +34,32 @@ export default function CallsignMgmtV1Layout({
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* V1 전용 사이드바 (AdminSidebar 디자인 통일) */}
         <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-[calc(100vh-64px)] overflow-y-auto">
-          <div className="px-6 py-6">
-            <h2 className="text-sm font-black text-gray-400 uppercase tracking-widest">
+          <div className="px-6 py-8 mb-2">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
               V1 MANAGEMENT
             </h2>
           </div>
-          <nav className="flex-1 px-4 space-y-1">
+          <nav className="flex-1 px-4 space-y-2">
             {menuItems.map((item) => {
               const isActive = activeTab === item.id;
               return (
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 ${isActive
-                      ? 'bg-navy text-white shadow-md border-primary'
-                      : 'text-gray-600 hover:bg-gray-50 border-transparent hover:border-gray-300'
+                  className={`w-full group flex items-center gap-4 px-4 py-4 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 ${isActive
+                    ? 'bg-navy text-white shadow-[0_10px_20px_rgba(30,58,95,0.2)] border-primary'
+                    : 'text-gray-500 hover:bg-gray-50 border-transparent hover:border-gray-200'
                     }`}
                 >
-                  <span className="text-lg opacity-90">{item.icon}</span>
-                  <span>{item.label}</span>
+                  <NanoIcon
+                    icon={item.icon as any}
+                    color={item.color as any}
+                    size="sm"
+                    isActive={isActive}
+                  />
+                  <span className={`transition-all duration-300 ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
+                    {item.label}
+                  </span>
                 </Link>
               );
             })}
