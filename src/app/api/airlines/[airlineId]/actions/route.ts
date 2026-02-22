@@ -96,14 +96,16 @@ export async function GET(
     `;
     const queryParams: any[] = [airlineId];
 
-    // 필터 조건: action 존재 여부로 필터링
+    // 필터 조건: 실제 status 값으로 필터링
     if (status) {
       if (status === 'in_progress') {
-        // action이 없는 호출부호 (진행 중)
-        sql += ` AND a.id IS NULL`;
+        // action이 없거나 상태가 in_progress
+        sql += ` AND (a.id IS NULL OR a.status = $${queryParams.length + 1})`;
+        queryParams.push('in_progress');
       } else if (status === 'completed') {
-        // action이 있는 호출부호 (완료)
-        sql += ` AND a.id IS NOT NULL`;
+        // action이 있고 상태가 completed
+        sql += ` AND a.id IS NOT NULL AND a.status = $${queryParams.length + 1}`;
+        queryParams.push('completed');
       }
     }
 
@@ -149,14 +151,16 @@ export async function GET(
     `;
     const countParams: any[] = [airlineId];
 
-    // 필터 조건: action 존재 여부로 필터링
+    // 필터 조건: 실제 status 값으로 필터링
     if (status) {
       if (status === 'in_progress') {
-        // action이 없는 호출부호 (진행 중)
-        countSql += ` AND a.id IS NULL`;
+        // action이 없거나 상태가 in_progress
+        countSql += ` AND (a.id IS NULL OR a.status = $${countParams.length + 1})`;
+        countParams.push('in_progress');
       } else if (status === 'completed') {
-        // action이 있는 호출부호 (완료)
-        countSql += ` AND a.id IS NOT NULL`;
+        // action이 있고 상태가 completed
+        countSql += ` AND a.id IS NOT NULL AND a.status = $${countParams.length + 1}`;
+        countParams.push('completed');
       }
     }
 
