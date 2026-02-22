@@ -150,7 +150,7 @@ export function useCallsigns(filters?: {
 }) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const page = filters?.page || 1;
-  const limit = filters?.limit || 20;
+  const limit = filters?.limit ?? 10;
 
   return useQuery({
     queryKey: ['callsigns', filters?.airlineId, filters?.riskLevel, page, limit],

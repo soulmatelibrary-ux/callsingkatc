@@ -147,7 +147,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="relative z-30 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-32 px-10">
+      <main className="relative z-30 w-full w-full flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-32 px-10">
 
         {/* 왼쪽 메인 슬로건 영역 */}
         <div className="flex-1 text-left animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200 fill-mode-both">

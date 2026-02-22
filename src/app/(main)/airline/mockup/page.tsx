@@ -91,7 +91,7 @@ export default function AirlineDashboardMockup() {
         <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans selection:bg-primary/10">
             <MockupHeader airlineName="대한항공" />
 
-            <main className={`flex-1 max-w-7xl w-full mx-auto px-6 py-10 space-y-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <main className={`flex-1 w-full px-6 py-10 space-y-8 transition-all duration-700 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
 
                 {/* 상단 타이틀 섹션 */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-200 pb-8">
@@ -323,7 +323,7 @@ export default function AirlineDashboardMockup() {
                 </div>
             </main>
 
-            <footer className="max-w-7xl w-full mx-auto px-6 py-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+            <footer className="w-full px-6 py-10 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-tighter">© 2026 Korea Airports Corporation. All rights reserved.</p>
                 <div className="flex gap-8">
                     <Link href="#" className="text-xs font-extrabold text-gray-400 hover:text-primary transition-colors tracking-widest uppercase">Privacy</Link>

@@ -48,7 +48,7 @@ export default function AnnouncementDetailPage({
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="w-full px-4 py-8">
           <div className="bg-white rounded-lg p-8 text-center">
             <p className="text-gray-600">로딩 중...</p>
           </div>
@@ -60,7 +60,7 @@ export default function AnnouncementDetailPage({
   if (error || !announcement) {
     return (
       <div className="min-h-screen bg-gray-100">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="w-full px-4 py-8">
           <div className="bg-white rounded-lg p-8 border border-red-200">
             <p className="text-red-600 font-medium">공지사항을 찾을 수 없습니다.</p>
             <Link
@@ -111,7 +111,7 @@ export default function AnnouncementDetailPage({
     <div className="min-h-screen bg-gray-100">
       {/* 헤더 */}
       <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="w-full px-4 py-6">
           <Link
             href="/announcements"
             className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4"
@@ -124,7 +124,7 @@ export default function AnnouncementDetailPage({
       </div>
 
       {/* 콘텐츠 */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="w-full px-4 py-8">
         <div className="bg-white rounded-lg shadow-sm p-8">
           {/* 메타데이터 */}
           <div className="flex flex-wrap items-center gap-3 mb-6 pb-6 border-b">

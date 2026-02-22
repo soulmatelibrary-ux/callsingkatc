@@ -871,7 +871,7 @@ export default function DashboardPage() {
 
           {/* Excel 업로드 섹션 */}
           {activeTab === 'upload' && (
-            <div className="max-w-3xl mx-auto">
+            <div className="w-full">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
                 <div className="flex items-center justify-center mb-6">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">

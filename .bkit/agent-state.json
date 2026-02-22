@@ -1,25 +1,14 @@
 {
   "version": "1.0",
-  "enabled": true,
+  "enabled": false,
   "teamName": "",
   "feature": "katc1",
   "pdcaPhase": "do",
   "orchestrationPattern": "leader",
   "ctoAgent": "opus",
   "startedAt": "2026-02-22T05:19:44.249Z",
-  "lastUpdated": "2026-02-22T05:19:44.250Z",
-  "teammates": [
-    {
-      "name": "a4f17c6",
-      "role": "bkit:security-architect",
-      "model": "sonnet",
-      "status": "spawning",
-      "currentTask": null,
-      "taskId": null,
-      "startedAt": "2026-02-22T05:19:44.250Z",
-      "lastActivityAt": "2026-02-22T05:19:44.250Z"
-    }
-  ],
+  "lastUpdated": "2026-02-22T05:23:37.979Z",
+  "teammates": [],
   "progress": {
     "totalTasks": 0,
     "completedTasks": 0,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useCallsigns } from '@/hooks/useActions';
 import { useAirlines } from '@/hooks/useAirlines';
 import { StatCard } from './StatCard';
@@ -9,7 +9,8 @@ export function OverviewTab() {
   const [selectedAirline, setSelectedAirline] = useState<string>('');
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>('');
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const [limit, setLimit] = useState(10);
+  const pageSizeOptions = [10, 30, 50, 100];
 
   const airlinesQuery = useAirlines();
   const callsignsQuery = useCallsigns({
@@ -29,6 +30,27 @@ export function OverviewTab() {
       low: data.filter(c => c.risk_level === '낮음').length,
     };
   }, [callsignsQuery.data]);
+
+  const rows = callsignsQuery.data?.data ?? [];
+  const pagination = callsignsQuery.data?.pagination;
+  const totalItems = pagination?.total ?? 0;
+  const totalPagesFromApi = pagination?.totalPages ?? 0;
+  const computedTotalPages = totalPagesFromApi > 0 ? totalPagesFromApi : 1;
+  const startItem = totalItems === 0 ? 0 : (page - 1) * limit + 1;
+  const endItem = totalItems === 0 ? 0 : Math.min(page * limit, totalItems);
+
+  useEffect(() => {
+    if (!pagination) return;
+    if (pagination.totalPages === 0) {
+      if (page !== 1) {
+        setPage(1);
+      }
+      return;
+    }
+    if (page > pagination.totalPages) {
+      setPage(pagination.totalPages);
+    }
+  }, [pagination, page]);
 
   const getActionStatusMeta = (status?: string) => {
     const normalized = (status || 'pending').toLowerCase();
@@ -95,40 +117,61 @@ export function OverviewTab() {
 
         {/* 필터 */}
         <div className="px-8 py-6 border-b border-gray-50 bg-gray-50/50">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <select
-              value={selectedAirline}
-              onChange={(e) => {
-                setSelectedAirline(e.target.value);
-                setPage(1);
-              }}
-              className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
-            >
-              <option value="">항공사 선택</option>
-              {airlinesQuery.data?.map((airline) => (
-                <option key={airline.id} value={airline.id}>
-                  {airline.code} - {airline.name_ko}
-                </option>
-              ))}
-            </select>
-            <select
-              value={selectedRiskLevel}
-              onChange={(e) => {
-                setSelectedRiskLevel(e.target.value);
-                setPage(1);
-              }}
-              className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
-            >
-              <option value="">위험도 선택</option>
-              <option value="매우높음">매우높음</option>
-              <option value="높음">높음</option>
-              <option value="낮음">낮음</option>
-            </select>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+              <select
+                value={selectedAirline}
+                onChange={(e) => {
+                  setSelectedAirline(e.target.value);
+                  setPage(1);
+                }}
+                className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
+              >
+                <option value="">항공사 선택</option>
+                {airlinesQuery.data?.map((airline) => (
+                  <option key={airline.id} value={airline.id}>
+                    {airline.code} - {airline.name_ko}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedRiskLevel}
+                onChange={(e) => {
+                  setSelectedRiskLevel(e.target.value);
+                  setPage(1);
+                }}
+                className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
+              >
+                <option value="">위험도 선택</option>
+                <option value="매우높음">매우높음</option>
+                <option value="높음">높음</option>
+                <option value="낮음">낮음</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                페이지당
+              </span>
+              <select
+                value={String(limit)}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
+              >
+                {pageSizeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}개
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
         {/* 테이블 */}
-        {(callsignsQuery.data?.data?.length || 0) > 0 ? (
+        {rows.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -157,7 +200,7 @@ export function OverviewTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {callsignsQuery.data?.data?.map((callsign) => (
+                {rows.map((callsign) => (
                   <tr key={callsign.id} className="group hover:bg-primary/[0.02] transition-all">
                     <td className="px-8 py-5 font-bold text-gray-900">{callsign.airline_code}</td>
                     <td className="px-8 py-5 font-medium text-gray-700">{callsign.callsign_pair}</td>
@@ -216,7 +259,8 @@ export function OverviewTab() {
         {/* 페이지네이션 */}
         <div className="px-8 py-6 border-t border-gray-50 flex justify-between items-center bg-gray-50/30">
           <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-            페이지 {page}
+            페이지 {page} / {computedTotalPages} · 총 {totalItems}건
+            {totalItems > 0 ? ` (${startItem}-${endItem})` : ''}
           </span>
           <div className="flex gap-2">
             <button
@@ -228,7 +272,7 @@ export function OverviewTab() {
             </button>
             <button
               onClick={() => setPage(page + 1)}
-              disabled={(callsignsQuery.data?.data?.length || 0) < limit}
+              disabled={page >= computedTotalPages || rows.length === 0}
               className="px-3 py-1 border border-gray-200 rounded-none hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold"
             >
               다음

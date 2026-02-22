@@ -72,7 +72,7 @@ export default function CallsignManagementPublicPage() {
 
         {/* 메인 콘텐츠 영역 */}
         <div className="flex-1 overflow-y-auto">
-          <main className="flex-1 max-w-7xl w-full mx-auto px-6 pt-8 pb-10">
+          <main className="flex-1 w-full px-6 pt-8 pb-10">
             {/* 페이지 헤더 */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-200 pb-8 mb-8">
               <div>
