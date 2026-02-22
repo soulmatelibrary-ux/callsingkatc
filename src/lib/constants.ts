@@ -66,6 +66,7 @@ export const ROUTES = {
   ADMIN_PASSWORD_RESET: '/admin/password-reset',
   ADMIN_AIRLINES: '/admin/airlines',
   ADMIN_ACTIONS: '/admin/actions',
+  ADMIN_FILE_UPLOADS: '/admin/file-uploads',
   ADMIN_ANNOUNCEMENTS: '/admin/announcements',
   ADMIN_CALLSIGN_MANAGEMENT: '/admin/callsign-management',
   CALLSIGN_MANAGEMENT: '/callsign-management',

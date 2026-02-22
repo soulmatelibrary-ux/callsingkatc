@@ -66,6 +66,31 @@ export default function AdminActionsPage() {
             <h1 className="text-3xl font-bold text-gray-900">조치 관리</h1>
           </div>
           <p className="text-gray-600">항공사별 조치 이력 관리 및 상태 추적</p>
+
+          {/* 관리 기능 탭 */}
+          <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200">
+            <Link
+              href="/admin/users"
+              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+            >
+              사용자
+            </Link>
+            <Link
+              href="/admin/airlines"
+              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+            >
+              항공사
+            </Link>
+            <span className="px-3 py-1.5 text-sm font-semibold text-blue-600 bg-blue-50 rounded">
+              조치
+            </span>
+            <Link
+              href="/admin/file-uploads"
+              className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+            >
+              업로드 이력
+            </Link>
+          </div>
         </div>
 
         {/* 필터 및 검색 */}

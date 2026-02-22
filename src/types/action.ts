@@ -182,6 +182,7 @@ export interface CreateActionRequest {
   responsible_staff?: string; // 항공사 담당자명
   planned_due_date?: string;
   completed_at?: string; // 처리일자
+  status?: 'pending' | 'in_progress' | 'completed'; // 초기 상태 (기본값: pending)
 }
 
 export interface UpdateActionRequest {

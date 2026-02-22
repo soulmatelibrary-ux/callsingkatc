@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-22T09:19:22.579Z",
+  "lastUpdated": "2026-02-22T11:36:07.852Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -38,7 +38,8 @@
     "callsign-mgmt-v1",
     "uploads",
     "callsign-management",
-    "tmp"
+    "tmp",
+    "file-uploads"
   ],
   "primaryFeature": "katc1",
   "features": {
@@ -51,9 +52,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:37:49.180Z",
-        "lastUpdated": "2026-02-22T05:41:14.977Z"
+        "lastUpdated": "2026-02-22T11:36:07.852Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/run-performance-test.sh"
+      "lastFile": "/Users/sein/Desktop/katc1/src/types/action.ts"
     },
     "api": {
       "phase": "do",
@@ -298,9 +299,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-22T03:25:45.946Z"
+        "lastUpdated": "2026-02-22T11:28:24.324Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/announcements/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/file-uploads/[id]/route.ts"
     },
     "katc1-backend": {
       "phase": "do",
@@ -376,9 +377,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:32.683Z",
-        "lastUpdated": "2026-02-21T14:09:33.293Z"
+        "lastUpdated": "2026-02-22T11:35:56.351Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/actions/page.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/components/actions/ActionModal.tsx"
     },
     "callsigns": {
       "phase": "do",
@@ -539,6 +540,19 @@
         "lastUpdated": "2026-02-22T05:44:28.881Z"
       },
       "lastFile": "/tmp/simple_perf_test.sh"
+    },
+    "file-uploads": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-22T11:29:21.212Z",
+        "lastUpdated": "2026-02-22T11:30:01.872Z"
+      },
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/file-uploads/page.tsx"
     }
   },
   "pipeline": {
@@ -549,7 +563,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-22T09:19:22.579Z"
+    "lastActivity": "2026-02-22T11:36:07.852Z"
   },
   "history": [
     {
@@ -5643,6 +5657,66 @@
     {
       "timestamp": "2026-02-22T09:19:22.579Z",
       "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T11:20:39.164Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T11:28:24.324Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T11:28:55.669Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T11:29:00.733Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T11:29:21.212Z",
+      "feature": "file-uploads",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T11:30:01.872Z",
+      "feature": "file-uploads",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T11:30:07.300Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T11:35:50.307Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T11:35:56.351Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T11:36:07.852Z",
+      "feature": "katc1",
       "phase": "do",
       "action": "updated"
     }
