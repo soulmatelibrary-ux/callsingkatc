@@ -93,14 +93,14 @@ export function ActionModal({
           completed_at: processedDate,
         });
       } else {
-        // 신규 등록 모드
+        // 신규 등록 모드: 항상 'completed' 상태로 자동 저장
         await createMutation.mutateAsync({
           airlineId,
           callsign_id: callsignId,
           action_type: actionType,
           description: description || undefined,
           manager_name: managerName,
-          status: status,
+          status: 'completed', // 신규 등록은 항상 완료 상태
           completed_at: processedDate,
         });
       }
@@ -347,37 +347,39 @@ export function ActionModal({
             />
           </div>
 
-          {/* 상태 (항상 표시) */}
-          <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '13px',
-                fontWeight: 600,
-                color: '#4b5563',
-                marginBottom: '6px',
-              }}
-            >
-              상태
-            </label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as 'in_progress' | 'completed')}
-              disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                fontSize: '14px',
-                opacity: isLoading ? 0.6 : 1,
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-              }}
-            >
-              <option value="in_progress">진행중</option>
-              <option value="completed">완료</option>
-            </select>
-          </div>
+          {/* 상태 (수정 모드에서만 표시) */}
+          {actionId && (
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#4b5563',
+                  marginBottom: '6px',
+                }}
+              >
+                상태
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as 'in_progress' | 'completed')}
+                disabled={isLoading}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb',
+                  fontSize: '14px',
+                  opacity: isLoading ? 0.6 : 1,
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                }}
+              >
+                <option value="in_progress">진행중</option>
+                <option value="completed">완료</option>
+              </select>
+            </div>
+          )}
 
           {/* 버튼 */}
           <div

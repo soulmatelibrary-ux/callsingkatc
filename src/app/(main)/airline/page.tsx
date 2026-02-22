@@ -178,23 +178,39 @@ export default function AirlinePage() {
     setAirlineName(name);
     if (id) {
       setAirlineId(id);
-    } else if (code) {
-      // id가 없으면 code로 항공사 조회해서 airlineId 설정
-      const fetchAirlineId = async () => {
+    } else {
+      const fetchAirlineInfo = async () => {
         try {
-          const response = await fetch(`/api/airlines?code=${code}`, {
-            headers: { Authorization: `Bearer ${accessToken}` }
+          const response = await fetch('/api/auth/me', {
+            method: 'GET',
+            credentials: 'include',
           });
-          const result = await response.json();
-          if (result.data && result.data.length > 0) {
-            console.log('📍 항공사 ID 조회 완료:', result.data[0].id);
-            setAirlineId(result.data[0].id);
+
+          if (!response.ok) {
+            return;
+          }
+
+          const data = await response.json();
+          const fallbackAirline = data.user?.airline;
+          const fallbackId = fallbackAirline?.id || data.user?.airline_id;
+
+          if (fallbackId) {
+            setAirlineId(fallbackId);
+
+            if (!code && fallbackAirline?.code) {
+              setAirlineCode(fallbackAirline.code);
+            }
+
+            if (!name && fallbackAirline?.name_ko) {
+              setAirlineName(fallbackAirline.name_ko);
+            }
           }
         } catch (err) {
-          console.error('❌ 항공사 조회 오류:', err);
+          console.error('❌ 항공사 정보 복구 실패:', err);
         }
       };
-      fetchAirlineId();
+
+      fetchAirlineInfo();
     }
     console.log('✅ 로딩 완료 - setLoading(false) 호출');
     setLoading(false);
