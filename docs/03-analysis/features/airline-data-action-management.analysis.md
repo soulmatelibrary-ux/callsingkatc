@@ -2,10 +2,10 @@
 
 > **Analysis Type**: Gap Analysis (Design vs Implementation)
 >
-> **Project**: KATC1
-> **Version**: Phase 4
+> **Project**: KATC1 - 항공사 유사호출부호 경고시스템
+> **Version**: Phase 4+ (callsign-management 통합, v2.0)
 > **Analyst**: gap-detector
-> **Date**: 2026-02-20
+> **Date**: 2026-02-22
 > **Design Doc**: [airline-data-action-management.design.md](../../02-design/features/airline-data-action-management.design.md)
 
 ---
@@ -14,122 +14,88 @@
 
 ### 1.1 Analysis Purpose
 
-Phase 4 (airline-data-action-management)의 설계 문서와 실제 구현 코드 간 일치도를 측정하고, 누락된 기능/불일치 항목/추가된 기능을 식별한다.
+Phase 4 설계 문서(airline-data-action-management.design.md)와 현재 실제 구현 코드 간의 일치도를 재검증한다. v1.0 분석(2026-02-20, 63%) 이후 상당한 구현 진전이 있었으므로 전체 재평가를 수행한다.
 
 ### 1.2 Analysis Scope
 
 - **Design Document**: `docs/02-design/features/airline-data-action-management.design.md`
-- **Implementation Paths**:
-  - `scripts/init.sql` (DB schema)
-  - `src/types/action.ts` (Type definitions)
-  - `src/hooks/useActions.ts` (React Query hooks)
-  - `src/app/api/actions/` (API routes)
-  - `src/app/api/callsigns/` (API routes)
-  - `src/app/api/airlines/[airlineId]/actions/` (API routes)
-  - `src/app/api/airlines/[airlineId]/callsigns/` (API routes)
-  - `src/components/actions/ActionModal.tsx` (Frontend component)
-  - `src/app/admin/actions/page.tsx` (Admin page)
-  - `src/app/(main)/airline/page.tsx` (Airline user page)
-- **Analysis Date**: 2026-02-20
+- **Implementation Files**:
+  - DB: `scripts/init.sql` (Phase 4 section: lines 96-286)
+  - Types: `src/types/action.ts` (265 lines, 11+ interfaces)
+  - Hooks: `src/hooks/useActions.ts` (451 lines, 10 hooks)
+  - API Routes:
+    - `src/app/api/actions/route.ts` (GET admin actions)
+    - `src/app/api/actions/[id]/route.ts` (GET/PATCH/DELETE)
+    - `src/app/api/callsigns/route.ts` (GET global callsigns)
+    - `src/app/api/airlines/[airlineId]/actions/route.ts` (GET/POST)
+    - `src/app/api/airlines/[airlineId]/callsigns/route.ts` (GET)
+    - `src/app/api/airlines/[airlineId]/actions/stats/route.ts` (GET stats)
+    - `src/app/api/admin/upload-callsigns/route.ts` (POST upload)
+  - Components:
+    - `src/components/callsign-management/` (9 files)
+    - `src/components/actions/ActionModal.tsx`, `ActionDetailModal.tsx`
+  - Pages:
+    - `src/app/callsign-management/page.tsx` (public)
+    - `src/app/admin/callsign-management/page.tsx` (admin)
+    - `src/app/admin/actions/page.tsx` (admin actions)
+    - `src/app/dashboard/page.tsx` (user dashboard)
+- **Analysis Date**: 2026-02-22
+
+### 1.3 Changes Since v1.0 (2026-02-20)
+
+Major implementation progress since last analysis:
+- Excel upload API fully implemented (`/api/admin/upload-callsigns`)
+- callsign-management dedicated pages with 4-tab layout created
+- Upload UI components (FileUploadZone, UploadResult, UploadHistory)
+- Per-airline statistics API implemented
+- ActionDetailModal for edit/view
+- Dashboard page with real API data connections
+- Admin actions page now uses useAirlines() hook (UUID fix)
+- callsign_occurrences table added for per-date tracking
 
 ---
 
 ## 2. Overall Scores
 
-| Category | Score | Status |
-|----------|:-----:|:------:|
-| Database Schema Match | 82% | Warning |
-| API Endpoints Match | 50% | Critical |
-| Type Definitions Match | 90% | Pass |
-| React Query Hooks Match | 65% | Warning |
-| Frontend Components Match | 45% | Critical |
-| Architecture Compliance | 70% | Warning |
-| Convention Compliance | 80% | Warning |
-| **Overall** | **62%** | **Critical** |
+| Category | v1.0 Score | v2.0 Score | Change | Status |
+|----------|:---------:|:---------:|:------:|:------:|
+| Database Schema | 82% | 85% | +3 | Warning |
+| API Endpoints | 50% | 68% | +18 | Warning |
+| Type Definitions | 90% | 88% | -2 | Warning |
+| React Query Hooks | 65% | 72% | +7 | Warning |
+| Frontend Components | 45% | 70% | +25 | Warning |
+| Architecture | 70% | 78% | +8 | Warning |
+| Convention | 80% | 82% | +2 | Warning |
+| **Overall** | **63%** | **75%** | **+12** | **Warning** |
+
+Score Legend: 90%+ = Pass, 70-89% = Warning, <70% = Fail
 
 ---
 
 ## 3. Database Schema Gap Analysis
 
-### 3.1 Table-Level Comparison
+### 3.1 Table Comparison
 
 | Design Table | Implementation | Status | Notes |
 |-------------|---------------|--------|-------|
-| callsigns | `scripts/init.sql:122-154` | Match (Enhanced) | Implementation adds airline_id FK, other_airline_code, file_upload_id, uploaded_at |
-| actions | `scripts/init.sql:162-189` | Match (Enhanced) | Implementation adds callsign_id FK (design used callsign_pair string), description field, review_comment |
-| file_uploads | `scripts/init.sql:100-116` | Match (Modified) | Implementation uses uploaded_by UUID FK (design used VARCHAR email), removed file_path |
-| action_history | `scripts/init.sql:199-211` | Match | Field-level change tracking as designed |
+| callsigns | `init.sql:122-161` | Enhanced | +airline_id UUID FK, +other_airline_code, +file_upload_id, +uploaded_at, +status column |
+| actions | `init.sql:198-225` | Enhanced | airline_code->airline_id FK, callsign_pair->callsign_id FK, +description, +review_comment |
+| file_uploads | `init.sql:100-116` | Modified | uploaded_by: VARCHAR->UUID FK |
+| action_history | `init.sql:234-250` | Match | Structure matches design |
+| - | callsign_occurrences (`init.sql:170-196`) | Added | Per-date occurrence tracking (not in design) |
 
-### 3.2 Field-Level Differences
+### 3.2 Enum Value Shift (Intentional)
 
-#### callsigns table
+| Design Value | Implementation Value |
+|-------------|---------------------|
+| `VERY_HIGH` / `HIGH` / `LOW` | `매우높음` / `높음` / `낮음` |
+| `ATC` / `PILOT` / `NONE` | `관제사 오류` / `조종사 오류` / `오류 미발생` |
 
-| Field | Design | Implementation | Status | Impact |
-|-------|--------|---------------|--------|--------|
-| id | UUID PK | UUID PK | Match | - |
-| airline_code | VARCHAR(10) NOT NULL | VARCHAR(10) NOT NULL | Match | - |
-| airline_id | - | UUID NOT NULL FK | Added | Better referential integrity |
-| callsign_pair | VARCHAR(30) | VARCHAR(50) | Changed | Wider allowance - compatible |
-| my_callsign | VARCHAR(15) | VARCHAR(20) | Changed | Wider allowance - compatible |
-| other_callsign | VARCHAR(15) | VARCHAR(20) | Changed | Wider allowance - compatible |
-| other_airline_code | - | VARCHAR(10) | Added | Tracks counterpart airline |
-| error_type | VARCHAR(20) NOT NULL | VARCHAR(30) nullable | Changed | Implementation allows nulls, wider enum |
-| sub_error | VARCHAR(50) | VARCHAR(30) | Changed | Narrower - may truncate |
-| risk_level | VARCHAR(20) NOT NULL | VARCHAR(20) nullable | Changed | Implementation allows nulls |
-| similarity | VARCHAR(20) NOT NULL | VARCHAR(20) nullable | Changed | Implementation allows nulls |
-| file_upload_id | - | UUID FK | Added | Links to upload source |
-| uploaded_at | - | TIMESTAMP | Added | Tracks upload time |
-| UNIQUE | (airline_code, callsign_pair) | (airline_id, callsign_pair) + (airline_code, callsign_pair) | Enhanced | Dual unique constraints |
+### 3.3 FK Strategy Improvement
 
-**Design value format shift**: Design uses English enums (`'ATC' | 'PILOT' | 'NONE'`, `'VERY_HIGH' | 'HIGH' | 'LOW'`), implementation uses Korean values (`'관제사 오류'`, `'매우높음'`).
+Design used string references (airline_code, email). Implementation uses UUID FKs with ON DELETE CASCADE/SET NULL. This is a structural improvement over the design.
 
-#### actions table
-
-| Field | Design | Implementation | Status | Impact |
-|-------|--------|---------------|--------|--------|
-| callsign_pair | VARCHAR(30) NOT NULL | - | Removed | Replaced by callsign_id FK |
-| callsign_id | - | UUID NOT NULL FK | Added | Relational reference (better) |
-| airline_code | VARCHAR(10) NOT NULL | - | Removed | Replaced by airline_id FK |
-| airline_id | - | UUID NOT NULL FK | Added | Relational reference (better) |
-| description | - | TEXT | Added | Additional detail field |
-| manager_name | VARCHAR(100) NOT NULL | VARCHAR(100) nullable | Changed | Implementation allows nulls |
-| manager_email | VARCHAR(100) | VARCHAR(255) | Changed | Wider - compatible |
-| registered_by | VARCHAR(100) | UUID FK | Changed | Better referential integrity |
-| reviewed_by | VARCHAR(100) | UUID FK | Changed | Better referential integrity |
-| review_comment | - | TEXT | Added | Admin review notes |
-
-#### file_uploads table
-
-| Field | Design | Implementation | Status | Impact |
-|-------|--------|---------------|--------|--------|
-| file_path | VARCHAR(500) | - | Removed | Not needed for in-memory processing |
-| uploaded_by | VARCHAR(100) (email) | UUID FK | Changed | Better referential integrity |
-
-### 3.3 Index Comparison
-
-| Design Index | Implementation | Status |
-|-------------|---------------|--------|
-| idx_airline (callsigns) | idx_callsigns_airline_code | Match |
-| idx_pair (callsigns) | idx_callsigns_pair | Match |
-| uk_pair_airline (callsigns) | UNIQUE(airline_code, callsign_pair) | Match |
-| idx_airline (actions) | idx_actions_airline_id | Match (by ID) |
-| idx_status (actions) | idx_actions_status | Match |
-| idx_pair (actions) | - | Missing (replaced by callsign_id FK) |
-| idx_registered_date (actions) | idx_actions_registered_at | Match |
-| idx_uploaded_at (file_uploads) | idx_file_uploads_uploaded_at | Match |
-| idx_status (file_uploads) | idx_file_uploads_status | Match |
-| idx_actions_airline_status (perf) | - | Missing |
-| idx_callsigns_occurrence (perf) | - | Missing |
-| idx_uploads_admin_date (perf) | - | Missing |
-| - | idx_callsigns_airline_id | Added |
-| - | idx_callsigns_risk_level | Added |
-| - | idx_callsigns_created_at | Added |
-| - | idx_actions_callsign_id | Added |
-| - | idx_actions_registered_by | Added |
-| - | idx_actions_completed_at | Added |
-| - | idx_file_uploads_uploaded_by | Added |
-
-**DB Schema Score: 82%** - Core schema matches well. Enhancements (UUID FKs instead of string references) are improvements over design. Some performance indexes from design are missing but compensated with other useful indexes. The key concern is the enum value format shift (English -> Korean).
+**DB Schema Score: 85%** -- Core schema solid. All design tables implemented with improvements. callsign_occurrences table added (not in design but valuable). Enum value format shifted EN->KR.
 
 ---
 
@@ -137,66 +103,45 @@ Phase 4 (airline-data-action-management)의 설계 문서와 실제 구현 코�
 
 ### 4.1 Endpoint Comparison
 
-| Design Endpoint | Implementation | Status | Notes |
-|----------------|---------------|--------|-------|
-| `GET /api/airline/callsigns` | `GET /api/callsigns` + `GET /api/airlines/[airlineId]/callsigns` | Changed | URL path differs; split into 2 endpoints |
-| `GET /api/airline/actions` | `GET /api/actions` | Changed | URL path differs; admin-only (design allowed user access) |
-| `POST /api/airline/actions` | `POST /api/airlines/[airlineId]/actions` | Changed | URL structure changed; admin-only (design allowed user registration) |
-| `PATCH /api/airline/actions/{actionId}` | `PATCH /api/actions/[id]` | Changed | URL path differs; admin-only |
-| `POST /api/admin/callsigns/upload` | - | Missing | Excel upload not implemented |
-| `GET /api/admin/callsigns/upload/{uploadId}` | - | Missing | Upload status check not implemented |
-| `GET /api/admin/callsigns/upload-history` | - | Missing | Upload history not implemented |
-| `GET /api/admin/actions` | `GET /api/actions` (same endpoint) | Merged | Design had separate admin endpoint; implementation merges with airline endpoint |
-| `GET /api/admin/statistics` | - | Missing | Statistics dashboard API not implemented |
-| `GET /api/admin/actions/export` | - | Missing | Excel export not implemented |
-| - | `GET /api/actions/[id]` | Added | Action detail endpoint (not in design) |
-| - | `DELETE /api/actions/[id]` | Added | Action delete endpoint (not in design) |
+| # | Design Endpoint | Implementation | Status | Notes |
+|---|----------------|---------------|--------|-------|
+| 1 | `GET /api/airline/callsigns` | `GET /api/airlines/[airlineId]/callsigns` | Changed | Resource-based path |
+| 2 | `GET /api/airline/actions` | `GET /api/airlines/[airlineId]/actions` | Changed | Resource-based path |
+| 3 | `POST /api/airline/actions` | `POST /api/airlines/[airlineId]/actions` | Changed | Resource-based path |
+| 4 | `PATCH /api/airline/actions/{id}` | `PATCH /api/actions/[id]` | Changed | Root actions path |
+| 5 | `POST /api/admin/callsigns/upload` | `POST /api/admin/upload-callsigns` | Implemented | Different URL, synchronous |
+| 6 | `GET /api/admin/callsigns/upload/{id}` | - | Missing | Upload status polling not implemented |
+| 7 | `GET /api/admin/callsigns/upload-history` | - | Missing | No upload history API |
+| 8 | `GET /api/admin/actions` | `GET /api/actions` | Changed | Admin-only via auth check |
+| 9 | `GET /api/admin/statistics` | `GET /api/airlines/[airlineId]/actions/stats` | Changed | Per-airline instead of global |
+| 10 | `GET /api/admin/actions/export` | - | Missing | Server-side export not implemented |
+| - | `GET /api/callsigns` | Added | Global callsign list |
+| - | `GET /api/actions/[id]` | Added | Action detail |
+| - | `DELETE /api/actions/[id]` | Added | Action deletion |
 
-### 4.2 API URL Pattern Differences
+### 4.2 URL Pattern Shift
 
-| Design Pattern | Implementation Pattern | Issue |
-|---------------|----------------------|-------|
-| `/api/airline/callsigns` | `/api/callsigns` | Design groups by role; implementation is resource-based |
-| `/api/airline/actions` | `/api/actions` | Same pattern shift |
-| `/api/airline/actions` (POST) | `/api/airlines/[airlineId]/actions` (POST) | RESTful nesting - implementation is better |
+- **Design**: Role-based paths (`/api/airline/`, `/api/admin/`)
+- **Implementation**: Resource-based paths (`/api/callsigns`, `/api/actions`, `/api/airlines/[id]/...`)
+- **Assessment**: Resource-based is better REST practice. Design should be updated.
 
 ### 4.3 Response Format Comparison
 
-**Design: GET /api/airline/callsigns response**
-```json
-{
-  "callsigns": [...],
-  "total": 45,
-  "page": 1,
-  "pageSize": 20
-}
-```
+| Aspect | Design | Implementation | Status |
+|--------|--------|---------------|--------|
+| Data wrapper | `{ callsigns: [...] }` | `{ data: [...] }` | Changed (generic) |
+| Pagination | Flat: `total, page, pageSize` | Nested: `{ pagination: { page, limit, total, totalPages } }` | Changed (more structured) |
+| Upload response | `{ uploadId, status: "processing" }` (202) | `{ success, total, inserted, updated }` (200) | Changed (synchronous) |
+| Error format | `{ error: { code, message } }` | `{ error: "message" }` | Simplified |
 
-**Implementation: GET /api/callsigns response**
-```json
-{
-  "data": [...],
-  "pagination": { "page": 1, "limit": 20, "total": 45, "totalPages": 3 }
-}
-```
+### 4.4 v1.0 -> v2.0 Improvement
 
-| Response Aspect | Design | Implementation | Status |
-|----------------|--------|---------------|--------|
-| Data wrapper key | `callsigns` / `actions` | `data` | Changed - inconsistent with design |
-| Pagination format | Flat `total`, `page`, `pageSize` | Nested `pagination` object | Changed |
-| Pagination field name | `pageSize` | `limit` | Changed |
-| Total pages | Not provided | `totalPages` included | Added (improvement) |
+- **Fixed**: Excel upload now implemented at `/api/admin/upload-callsigns`
+- **Fixed**: Admin airline filter now uses `useAirlines()` hook with UUID values
+- **Added**: Per-airline statistics at `/api/airlines/[airlineId]/actions/stats`
+- **Still Missing**: Upload status polling (design specified async), upload history API, server-side export
 
-### 4.4 Permission Model Differences
-
-| Endpoint | Design Permission | Implementation Permission | Status |
-|----------|-----------------|-------------------------|--------|
-| Callsign list | User (own airline) + Admin (all) | Any authenticated user | Changed (less restrictive) |
-| Action list | User (own airline) + Admin (all) | Admin only | Changed (more restrictive) |
-| Action create | User (own airline) | Admin only | Changed (P0 issue) |
-| Action update | User (own airline) | Admin only | Changed (P0 issue) |
-
-**API Score: 50%** - 5 of 10 design endpoints are not implemented (upload, statistics, export). URL patterns systematically differ. Response format differs. Permission model is reversed from design intent for action endpoints.
+**API Endpoints Score: 68%** -- 7/10 design endpoints exist (in different paths). 3 still missing (upload status, upload history, server-side export). Excel upload implemented but with different behavior (sync vs async).
 
 ---
 
@@ -204,25 +149,24 @@ Phase 4 (airline-data-action-management)의 설계 문서와 실제 구현 코�
 
 ### 5.1 Interface Comparison
 
-| Design Interface | Implementation | Status | Notes |
-|-----------------|---------------|--------|-------|
-| CallSign | Callsign (`src/types/action.ts:37-81`) | Match (Enhanced) | Added airline_id, other_airline_code, file_upload_id, camelCase aliases |
-| Action | Action (`src/types/action.ts:87-134`) | Match (Enhanced) | Added callsign_id (replaced callsign_pair), description, review_comment |
-| FileUpload | FileUpload (`src/types/action.ts:5-31`) | Match | Minor: uploaded_by is string (UUID), design had email string |
-| - | ActionHistory (`src/types/action.ts:140-157`) | Added | Not in design TypeScript types section |
-| CreateActionRequest | CreateActionRequest (`src/types/action.ts:162-169`) | Changed | Uses callsign_id instead of callsignPair + airlineCode |
-| - | UpdateActionRequest (`src/types/action.ts:171-180`) | Added | Separate type for updates |
-| - | ActionListResponse (`src/types/action.ts:185-194`) | Added | Response wrapper type |
-| - | CallsignListResponse (`src/types/action.ts:198-206`) | Added | Response wrapper type |
-| - | UploadResponse (`src/types/action.ts:211-215`) | Added | Upload response type |
-| - | ActionStats (`src/types/action.ts:220-227`) | Added | Dashboard statistics type |
-| - | CallsignActionDetail (`src/types/action.ts:232-241`) | Added | Detail view type |
+| Design Interface | Impl Interface | Status | Location |
+|-----------------|---------------|--------|----------|
+| CallSign | Callsign | Match | action.ts:37-81 |
+| Action | Action | Match | action.ts:87-136 |
+| FileUpload | FileUpload | Match | action.ts:5-31 |
+| CreateActionRequest | CreateActionRequest | Match | action.ts:164-173 |
+| - | UpdateActionRequest | Added | action.ts:175-186 |
+| - | ActionHistory | Added | action.ts:142-159 |
+| - | ActionListResponse | Added | action.ts:191-199 |
+| - | ActionStatisticsResponse | Added | action.ts:201-216 |
+| - | CallsignListResponse | Added | action.ts:221-229 |
+| - | UploadResponse | Added | action.ts:234-238 |
+| - | ActionStats | Added | action.ts:243-250 |
+| - | CallsignActionDetail | Added | action.ts:255-264 |
 
-### 5.2 Naming Convention
+All design interfaces implemented. 8 additional interfaces added for API responses and detailed views. Dual snake_case/camelCase naming pattern used consistently.
 
-Implementation uses dual naming (snake_case DB fields + camelCase aliases in same interface), which is non-standard. Design used pure camelCase TypeScript interfaces.
-
-**Type Definitions Score: 90%** - All design interfaces are present with enhancements. Additional types added for API responses. The dual snake_case/camelCase pattern adds complexity but provides flexibility.
+**Types Score: 88%** -- All design types present with enhancements. Score slightly lower due to dual naming pattern complexity.
 
 ---
 
@@ -230,309 +174,343 @@ Implementation uses dual naming (snake_case DB fields + camelCase aliases in sam
 
 ### 6.1 Hook Comparison
 
-| Design Hook | Implementation | Status | Notes |
-|------------|---------------|--------|-------|
-| `useAirlineCallsigns(airlineCode)` | `useAirlineCallsigns(airlineId)` | Changed | Param changed from code to ID |
-| `useActions(airlineCode, status?)` | `useAirlineActions(filters?)` | Changed | Different signature, merged admin+user |
-| `useCreateAction()` | `useCreateAction()` | Match | Signature differs (airlineId in mutation data) |
-| `useAdminStatistics()` | - | Missing | Statistics hook not implemented |
-| `useFileUpload()` | - | Missing | File upload hook not implemented |
-| `useUploadStatus(uploadId)` | - | Missing | Upload status hook not implemented |
-| - | `useCallsigns(filters?)` | Added | General callsign list (not in design) |
-| - | `useAction(actionId)` | Added | Single action detail (not in design) |
-| - | `useUpdateAction()` | Match | In design as mutation in useActions |
-| - | `useDeleteAction()` | Added | Not in design |
+| Design Hook | Impl Hook | Status | Location |
+|------------|----------|--------|----------|
+| `useAirlineCallsigns(airlineCode)` | `useAirlineCallsigns(airlineId, filters)` | Changed | useActions.ts:190 |
+| `useActions(airlineCode, status?)` | `useAirlineActions(filters)` | Changed | useActions.ts:86 |
+| `useCreateAction()` | `useCreateAction()` | Match | useActions.ts:320 |
+| `useAdminStatistics()` | - | Missing | Not implemented as global hook |
+| `useFileUpload()` | - | Missing | Inline fetch in components |
+| `useUploadStatus(uploadId)` | - | Missing | Not applicable (sync upload) |
+| - | `useAllActions(filters, options)` | Added | useActions.ts:27 |
+| - | `useCallsigns(filters)` | Added | useActions.ts:145 |
+| - | `useAirlineActionStats(airlineId, filters)` | Added | useActions.ts:239 |
+| - | `useAction(actionId)` | Added | useActions.ts:286 |
+| - | `useUpdateAction()` | Added | useActions.ts:366 |
+| - | `useDeleteAction()` | Added | useActions.ts:413 |
 
-### 6.2 Hook API Call Pattern
+### 6.2 Design vs Implementation Hook Architecture
 
-| Design Pattern | Implementation Pattern | Notes |
-|---------------|----------------------|-------|
-| `fetch('/api/airline/callsigns')` | `fetch('/api/airlines/${airlineId}/callsigns')` | Different URL |
-| `fetch('/api/airline/actions')` | `fetch('/api/actions')` | Different URL, admin-only |
-| `fetch('/api/admin/statistics')` | - | Not implemented |
-| Uses raw fetch | Uses accessToken from Zustand | Implementation has auth integration |
+- Design specifies direct `fetch()` calls in hooks. Implementation adds `accessToken` from Zustand authStore for auth.
+- Design uses `staleTime: 5min / 2min`. Implementation uses `staleTime: 30s` (more responsive).
+- 6 additional hooks beyond design, 3 design hooks not implemented (but 2 are covered differently).
 
-### 6.3 Query Key & Cache Strategy
-
-| Design staleTime | Implementation staleTime | Notes |
-|-----------------|-------------------------|-------|
-| 5 min (callsigns) | 30 sec (callsigns) | More aggressive refresh |
-| 2 min (actions) | 30 sec (actions) | More aggressive refresh |
-| 1 min + refetchInterval (statistics) | - | Not implemented |
-
-**Hooks Score: 65%** - 3 of 6 design hooks missing (statistics, file upload, upload status). Existing hooks have different signatures but functional equivalents. Auth token integration is well-implemented.
+**Hooks Score: 72%** -- 3/6 design hooks implemented (with changes). 3 missing (global stats, file upload, upload status). 6 useful additional hooks added.
 
 ---
 
 ## 7. Frontend Components Gap Analysis
 
-### 7.1 Airline User Page (`/(main)/airline/page.tsx`)
+### 7.1 Callsign Management Pages (NEW since v1.0)
 
-| Design Component | Implementation | Status | Notes |
-|-----------------|---------------|--------|-------|
-| TabNav (항공사, 호출부호, 조치) | 2 tabs (incidents, actions) | Partial | No separate "AirlineTab" |
-| CallSignFilter | - | Missing | No filter controls |
-| CallSignTable | Hardcoded card layout | Critical | Uses INC constant, NOT API data |
-| CallSignPagination | - | Missing | Not implemented |
-| ActionFilter | Static buttons (non-functional) | Critical | Buttons exist but do nothing |
-| ActionTable | Hardcoded HTML table | Critical | 6 rows of static mock data, NOT API data |
-| ActionPagination | - | Missing | Not implemented |
-| ActionRegistrationModal | Local ActionModal (mock) | Critical | Separate from `src/components/actions/ActionModal.tsx`; only does `console.log('mock')` |
-| ActionStatusBadge | Inline styled spans | Partial | Not extracted as component |
+| Design Component | Implementation | Status | Location |
+|-----------------|---------------|--------|----------|
+| CallSignTab > CallSignFilter | OverviewTab.tsx: airline + risk_level filters | Match | OverviewTab.tsx:78-108 |
+| CallSignTab > CallSignTable | OverviewTab.tsx: table with airline, pair, risk, date | Match | OverviewTab.tsx:112-161 |
+| CallSignTab > CallSignPagination | OverviewTab.tsx: prev/next pagination | Match | OverviewTab.tsx:168-189 |
+| ActionHistoryTab > ActionFilter | ActionsTab.tsx: status filter | Partial | ActionsTab.tsx:83-107 |
+| ActionHistoryTab > ActionTable | ActionsTab.tsx: 6-column table | Match | ActionsTab.tsx:110-170 |
+| ActionHistoryTab > ExportButton | ActionsTab.tsx: Excel export button | Match | ActionsTab.tsx:184-189 |
+| ActionRegistrationModal | ActionModal.tsx | Match | components/actions/ActionModal.tsx |
+| - | ActionDetailModal.tsx | Added | components/actions/ActionDetailModal.tsx |
+| ActionStatusBadge | Inline styled badges | Partial | Not separate component |
 
-**Critical Finding**: The airline user page (`src/app/(main)/airline/page.tsx`) uses **entirely hardcoded mock data** for both callsigns (INC constant, lines 29-40) and actions (static HTML table rows, lines 562-641). The "조치 등록" modal on this page is a local mock function (line 660-898) that does `console.log('조치 저장 (mock)')` and does NOT call any API. It does NOT use the properly implemented `src/components/actions/ActionModal.tsx` component.
+### 7.2 Admin Dashboard Components
 
-### 7.2 Admin Actions Page (`/admin/actions/page.tsx`)
+| Design Component | Implementation | Status | Location |
+|-----------------|---------------|--------|----------|
+| StatCard (x4) | StatCard.tsx | Match | callsign-management/StatCard.tsx |
+| CompletionChart | Progress bars (no Recharts) | Changed | StatisticsTab.tsx:88-193 |
+| TimelineGraph | - | Missing | Not implemented |
+| AirlineStatsTable | StatisticsTab airline table | Match | StatisticsTab.tsx:197-251 |
+| ActionFilter (admin) | admin/actions/page.tsx filters | Match | admin/actions/page.tsx:72-164 |
+| ActionTable (admin) | admin/actions/page.tsx table | Match | admin/actions/page.tsx:216-296 |
+| ExportButton (admin) | Inline Excel export | Match | admin/actions/page.tsx:176-196 |
+| ActionPagination | Prev/Next buttons | Match | admin/actions/page.tsx:299-322 |
 
-| Design Component | Implementation | Status | Notes |
-|-----------------|---------------|--------|-------|
-| ActionDashboard (StatCards, Charts) | - | Missing | No statistics dashboard |
-| CompletionChart | - | Missing | No chart |
-| TimelineGraph | - | Missing | No graph |
-| AirlineStatsTable | - | Missing | No stats table |
-| ActionFilter | Filter dropdowns (airline, status) | Partial | Works but airline options hardcoded (5 of 9 airlines), uses airline code as value but API expects UUID |
-| ActionTable | Data-driven table | Match | Uses API data via useAirlineActions |
-| ExportButton | - | Missing | No export feature |
-| ActionPagination | Prev/Next buttons | Match | Functional pagination |
-| ActionRegistrationModal | ActionModal component | Match | Uses proper `src/components/actions/ActionModal.tsx` |
-| StatusBadge | Inline styled spans | Partial | Not extracted as reusable component |
+### 7.3 Upload Components (NEW since v1.0)
 
-**Critical Finding**: Airline filter dropdown uses hardcoded airline codes as option values (KAL, AAR, JJA, JNA, TWB - only 5 of 9 airlines). The API `GET /api/actions` filters by `airlineId` (UUID), not airline code. This means the filter will NOT work correctly at runtime.
+| Design Component | Implementation | Status | Location |
+|-----------------|---------------|--------|----------|
+| FileDropZone | FileUploadZone.tsx | Match | uploads/FileUploadZone.tsx |
+| FilePreview | - | Missing | No preview before upload |
+| UploadProgressBar | Progress bar in FileUploadZone | Match | FileUploadZone.tsx:107-129 |
+| UploadResultReport | UploadResult.tsx | Match | uploads/UploadResult.tsx |
+| UploadHistoryTable | UploadHistory.tsx (client-side only) | Partial | uploads/UploadHistory.tsx |
 
-### 7.3 Admin Excel Upload Page
+### 7.4 Dashboard Page (NEW since v1.0)
 
-| Design Component | Implementation | Status | Notes |
-|-----------------|---------------|--------|-------|
-| ExcelUploadTab | - | Missing | Entire tab not implemented |
-| FileDropZone | - | Missing | |
-| FilePreview | - | Missing | |
-| UploadProgressBar | - | Missing | |
-| UploadResultReport | - | Missing | |
-| UploadHistoryTable | - | Missing | |
+| Feature | Status | Location |
+|---------|--------|----------|
+| Callsign list with filters | Match | dashboard/page.tsx:335-529 |
+| Action history with status tabs | Match | dashboard/page.tsx:532-870 |
+| Excel upload interface | Match | dashboard/page.tsx:873-990 |
+| Action summary cards (3) | Match | dashboard/page.tsx:538-549 |
+| Admin airline summary table | Match | dashboard/page.tsx:553-593 |
+| ActionDetailModal integration | Match | dashboard/page.tsx:993-1001 |
 
-### 7.4 Admin Dashboard Integration
+### 7.5 Layout Architecture Shift
 
-| Design Feature | Implementation | Status | Notes |
-|---------------|---------------|--------|-------|
-| "조치 관리" link on admin dashboard | Link at `/admin/actions` | Match | `src/app/admin/page.tsx:159-164` |
+| Design Layout | Implementation Layout |
+|-------------|---------------------|
+| Horizontal tabs within `/airline` and `/admin` | Vertical left sidebar in dedicated pages |
+| Airline page: `/(main)/airline` | User dashboard: `/dashboard` + `/callsign-management` |
+| Admin page: tabs in `/admin` | Separate pages: `/admin/actions`, `/admin/callsign-management` |
 
-**Frontend Score: 45%** - The airline user page is entirely mock data. Admin actions page has basic list/filter/create but missing dashboard, charts, statistics, export. Excel upload feature is completely absent. Airline filter has a code-vs-UUID mismatch bug.
+### 7.6 v1.0 Critical Issues Resolution
 
----
+| v1.0 Issue | v2.0 Status |
+|-----------|------------|
+| Airline page entirely hardcoded mock data | PARTIALLY RESOLVED -- dashboard/page.tsx uses API, but `/airline` page still has legacy mock |
+| Admin airline filter code-vs-UUID mismatch | RESOLVED -- admin/actions/page.tsx now uses useAirlines() hook |
+| Mock ActionModal on airline page | RESOLVED -- ActionDetailModal + ActionModal properly used |
+| Missing upload feature | RESOLVED -- FileUploadZone + upload-callsigns API |
 
-## 8. Missing Features Summary
-
-### 8.1 Missing Features (Design O, Implementation X)
-
-| # | Feature | Design Location | Impact | Priority |
-|---|---------|----------------|--------|----------|
-| 1 | `POST /api/admin/callsigns/upload` | design.md:389-461 | Excel upload entirely missing | P0 |
-| 2 | `GET /api/admin/callsigns/upload/{id}` | design.md:464-481 | Upload status check | P0 |
-| 3 | `GET /api/admin/callsigns/upload-history` | design.md:1004 | Upload history | P1 |
-| 4 | `GET /api/admin/statistics` | design.md:525-562 | Dashboard statistics | P1 |
-| 5 | `GET /api/admin/actions/export` | design.md:566-579 | Excel export | P1 |
-| 6 | ExcelUploadTab (entire feature) | design.md:677-683 | Frontend upload UI | P0 |
-| 7 | ActionDashboard (StatCards, Charts) | design.md:688-700 | Statistics visualization | P1 |
-| 8 | Airline user API-connected data | design.md:281-301 | Airline page uses hardcoded data | P0 |
-| 9 | useAdminStatistics hook | design.md:772-779 | Statistics data fetching | P1 |
-| 10 | useFileUpload / useUploadStatus hooks | design.md:782-802 | Upload hooks | P0 |
-| 11 | User-level action registration | design.md:339-363 | Users can register actions (currently admin-only) | P1 |
-| 12 | Date range filter (from/to) | design.md:489-491 | Admin actions date filter | P2 |
-
-### 8.2 Added Features (Design X, Implementation O)
-
-| # | Feature | Implementation Location | Notes |
-|---|---------|------------------------|-------|
-| 1 | `GET /api/actions/[id]` | `src/app/api/actions/[id]/route.ts:16-110` | Useful action detail endpoint |
-| 2 | `DELETE /api/actions/[id]` | `src/app/api/actions/[id]/route.ts:264-319` | Action deletion capability |
-| 3 | useAction(actionId) hook | `src/hooks/useActions.ts:168-197` | Single action detail hook |
-| 4 | useDeleteAction() hook | `src/hooks/useActions.ts:279-308` | Action deletion hook |
-| 5 | useCallsigns() (general) | `src/hooks/useActions.ts:76-114` | Non-airline-specific callsign query |
-| 6 | ActionModal edit mode | `src/components/actions/ActionModal.tsx:11-12` | Supports both create and edit |
-| 7 | action_history table | `scripts/init.sql:199-214` | Audit trail for action changes |
-| 8 | Sample callsign data | `scripts/init.sql:220-249` | 3 KAL callsign records |
-
-### 8.3 Changed Features (Design != Implementation)
-
-| # | Feature | Design | Implementation | Impact |
-|---|---------|--------|---------------|--------|
-| 1 | API URL pattern | `/api/airline/...` (role-based) | `/api/actions`, `/api/callsigns` (resource-based) | Medium - different routing convention |
-| 2 | Response wrapper | `{ callsigns: [...] }` | `{ data: [...] }` | Medium - frontend must adapt |
-| 3 | Pagination format | Flat `total, page, pageSize` | Nested `{ pagination: {...} }` | Medium - structural difference |
-| 4 | Action permission | User can register own | Admin-only for all CRUD | High - blocks user self-service |
-| 5 | Callsign data source | DB API-driven | Hardcoded INC constant (airline page) | Critical - no real data flow |
-| 6 | Enum values | English (`'ATC'`, `'HIGH'`) | Korean (`'관제사 오류'`, `'매우높음'`) | Medium - UI consistency |
-| 7 | FK references | String-based (email, code) | UUID-based | Low - improvement |
-| 8 | staleTime | 5min (callsigns), 2min (actions) | 30sec (both) | Low - more responsive |
+**Frontend Score: 70%** -- Major progress from v1.0 (45%). All core components implemented. Missing: TimelineGraph, FilePreview. Changed: horizontal tabs -> sidebar layout. Upload history client-side only.
 
 ---
 
-## 9. Critical Bugs Found
+## 8. Architecture Compliance
 
-| # | Bug | Location | Description | Severity |
-|---|-----|----------|-------------|----------|
-| 1 | Airline filter code-vs-UUID mismatch | `src/app/admin/actions/page.tsx:82-87` | Dropdown values are airline codes (KAL, AAR...) but `useAirlineActions` sends as `airlineId` to API which expects UUID | Critical |
-| 2 | Missing airlines in filter | `src/app/admin/actions/page.tsx:82-87` | Only 5 of 9 airlines in dropdown (ABL, ASV, EOK, FGW missing) | High |
-| 3 | Airline page mock ActionModal | `src/app/(main)/airline/page.tsx:648-898` | Local mock modal (console.log only) shadows imported ActionModal component | Critical |
-| 4 | Airlines constant mismatch | `src/app/(main)/airline/page.tsx:8-20` | Uses ESR (old code), not EOK. Also includes ARK, APZ which are not in DB | High |
+### 8.1 Layer Structure (Dynamic Level)
 
----
+| Expected Layer | Actual Location | Status |
+|---------------|----------------|--------|
+| Presentation (Components) | `src/components/callsign-management/`, `src/components/actions/` | Match |
+| Presentation (Pages) | `src/app/callsign-management/`, `src/app/admin/`, `src/app/dashboard/` | Match |
+| Application (Hooks) | `src/hooks/useActions.ts` (10 hooks) | Match |
+| Domain (Types) | `src/types/action.ts` (12 interfaces) | Match |
+| Infrastructure (API) | `src/app/api/actions/`, `src/app/api/callsigns/`, `src/app/api/airlines/` | Match |
+| Infrastructure (DB) | `src/lib/db.ts` (pg.Pool query + transaction) | Match |
 
-## 10. Architecture Compliance
-
-### 10.1 Layer Structure (Dynamic Level)
-
-| Expected Layer | Actual Location | Status | Notes |
-|---------------|----------------|--------|-------|
-| Presentation (components) | `src/components/actions/ActionModal.tsx` | Match | Reusable component |
-| Presentation (pages) | `src/app/admin/actions/page.tsx` | Match | Admin page |
-| Application (hooks) | `src/hooks/useActions.ts` | Match | 7 React Query hooks |
-| Domain (types) | `src/types/action.ts` | Match | 11 interfaces |
-| Infrastructure (API routes) | `src/app/api/actions/`, `src/app/api/callsigns/` | Match | 5 route files |
-| Infrastructure (DB) | `src/lib/db.ts` | Match | pg.Pool query + transaction |
-
-### 10.2 Dependency Direction
-
-| File | Layer | Imports | Status |
-|------|-------|---------|--------|
-| `ActionModal.tsx` | Presentation | `useActions` (hooks), `action.ts` (types) | Pass |
-| `admin/actions/page.tsx` | Presentation | `useActions` (hooks), `ActionModal` (component) | Pass |
-| `useActions.ts` | Application | `authStore` (state), `action.ts` (types), `fetch` (API) | Pass |
-| `action.ts` | Domain | None | Pass |
-| API routes | Infrastructure | `jwt.ts`, `db.ts` | Pass |
-
-### 10.3 Violation
+### 8.2 Dependency Violations
 
 | File | Issue | Severity |
 |------|-------|----------|
-| `src/app/(main)/airline/page.tsx` | Hardcoded data (INC constant) bypasses all architecture layers | Critical |
-| `src/app/admin/actions/page.tsx` | Hardcoded airline options instead of fetching from API/hook | Medium |
+| `dashboard/page.tsx:139` | Direct `fetch('/api/admin/upload-callsigns')` bypassing hooks | Medium |
+| `uploads/FileUploadZone.tsx:48` | Direct `fetch('/api/admin/upload-callsigns')` bypassing hooks | Medium |
+| `uploads/UploadHistory.tsx` | Client-side only (in-memory state, no API persistence) | Low |
 
-**Architecture Score: 70%** - Clean separation where implemented, but airline user page completely bypasses the architecture.
+**Architecture Score: 78%** -- Clean layer separation for actions/callsigns flows. Upload flow bypasses hook layer with direct fetch. Improved from v1.0 (70%) with airline page now using hooks.
 
 ---
 
-## 11. Convention Compliance
+## 9. Convention Compliance
 
-### 11.1 Naming Convention
+### 9.1 Naming Convention
 
 | Category | Convention | Compliance | Violations |
 |----------|-----------|:----------:|------------|
-| Components | PascalCase | 100% | - |
-| Hooks | use* camelCase | 100% | - |
-| Types/Interfaces | PascalCase | 100% | - |
-| Files (component) | PascalCase.tsx | 100% | - |
-| Files (hooks) | camelCase.ts | 100% | - |
-| API routes | kebab-case dirs | 100% | - |
-| DB columns | snake_case | 100% | - |
+| Components | PascalCase | 100% | None |
+| Functions/Hooks | camelCase | 100% | None |
+| Constants | UPPER_SNAKE_CASE | 100% | None |
+| Files (component) | PascalCase.tsx | 100% | None |
+| Files (hooks) | camelCase.ts | 100% | None |
+| Folders | kebab-case | 100% | `callsign-management` correct |
+| DB columns | snake_case | 100% | None |
 
-### 11.2 Response Format Convention
+### 9.2 Import Order (sampled across 10 files)
 
-| Convention | Expected | Actual | Status |
-|-----------|----------|--------|--------|
-| Success data wrapper | `{ data }` | `{ data }` | Match (actions, callsigns) |
-| Error format | `{ error: { code, message } }` | `{ error: string }` | Simplified |
-| Pagination | `{ data, pagination }` | `{ data, pagination }` | Match |
+- [x] External libraries first (react, next, tanstack, xlsx, lucide-react)
+- [x] Internal absolute imports second (`@/...`)
+- [x] Relative imports third (`./...`)
+- [x] Type imports where applicable
 
-### 11.3 Dual Naming in Types
+### 9.3 Error Response Format
 
-The `src/types/action.ts` interfaces include both snake_case (matching DB) and camelCase (matching JS convention) fields in the same interface. This is unconventional and doubles interface size. Recommendation: Use a single naming convention and transform at the API boundary.
+| Standard | Implementation | Status |
+|----------|---------------|--------|
+| `{ error: { code, message, details? } }` | `{ error: "message" }` | Simplified |
 
-**Convention Score: 80%** - Good naming compliance. Error format simplified from design convention. Dual naming in types is a concern.
+Error response uses simplified string format throughout. Consistent but not matching Phase 4 standard.
+
+**Convention Score: 82%** -- Naming and structure excellent. Error format simplified from standard. Dual snake_case/camelCase in API responses adds size but provides flexibility.
+
+---
+
+## 10. Differences Summary
+
+### 10.1 Missing Features (Design O, Implementation X) -- 6 items
+
+| Priority | Item | Design Location | Description |
+|:--------:|------|-----------------|-------------|
+| HIGH | Upload Status Polling API | design.md:464-481 | `GET /api/admin/callsigns/upload/{uploadId}` |
+| HIGH | Upload History API | design.md:1004 | `GET /api/admin/callsigns/upload-history` |
+| MEDIUM | Server-side Excel Export | design.md:566-579 | `GET /api/admin/actions/export` |
+| MEDIUM | Global Admin Statistics | design.md:524-561 | `GET /api/admin/statistics` (cross-airline) |
+| LOW | Timeline Graph | design.md:669 | TimelineGraph chart component |
+| LOW | File Preview | design.md:679 | FilePreview before upload |
+
+### 10.2 Added Features (Design X, Implementation O) -- 13 items
+
+| Item | Location | Description |
+|------|----------|-------------|
+| callsign_occurrences table | `init.sql:170-196` | Per-date occurrence tracking |
+| `GET /api/callsigns` | `api/callsigns/route.ts` | Global callsign list |
+| `GET /api/actions/[id]` | `api/actions/[id]/route.ts` | Action detail endpoint |
+| `DELETE /api/actions/[id]` | `api/actions/[id]/route.ts` | Action deletion |
+| `GET /api/airlines/[id]/actions/stats` | `api/airlines/[airlineId]/actions/stats/route.ts` | Per-airline statistics |
+| ActionDetailModal | `components/actions/ActionDetailModal.tsx` | Action detail/edit modal |
+| Dashboard page | `app/dashboard/page.tsx` | User dashboard with 3 tabs |
+| callsign-management pages | `app/callsign-management/` | Dedicated management UI |
+| useAllActions hook | `hooks/useActions.ts:27` | Admin all-actions query |
+| useAirlineActionStats hook | `hooks/useActions.ts:239` | Per-airline stats |
+| useAction hook | `hooks/useActions.ts:286` | Action detail query |
+| useUpdateAction hook | `hooks/useActions.ts:366` | Action update mutation |
+| useDeleteAction hook | `hooks/useActions.ts:413` | Action delete mutation |
+
+### 10.3 Changed Features (Design != Implementation) -- 11 items
+
+| Item | Design | Implementation | Impact |
+|------|--------|----------------|--------|
+| URL Pattern | `/api/airline/*`, `/api/admin/*` | `/api/callsigns`, `/api/actions`, `/api/airlines/[id]/*` | Medium |
+| Response wrapper | `{ callsigns: [...] }` | `{ data: [...], pagination }` | Low |
+| Upload behavior | Async (202 + polling) | Synchronous (200) | Medium |
+| Risk level values | `VERY_HIGH`, `HIGH`, `LOW` | `매우높음`, `높음`, `낮음` | Medium |
+| Error type values | `ATC`, `PILOT`, `NONE` | `관제사 오류`, `조종사 오류`, `오류 미발생` | Medium |
+| FK strategy | airline_code VARCHAR | airline_id UUID FK | Low (improvement) |
+| Page layout | Horizontal tabs in existing pages | Vertical sidebar in new pages | Medium |
+| Statistics | Global `/api/admin/statistics` | Per-airline `/api/airlines/[id]/actions/stats` | Medium |
+| Error response | `{ error: { code, message } }` | `{ error: "message" }` | Low |
+| Auth in callsign query | `airlineCode` param | `airlineId` path param | Low |
+| Upload history | Server-side API | Client-side in-memory array | High |
+
+---
+
+## 11. Bugs Found
+
+| # | Severity | Location | Description |
+|---|----------|----------|-------------|
+| 1 | HIGH | `api/actions/[id]/route.ts:287` | PATCH response hardcodes `status: 'completed'` regardless of actual DB value (`updatedAction.status` is available but overridden) |
+| 2 | MEDIUM | `uploads/UploadHistory.tsx` + `Sidebar.tsx:19-33` | Upload history is client-side only (in-memory useState), lost on page refresh/navigation |
+| 3 | MEDIUM | `api/actions/[id]/route.ts:171-198` | PATCH with `status: 'in_progress'` deletes the action row entirely and reverts callsign status; unconventional behavior for a PATCH |
+| 4 | LOW | `api/airlines/[airlineId]/actions/route.ts:74` | CASE expression returns `'in_progress'` for NULL action rows, but design specifies 3 statuses including `'pending'` |
 
 ---
 
 ## 12. Match Rate Calculation
 
-### Category Breakdown
+### Weighted Score Breakdown
 
 | Category | Weight | Score | Weighted |
 |----------|:------:|:-----:|:--------:|
-| Database Schema | 20% | 82% | 16.4 |
-| API Endpoints | 25% | 50% | 12.5 |
-| Type Definitions | 10% | 90% | 9.0 |
-| React Query Hooks | 10% | 65% | 6.5 |
-| Frontend Components | 25% | 45% | 11.25 |
-| Architecture | 5% | 70% | 3.5 |
-| Convention | 5% | 80% | 4.0 |
-| **Total** | **100%** | - | **63.15%** |
-
-### Overall Match Rate: 63%
+| Database Schema | 15% | 85% | 12.75 |
+| API Endpoints | 25% | 68% | 17.00 |
+| Type Definitions | 10% | 88% | 8.80 |
+| React Query Hooks | 15% | 72% | 10.80 |
+| Frontend Components | 20% | 70% | 14.00 |
+| Architecture | 10% | 78% | 7.80 |
+| Convention | 5% | 82% | 4.10 |
+| **Total** | **100%** | | **75.25%** |
 
 ```
-+-----------------------------------------------+
-|  Overall Match Rate: 63%          [Critical]   |
-+-----------------------------------------------+
-|  Database Schema:       82%  [Warning]         |
-|  API Endpoints:         50%  [Critical]        |
-|  Type Definitions:      90%  [Pass]            |
-|  React Query Hooks:     65%  [Warning]         |
-|  Frontend Components:   45%  [Critical]        |
-|  Architecture:          70%  [Warning]         |
-|  Convention:            80%  [Warning]         |
-+-----------------------------------------------+
-|  Missing Features:     12 items                |
-|  Added Features:        8 items                |
-|  Changed Features:      8 items                |
-|  Critical Bugs:         4 items                |
-+-----------------------------------------------+
++---------------------------------------------------+
+|  Overall Match Rate: 75%              [Warning]    |
++---------------------------------------------------+
+|  Database Schema:       85%  [Warning]             |
+|  API Endpoints:         68%  [Warning]             |
+|  Type Definitions:      88%  [Warning]             |
+|  React Query Hooks:     72%  [Warning]             |
+|  Frontend Components:   70%  [Warning]             |
+|  Architecture:          78%  [Warning]             |
+|  Convention:            82%  [Warning]             |
++---------------------------------------------------+
+|  Missing Features:      6 items (down from 12)     |
+|  Added Features:       13 items (up from 8)        |
+|  Changed Features:     11 items (up from 8)        |
+|  Bugs:                  4 items                    |
++---------------------------------------------------+
+|  Improvement from v1.0: +12 percentage points      |
++---------------------------------------------------+
 ```
 
 ---
 
 ## 13. Recommended Actions
 
-### 13.1 Immediate (P0) - Must Fix
+### 13.1 Immediate (P0) -- Bug Fixes
 
-| # | Action | Target Files | Description |
+| # | Action | Target File | Description |
 |---|--------|-------------|-------------|
-| 1 | Fix airline filter UUID mismatch | `src/app/admin/actions/page.tsx` | Airline dropdown should use airline UUIDs, not codes. Fetch airlines list from API |
-| 2 | Connect airline page to API | `src/app/(main)/airline/page.tsx` | Replace INC hardcoded data with useAirlineCallsigns + useAirlineActions hooks |
-| 3 | Replace mock ActionModal | `src/app/(main)/airline/page.tsx` | Remove local mock ActionModal (lines 655-898), use `src/components/actions/ActionModal.tsx` |
-| 4 | Allow user-level action registration | API permission model | Design specifies users can register actions for their own airline |
+| 1 | Fix PATCH status hardcoding | `src/app/api/actions/[id]/route.ts:287` | Return `updatedAction.status` instead of hardcoded `'completed'` |
+| 2 | Implement upload history API | New: `src/app/api/admin/upload-history/route.ts` | Query file_uploads table for server-persisted history |
 
-### 13.2 Short-term (P1) - Should Fix
+### 13.2 Short-term (P1)
 
 | # | Action | Target | Description |
 |---|--------|--------|-------------|
-| 5 | Implement statistics API | `src/app/api/admin/statistics/route.ts` | Dashboard statistics endpoint |
-| 6 | Implement statistics dashboard | `src/app/admin/actions/page.tsx` | Add StatCards, charts, graphs |
-| 7 | Implement Excel export | `src/app/api/admin/actions/export/route.ts` | Action history download |
-| 8 | Complete airline filter options | `src/app/admin/actions/page.tsx` | All 9 airlines, fetched from API |
-| 9 | Implement useAdminStatistics hook | `src/hooks/useActions.ts` | Statistics data hook |
+| 3 | Add useFileUpload hook | `src/hooks/useActions.ts` | Wrap upload fetch in TanStack mutation for consistency |
+| 4 | Add global statistics API | New: `src/app/api/admin/statistics/route.ts` | Aggregate stats across all airlines |
+| 5 | Add server-side export | New: `src/app/api/admin/actions/export/route.ts` | Server-generated Excel download |
 
-### 13.3 Long-term (P2) - Nice to Have
+### 13.3 Design Document Updates Needed
 
-| # | Action | Target | Description |
-|---|--------|--------|-------------|
-| 10 | Implement Excel upload | Multiple files | Full callsign upload pipeline |
-| 11 | Add date range filter | Admin actions page | Filter by from/to dates |
-| 12 | Normalize enum values | DB + frontend | Decide English vs Korean enums |
-| 13 | Simplify type interfaces | `src/types/action.ts` | Remove dual snake_case/camelCase |
-
----
-
-## 14. Design Document Updates Needed
-
-If implementation is accepted as-is, the following design updates are needed:
-
-- [ ] Update API endpoint URLs (`/api/airline/*` -> `/api/actions`, `/api/callsigns`, etc.)
-- [ ] Update response format (nested pagination, `data` wrapper)
-- [ ] Update permission model documentation (admin-only vs user-accessible)
-- [ ] Add `GET /api/actions/[id]` and `DELETE /api/actions/[id]` endpoints
-- [ ] Update field references (callsign_pair -> callsign_id, email -> UUID FKs)
-- [ ] Document enum value format (Korean vs English)
-- [ ] Add action_history table to design TypeScript types section
+| # | Item | Description |
+|---|------|-------------|
+| 1 | URL patterns | Update all API paths to resource-based pattern |
+| 2 | Response format | Update to `{ data, pagination }` generic format |
+| 3 | Enum values | Update risk_level/error_type to Korean values |
+| 4 | FK strategy | Update to UUID FK references |
+| 5 | callsign_occurrences | Add new table to design |
+| 6 | Page routing | Update to reflect `/callsign-management` routes |
+| 7 | Additional endpoints | Add GET /api/callsigns, GET/DELETE /api/actions/[id] |
+| 8 | Upload behavior | Document synchronous upload behavior |
 
 ---
 
-## 15. Synchronization Options
+## 14. Synchronization Recommendation
 
-Given the 63% match rate, the following synchronization paths are available:
+Based on 75% match rate (up from 63%):
 
-1. **Modify implementation to match design** - Implement missing 12 features, fix URL patterns, fix permission model
-2. **Update design to match implementation** - Document current state as new baseline, defer missing features
-3. **Hybrid approach (Recommended)** - Fix P0 bugs immediately, update design for URL/response format changes, implement P1 features incrementally
+**1. Modify implementation to match design (3 items):**
+- Implement upload history API (design requirement, file_uploads data in DB)
+- Fix PATCH response status hardcoding (bug)
+- Add useFileUpload hook (architecture consistency)
+
+**2. Update design to match implementation (8 items):**
+- URL patterns (resource-based is better REST)
+- Response format (generic `{ data, pagination }` is consistent)
+- Enum values (Korean matches UI)
+- FK strategy (UUID FK is better practice)
+- callsign_occurrences table (valid addition)
+- Page routing and layout (sidebar is functional)
+- Additional endpoints (useful additions)
+- Synchronous upload behavior
+
+**3. Intentional differences to document:**
+- Layout change from horizontal tabs to vertical sidebar (UX decision)
+- Per-airline stats vs global stats (implementation covers the use case)
+
+---
+
+## 15. Progress Tracking (v1.0 -> v2.0)
+
+### v1.0 P0 Issues Resolution
+
+| v1.0 P0 Issue | v2.0 Status |
+|---------------|------------|
+| Airline filter UUID mismatch | RESOLVED -- uses useAirlines() hook |
+| Airline page hardcoded data | PARTIALLY RESOLVED -- dashboard uses API, legacy /airline page still mock |
+| Mock ActionModal on airline page | RESOLVED -- ActionDetailModal + ActionModal properly used |
+| User-level action registration | PARTIALLY RESOLVED -- admin can create for any airline, user dashboard shows data |
+
+### v1.0 P1 Issues Resolution
+
+| v1.0 P1 Issue | v2.0 Status |
+|---------------|------------|
+| Statistics API | PARTIALLY RESOLVED -- per-airline stats exist, no global stats |
+| Statistics dashboard | RESOLVED -- StatisticsTab with KPI cards and progress bars |
+| Excel export | PARTIALLY RESOLVED -- client-side export (xlsx), no server-side endpoint |
+| All 9 airlines in filter | RESOLVED -- uses useAirlines() hook |
+| useAdminStatistics hook | RESOLVED -- useAirlineActionStats implemented |
+
+### v1.0 P2 Issues Resolution
+
+| v1.0 P2 Issue | v2.0 Status |
+|---------------|------------|
+| Excel upload | RESOLVED -- upload-callsigns API + FileUploadZone UI |
+| Date range filter | RESOLVED -- dateFrom/dateTo filters on all relevant APIs |
+| Normalize enum values | DOCUMENTED -- Korean values are intentional |
 
 ---
 
@@ -540,4 +518,5 @@ Given the 63% match rate, the following synchronization paths are available:
 
 | Version | Date | Changes | Author |
 |---------|------|---------|--------|
-| 1.0 | 2026-02-20 | Initial Phase 4 gap analysis | gap-detector |
+| 1.0 | 2026-02-20 | Initial Phase 4 gap analysis (63% match rate) | gap-detector |
+| 2.0 | 2026-02-22 | Full re-analysis after major implementation progress (75% match rate, +12%) | gap-detector |

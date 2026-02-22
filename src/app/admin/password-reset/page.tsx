@@ -15,7 +15,7 @@ import { PasswordResetSection } from "@/components/admin/PasswordResetSection";
 export default function AdminPasswordResetPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 pb-10 space-y-6">
+      <main className="flex-1 w-full px-4 sm:px-6 pb-10 space-y-6">
         <div className="flex items-center gap-3">
           <Link
             href="/admin"

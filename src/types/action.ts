@@ -62,6 +62,13 @@ export interface Callsign {
   created_at: string;
   updated_at: string;
 
+  // 최근 조치 정보
+  latest_action_id?: string;
+  latest_action_status?: 'pending' | 'in_progress' | 'completed';
+  latest_action_manager?: string | null;
+  latest_action_responsible_staff?: string | null;
+  latest_action_updated_at?: string | null;
+
   // API 응답용 camelCase 필드
   airlineId?: string;
   airlineCode?: string;
@@ -78,6 +85,11 @@ export interface Callsign {
   uploadedAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  latestActionId?: string;
+  latestActionStatus?: 'pending' | 'in_progress' | 'completed';
+  latestActionManager?: string | null;
+  latestActionResponsibleStaff?: string | null;
+  latestActionUpdatedAt?: string | null;
 }
 
 /**

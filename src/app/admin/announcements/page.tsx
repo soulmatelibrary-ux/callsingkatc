@@ -33,7 +33,7 @@ export default function AdminAnnouncementsPage() {
     <div className="min-h-screen bg-gray-100">
       {/* 헤더 */}
       <div className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="w-full px-4 py-6">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">공지사항 관리</h1>
@@ -52,7 +52,7 @@ export default function AdminAnnouncementsPage() {
       </div>
 
       {/* 콘텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <div className="w-full px-4 py-8 space-y-8">
         {/* 폼 */}
         {showForm && (
           <AnnouncementForm

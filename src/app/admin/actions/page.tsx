@@ -52,7 +52,7 @@ export default function AdminActionsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="pb-10 px-4 sm:px-6 lg:px-8 w-full">
         {/* 페이지 헤더 */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">

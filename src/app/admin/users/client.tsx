@@ -27,7 +27,7 @@ export default function AdminUsersPageClient({ initialTab }: AdminUsersPageClien
   }, [tabParam]);
 
   return (
-    <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-10 space-y-6">
+    <main className="flex-1 w-full px-4 sm:px-6 py-10 space-y-6">
       <div className="flex items-center justify-between mb-2">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">관리자 페이지</h1>

@@ -30,6 +30,24 @@ export function OverviewTab() {
     };
   }, [callsignsQuery.data]);
 
+  const getActionStatusMeta = (status?: string) => {
+    const normalized = (status || 'pending').toLowerCase();
+    switch (normalized) {
+      case 'completed':
+      case 'complete':
+        return {
+          label: '완료',
+          bubble: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+        };
+      case 'pending':
+      default:
+        return {
+          label: '진행중',
+          bubble: 'bg-amber-50 text-amber-600 border-amber-100',
+        };
+    }
+  };
+
   const handleReset = () => {
     setSelectedAirline('');
     setSelectedRiskLevel('');
@@ -71,7 +89,7 @@ export function OverviewTab() {
             onClick={handleReset}
             className="px-4 py-2 bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 rounded-none transition-all"
           >
-            초기화
+            새로고침
           </button>
         </div>
 
@@ -125,6 +143,15 @@ export function OverviewTab() {
                     위험도
                   </th>
                   <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                    발생횟수
+                  </th>
+                  <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                    최근 발생일
+                  </th>
+                  <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                    조치 상태
+                  </th>
+                  <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">
                     등록일
                   </th>
                 </tr>
@@ -145,6 +172,27 @@ export function OverviewTab() {
                       >
                         {callsign.risk_level}
                       </span>
+                    </td>
+                    <td className="px-8 py-5 font-bold text-gray-900">{callsign.occurrence_count ?? '-'}</td>
+                    <td className="px-8 py-5 text-gray-500 font-medium">
+                      {callsign.last_occurred_at
+                        ? new Date(callsign.last_occurred_at).toLocaleDateString('ko-KR', {
+                          month: 'short',
+                          day: 'numeric',
+                        })
+                        : '-'}
+                    </td>
+                    <td className="px-8 py-5">
+                      {(() => {
+                        const meta = getActionStatusMeta(callsign.latest_action_status);
+                        return (
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border ${meta.bubble}`}
+                          >
+                            {meta.label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-8 py-5 text-gray-400 font-medium">
                       {callsign.uploaded_at

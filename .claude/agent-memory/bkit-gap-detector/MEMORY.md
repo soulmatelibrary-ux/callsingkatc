@@ -15,27 +15,35 @@
 - callsign_warnings API/table not implemented - airline page uses hardcoded mockup data
 - Admin sidebar not implemented, 5 of 10 admin features missing
 
-## Phase 4 Gap Analysis (2026-02-20) - airline-data-action-management
-- **Match Rate: 63%** (weighted across 7 categories)
-- DB Schema: 82% (UUID FKs good, enum format shifted EN->KR)
-- API Endpoints: 50% (5/10 endpoints missing: upload, stats, export)
-- Types: 90% (11 interfaces, dual snake/camelCase naming)
-- Hooks: 65% (3/6 hooks missing: statistics, upload, upload status)
-- Frontend: 45% (airline page all hardcoded mock data, admin missing dashboard)
-- Architecture: 70% (clean where connected, airline page bypasses all layers)
-- Convention: 80% (good naming, simplified error format)
+## Phase 4 Gap Analysis - airline-data-action-management
+- **v1.0 (2026-02-20): 63%** -> **v2.0 (2026-02-22): 75%** (+12%)
+- DB Schema: 85% (+3) (UUID FKs good, callsign_occurrences added, enum KR)
+- API Endpoints: 68% (+18) (7/10 design endpoints exist, 3 missing: upload status/history/export)
+- Types: 88% (-2) (12 interfaces, dual snake/camelCase naming)
+- Hooks: 72% (+7) (10 hooks total, 3 design hooks missing: global stats, upload, upload status)
+- Frontend: 70% (+25) (callsign-management pages, dashboard, upload UI all new)
+- Architecture: 78% (+8) (upload flow still bypasses hook layer)
+- Convention: 82% (+2) (naming excellent, error format simplified)
 
-## Phase 4 Critical Bugs
-1. Admin airline filter uses codes (KAL) but API expects UUIDs - filter broken
-2. Only 5/9 airlines in admin filter dropdown
-3. Airline page mock ActionModal (console.log only) shadows real component
-4. Airline page INC constant uses ESR (should be EOK), includes ARK/APZ not in DB
+## Phase 4 v2.0 Bugs (4 found)
+1. HIGH: PATCH response hardcodes status:'completed' at api/actions/[id]/route.ts:287
+2. MEDIUM: Upload history client-side only (in-memory useState, lost on refresh)
+3. MEDIUM: PATCH with status:'in_progress' deletes action row entirely (unconventional)
+4. LOW: Airline actions query returns 'in_progress' for NULL action rows (should be 'pending')
 
-## Phase 4 Missing Features (P0)
-- Excel upload pipeline (API + hook + UI) - entire feature absent
-- Statistics API + dashboard (StatCards, charts) - absent
-- Excel export - absent
-- Airline user page real data connection - uses hardcoded INC[]
+## Phase 4 v1.0 Critical Bugs - ALL 4 RESOLVED in v2.0
+1. RESOLVED: Admin filter now uses useAirlines() hook with UUIDs
+2. RESOLVED: All 9 airlines in dropdown via useAirlines()
+3. RESOLVED: ActionDetailModal + ActionModal properly used
+4. RESOLVED: Constants updated, EOK correct
+
+## Phase 4 v2.0 Missing Features (6 remaining, down from 12)
+- Upload status polling API (design: async 202 + polling)
+- Upload history API (server-side persistence)
+- Server-side Excel export API
+- Global admin statistics API (per-airline exists)
+- TimelineGraph chart component
+- FilePreview before upload
 
 ## Phase 4 URL Pattern Shift
 - Design: `/api/airline/callsigns`, `/api/airline/actions` (role-based)
@@ -156,7 +164,7 @@
 ## Analysis Reports
 - `docs/03-analysis/features/katc1-auth-gap.md` - v4.0 auth-focused (92%)
 - `docs/03-analysis/features/katc1-full-gap-v5.md` - v5.0 full system (65%)
-- `docs/03-analysis/features/airline-data-action-management.analysis.md` - Phase 4 (63%)
+- `docs/03-analysis/features/airline-data-action-management.analysis.md` - Phase 4 v2.0 (75%, was 63%)
 - `docs/03-analysis/features/announcement-system.analysis.md` - Phase 5 (94%)
 - `docs/03-analysis/features/callsign-management-v1.analysis.md` - Phase 6 v2.0 (83%, was 79%)
 
@@ -166,8 +174,8 @@
 - `src/app/(main)/airline/page.tsx` - Callsign warnings (HARDCODED data + mock modal)
 - `src/app/admin/actions/page.tsx` - Admin action management (API-connected)
 - `src/components/actions/ActionModal.tsx` - Real ActionModal (create+edit)
-- `src/hooks/useActions.ts` - 7 hooks (actions + callsigns CRUD)
-- `src/types/action.ts` - 11 interfaces (dual naming)
+- `src/hooks/useActions.ts` - 10 hooks (actions + callsigns CRUD + stats)
+- `src/types/action.ts` - 12 interfaces (dual naming)
 - `src/app/api/actions/route.ts` - GET actions list (admin)
 - `src/app/api/actions/[id]/route.ts` - GET/PATCH/DELETE single action
 - `src/app/api/callsigns/route.ts` - GET callsigns list

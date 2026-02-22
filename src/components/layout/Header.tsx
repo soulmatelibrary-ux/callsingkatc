@@ -65,64 +65,105 @@ export function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 flex items-center justify-between px-8 py-4 border-b-4 border-rose-700" // py-3 -> py-4, thin red border added
+      className="sticky top-0 z-50 flex items-center justify-between px-12 h-36 border-b-8 border-rose-700 overflow-hidden" // h-36 is 144px
       style={{
-        backgroundColor: '#00205b', // KAC Dark Navy
+        background: 'linear-gradient(135deg, #00205b 0%, #003380 100%)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
       }}
     >
+      {/* Grid effect for technical look */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+        }}
+      />
+
+      {/* Illustration (Tower Only) */}
+      <div className="absolute left-[300px] bottom-0 h-full flex items-end justify-start opacity-40 pointer-events-none z-0">
+        <svg viewBox="0 0 200 300" className="h-full">
+          <g transform="translate(50, 110)" fill="#fff" style={{ filter: 'drop-shadow(0 0 10px rgba(100, 200, 255, 0.4))' }}>
+            <rect x="40" y="100" width="30" height="160" opacity="0.4" />
+            <rect x="35" y="85" width="40" height="20" rx="1" opacity="0.6" />
+            <path d="M20,85 L90,85 L80,45 L30,45 Z" />
+            <rect x="25" y="45" width="60" height="8" fill="rgba(34, 211, 238, 0.3)" />
+            <rect x="52" y="10" width="6" height="35" />
+            <circle cx="55" cy="5" r="2" />
+          </g>
+        </svg>
+      </div>
+
       {/* 로고 + 시스템명 + 항공사 정보 */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6 z-10">
         {/* 로고 아이콘 */}
-        <NanoIcon icon={Plane} color="info" size="md" />
+        <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl backdrop-blur-md">
+          <NanoIcon icon={Plane} color="info" size="md" />
+        </div>
 
         {/* 시스템명 */}
         <Link
           href={ROUTES.HOME}
-          className="flex items-baseline gap-2 text-white hover:opacity-90 transition-opacity"
+          className="flex flex-col text-white hover:opacity-90 transition-opacity"
         >
-          <span className="text-white font-extrabold text-lg leading-tight tracking-tight">
+          <span className="text-white font-black text-3xl leading-tight tracking-tighter">
             유사호출부호 경고시스템
           </span>
+          <div className="flex items-center gap-3 mt-1.5">
+            <p className="text-cyan-400 text-[10px] font-black uppercase tracking-[0.4em]">KAC Aviation Safety Portal</p>
+            <span className="w-1 h-1 rounded-full bg-white/20"></span>
+            <p className="text-white/30 text-[10px] font-bold uppercase tracking-[0.4em]">Integrated Terminal v2.0</p>
+          </div>
         </Link>
 
         {/* 항공사/기관 정보 */}
         {isAuthenticated && user && (
-          <div className="flex flex-col justify-center ml-4 pl-4 border-l border-white/20">
+          <div className="flex flex-col justify-center ml-10 pl-10 border-l border-white/15">
             <span
-              className="font-extrabold text-lg leading-tight tracking-tight"
+              className="text-emerald-400 font-black text-2xl tracking-tighter"
               style={{ color: isAdmin ? '#FFFFFF' : getAirlineTextColor(user.airline?.code) }}
             >
-              {isAdmin ? '항공교통본부' : (user.airline?.name_en ? `${user.airline.name_en} ${user.airline.name_ko}` : user.airline?.name_ko)}
+              {isAdmin ? '항공교통본부' : (user.airline?.name_en || user.airline?.name_ko)}
             </span>
+            {!isAdmin && user.airline?.name_ko && (
+              <span className="text-white/40 text-xs font-bold -mt-1 uppercase tracking-widest">{user.airline.name_ko}</span>
+            )}
+            {isAdmin && (
+              <span className="text-white/40 text-xs font-bold -mt-1 uppercase tracking-widest">ATMB</span>
+            )}
           </div>
         )}
       </div>
 
       {/* 우측 영역 */}
-      <nav className="flex items-center gap-3" aria-label="사용자 네비게이션">
+      <nav className="flex items-center gap-5 z-10" aria-label="사용자 네비게이션">
         {/* 테스트 버튼 (관리자만) */}
         {isAdmin && (
           <button
             type="button"
             onClick={() => router.push(ROUTES.DASHBOARD)}
-            className="px-4 py-2 text-white/90 text-sm font-bold rounded-none bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
+            className="px-4 py-2 text-white/90 text-xs font-black uppercase tracking-widest rounded-none bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
           >
             테스트
           </button>
         )}
         {isAuthenticated && user ? (
           <>
-            {/* 사용자 이메일 표시 */}
-            <span className="hidden md:inline-block text-white/90 text-[11px] font-bold px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/5">
-              {user.email}
-            </span>
+            <div className="bg-white/10 backdrop-blur-md border border-white/10 px-5 py-2.5 rounded-full flex items-center gap-4">
+              <div className="relative">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <div className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-20"></div>
+              </div>
+              <span className="text-white/90 text-xs font-black tracking-widest uppercase">
+                {user.email}
+              </span>
+            </div>
 
             {/* 유사호출부호 관리 (관리자만) */}
             {isAdmin && (
               <Link
                 href={ROUTES.CALLSIGN_MANAGEMENT}
-                className="px-4 py-2 text-white/70 hover:text-white text-sm font-bold rounded-none transition-all"
+                className="px-4 py-2 text-white/70 hover:text-white text-xs font-black uppercase tracking-widest rounded-none transition-all"
               >
                 유사호출부호
               </Link>
@@ -131,7 +172,7 @@ export function Header() {
             {isAdmin && (
               <Link
                 href={ROUTES.ADMIN}
-                className="px-4 py-2 bg-white/20 text-white text-sm font-extrabold rounded-none shadow-sm"
+                className="px-6 py-2.5 bg-white/20 text-white text-xs font-black uppercase tracking-widest rounded-none border border-white/20 hover:bg-white/30 transition-all"
               >
                 관리자 페이지
               </Link>
@@ -140,18 +181,18 @@ export function Header() {
             {/* 로그아웃 */}
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-white/90 text-sm font-bold rounded-none bg-red-500/20 hover:bg-red-500/40 border border-red-500/20 transition-all ml-1"
+              className="bg-rose-600 hover:bg-rose-700 text-white px-8 py-3 text-xs font-black uppercase tracking-widest transition-all shadow-[0_10px_20px_rgba(225,29,72,0.3)] active:scale-95 border border-rose-500/50 ml-1"
               type="button"
             >
-              로그아웃
+              Logout
             </button>
           </>
         ) : (
           <Link
             href={ROUTES.LOGIN}
-            className="px-6 py-2 text-white text-sm font-extrabold rounded-none bg-white/10 hover:bg-white/20 transition-all border border-white/20 backdrop-blur-md shadow-lg"
+            className="px-8 py-3 text-white text-xs font-black uppercase tracking-widest rounded-none bg-white/10 hover:bg-white/20 transition-all border border-white/20 backdrop-blur-md shadow-lg"
           >
-            로그인
+            Login
           </Link>
         )}
       </nav>

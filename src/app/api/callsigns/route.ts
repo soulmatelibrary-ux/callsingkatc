@@ -45,11 +45,23 @@ export async function GET(request: NextRequest) {
     // 기본 쿼리
     let sql = `
       SELECT
-        id, airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
-        other_airline_code, error_type, sub_error, risk_level, similarity,
-        occurrence_count, last_occurred_at, file_upload_id, uploaded_at,
-        created_at, updated_at
-      FROM callsigns
+        c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
+        c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
+        c.occurrence_count, c.last_occurred_at, c.file_upload_id, c.uploaded_at,
+        c.created_at, c.updated_at,
+        la.id as latest_action_id,
+        la.status as latest_action_status,
+        la.responsible_staff as latest_action_responsible_staff,
+        la.manager_name as latest_action_manager_name,
+        la.updated_at as latest_action_updated_at
+      FROM callsigns c
+      LEFT JOIN LATERAL (
+        SELECT id, status, responsible_staff, manager_name, updated_at
+        FROM actions
+        WHERE callsign_id = c.id
+        ORDER BY updated_at DESC
+        LIMIT 1
+      ) la ON TRUE
       WHERE 1=1
     `;
     const params: any[] = [];
@@ -69,19 +81,19 @@ export async function GET(request: NextRequest) {
     // 1순위: 위험도 (높음 > 중간 > 낮음), 2순위: 발생회수 (많은 순)
     sql += ` ORDER BY
       CASE
-        WHEN risk_level = '매우높음' THEN 3
-        WHEN risk_level = '높음' THEN 2
-        WHEN risk_level = '낮음' THEN 1
+        WHEN c.risk_level = '매우높음' THEN 3
+        WHEN c.risk_level = '높음' THEN 2
+        WHEN c.risk_level = '낮음' THEN 1
         ELSE 0
       END DESC,
-      occurrence_count DESC
+      c.occurrence_count DESC
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const result = await query(sql, params);
 
     // 전체 개수 조회
-    let countSql = `SELECT COUNT(*) as total FROM callsigns WHERE 1=1`;
+    let countSql = `SELECT COUNT(*) as total FROM callsigns c WHERE 1=1`;
     const countParams: any[] = [];
 
     if (airlineId) {
@@ -115,6 +127,11 @@ export async function GET(request: NextRequest) {
         uploaded_at: callsign.uploaded_at,
         created_at: callsign.created_at,
         updated_at: callsign.updated_at,
+        latest_action_id: callsign.latest_action_id,
+        latest_action_status: callsign.latest_action_status,
+        latest_action_responsible_staff: callsign.latest_action_responsible_staff,
+        latest_action_manager_name: callsign.latest_action_manager_name,
+        latest_action_updated_at: callsign.latest_action_updated_at,
         // camelCase 별칭
         airlineId: callsign.airline_id,
         airlineCode: callsign.airline_code,
@@ -131,6 +148,11 @@ export async function GET(request: NextRequest) {
         uploadedAt: callsign.uploaded_at,
         createdAt: callsign.created_at,
         updatedAt: callsign.updated_at,
+        latestActionId: callsign.latest_action_id,
+        latestActionStatus: callsign.latest_action_status,
+        latestActionResponsibleStaff: callsign.latest_action_responsible_staff,
+        latestActionManager: callsign.latest_action_manager_name,
+        latestActionUpdatedAt: callsign.latest_action_updated_at,
       })),
       pagination: {
         page,

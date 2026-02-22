@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Header Mockup Refined</title>
+    <title>Header Mockup V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -34,14 +34,15 @@
 
         .illust-container {
             position: absolute;
-            left: 50px;
+            left: 300px;
             bottom: 0;
             height: 100%;
             display: flex;
             align-items: flex-end;
             justify-content: flex-start;
-            opacity: 0.5;
+            opacity: 0.4;
             pointer-events: none;
+            z-index: 5;
         }
 
         .tower {
@@ -72,7 +73,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-white text-3xl font-black tracking-tighter">TEST UPDATE</h1>
+                    <h1 class="text-white text-3xl font-black tracking-tighter">유사호출부호 경고시스템</h1>
                     <div class="flex items-center gap-3 mt-1.5">
                         <p class="text-cyan-400 text-[10px] font-black uppercase tracking-[0.4em]">KAC Aviation Safety
                             Portal</p>
@@ -82,7 +83,7 @@
                     </div>
                 </div>
 
-                <div class="ml-10 pl-10 border-l border-white/15">
+                <div class="ml-10 pl-10 border-l border-white/15 text-white/20">
                     <div class="flex flex-col">
                         <span class="text-emerald-400 font-black text-2xl tracking-tighter">Korean Air</span>
                         <span class="text-white/40 text-xs font-bold -mt-1 uppercase tracking-widest">대한항공</span>
@@ -105,17 +106,16 @@
             </div>
         </div>
 
-        <!-- Illustration (Tower Only) -->
+        <!-- Illustration (Tower Only) - SHOULD BE ON THE LEFT -->
         <div class="illust-container">
             <svg viewBox="0 0 200 300" class="h-full">
-                <!-- Control Tower Silhouette Refined -->
-                <g class="tower" transform="translate(50, 90)">
-                    <rect x="40" y="100" width="30" height="160" opacity="0.4" /> <!-- Main shaft -->
-                    <rect x="35" y="85" width="40" height="20" rx="1" opacity="0.6" /> <!-- Observation neck -->
-                    <path d="M20,85 L90,85 L80,45 L30,45 Z" /> <!-- Main control room -->
-                    <rect x="25" y="45" width="60" height="8" fill="#cyan-400" opacity="0.3" /> <!-- Window strip -->
-                    <rect x="52" y="10" width="6" height="35" /> <!-- Antenna -->
-                    <circle cx="55" cy="5" r="2" /> <!-- Top light -->
+                <g class="tower" transform="translate(50, 110)">
+                    <rect x="40" y="100" width="30" height="160" opacity="0.4" />
+                    <rect x="35" y="85" width="40" height="20" rx="1" opacity="0.6" />
+                    <path d="M20,85 L90,85 L80,45 L30,45 Z" />
+                    <rect x="25" y="45" width="60" height="8" fill="#cyan-400" opacity="0.3" />
+                    <rect x="52" y="10" width="6" height="35" />
+                    <circle cx="55" cy="5" r="2" />
                 </g>
             </svg>
         </div>
@@ -130,13 +130,13 @@
         <div class="grid grid-cols-3 gap-8">
             <div
                 class="h-32 bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-200 font-bold uppercase tracking-widest">
-                Dashboard Content</div>
+                Position: Left 50px</div>
             <div
                 class="h-32 bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-200 font-bold uppercase tracking-widest">
-                Dashboard Content</div>
+                Mockup V2</div>
             <div
                 class="h-32 bg-white shadow-sm border border-gray-100 flex items-center justify-center text-gray-200 font-bold uppercase tracking-widest">
-                Dashboard Content</div>
+                Verification</div>
         </div>
     </div>
 </body>
