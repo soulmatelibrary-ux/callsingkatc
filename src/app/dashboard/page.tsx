@@ -298,6 +298,23 @@ export default function DashboardPage() {
 
         {/* 메인 콘텐츠 영역 */}
         <main className="flex-1 overflow-y-auto w-full px-8 py-10 bg-gray-50">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-[0.2em]">
+                Admin Dashboard
+              </p>
+              <h1 className="text-2xl font-black text-gray-900 mt-1">
+                항공교통본부 관제 현황
+              </h1>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push(ROUTES.CALLSIGN_MGT_V1)}
+              className="inline-flex items-center justify-center px-5 py-3 bg-primary text-white font-bold rounded-none shadow-sm hover:bg-navy transition-colors"
+            >
+              유사호출부호 1 바로가기
+            </button>
+          </div>
           {/* 호출부호 목록 섹션 */}
           {activeTab === 'callsigns' && (
             <div className="bg-white rounded-none border border-gray-100 shadow-sm p-6 mb-8">

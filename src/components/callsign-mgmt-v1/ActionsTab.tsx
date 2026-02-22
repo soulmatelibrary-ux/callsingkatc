@@ -45,9 +45,9 @@ export function ActionsTab() {
   const handleExportExcel = () => {
     const data = (actions || []).map((action) => ({
       항공사: airlineMap[action.airline_id]?.code || '-',
-      호출부호: action.callsign_pair || '-',
+      호출부호: action.callsign?.callsign_pair || '-',
       조치유형: action.action_type || '-',
-      담당자: action.assigned_to || '-',
+      담당자: action.manager_name || '-',
       상태: statusLabels[action.status] || action.status,
       등록일: action.registered_at
         ? new Date(action.registered_at).toLocaleDateString('ko-KR')
@@ -140,13 +140,13 @@ export function ActionsTab() {
                       {airlineMap[action.airline_id]?.code || '-'}
                     </td>
                     <td className="px-8 py-5 font-medium text-gray-700">
-                      {action.callsign_pair || '-'}
+                      {action.callsign?.callsign_pair || '-'}
                     </td>
                     <td className="px-8 py-5 text-gray-600 font-medium">
                       {action.action_type || '-'}
                     </td>
                     <td className="px-8 py-5 text-gray-600 font-medium">
-                      {action.assigned_to || '-'}
+                      {action.manager_name || '-'}
                     </td>
                     <td className="px-8 py-5">
                       <span
