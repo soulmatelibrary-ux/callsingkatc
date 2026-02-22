@@ -48,16 +48,16 @@ export function middleware(request: NextRequest) {
 
   console.log('[Middleware] isLoggedIn:', isLoggedIn, 'isProtectedRoute:', isProtectedRoute, 'isAuthRoute:', isAuthRoute);
 
-  // 1. 로그인 안 된 상태 + 보호 라우트 → /login으로 리다이렉트
+  // 1. 로그인 안 된 상태 + 보호 라우트 → /으로 리다이렉트
   if (!isLoggedIn && isProtectedRoute) {
-    console.log('[Middleware] 리다이렉트: 보호 라우트 - 인증 실패');
-    const redirectResponse = NextResponse.redirect(new URL('/login', request.url));
-    
+    console.log('[Middleware] 리다이렉트: 보호 라우트 - 인증 실패 → 홈으로 이동');
+    const redirectResponse = NextResponse.redirect(new URL('/', request.url));
+
     // 형식이 잘못된 쿠키 제거
     if (refreshToken && !isValidFormat) {
       redirectResponse.cookies.delete('refreshToken');
     }
-    
+
     return redirectResponse;
   }
 
