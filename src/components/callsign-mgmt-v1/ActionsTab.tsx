@@ -88,7 +88,7 @@ export function ActionsTab() {
                 setSelectedStatus(e.target.value);
                 setPage(1);
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm font-bold"
+              className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
             >
               <option value="">상태 선택</option>
               <option value="pending">대기중</option>
@@ -150,9 +150,8 @@ export function ActionsTab() {
                     </td>
                     <td className="px-8 py-5">
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border ${
-                          statusColors[action.status] || 'bg-gray-50 text-gray-600 border-gray-100'
-                        }`}
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border ${statusColors[action.status] || 'bg-gray-50 text-gray-600 border-gray-100'
+                          }`}
                       >
                         {statusLabels[action.status] || action.status}
                       </span>
@@ -160,9 +159,9 @@ export function ActionsTab() {
                     <td className="px-8 py-5 text-gray-400 font-medium">
                       {action.registered_at
                         ? new Date(action.registered_at).toLocaleDateString('ko-KR', {
-                            month: 'short',
-                            day: 'numeric',
-                          })
+                          month: 'short',
+                          day: 'numeric',
+                        })
                         : '-'}
                     </td>
                   </tr>

@@ -10,7 +10,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
 
@@ -58,8 +58,6 @@ export function Header() {
     logout: s.logout,
     fetchUserInfo: s.fetchUserInfo,
   }));
-  const [showTestLink, setShowTestLink] = useState(false);
-  const testImageLink = 'https://picsum.photos/seed/katc-system/1200/800';
 
   // 페이지 로드 시 서버에서 최신 사용자 정보 가져오기 (단일 진실의 소스)
   // isAuthenticated가 변경될 때마다 최신 정보 갱신
@@ -119,30 +117,14 @@ export function Header() {
       </div>
 
       {/* 우측 영역 */}
-      <nav className="flex items-center gap-3" aria-label="사용자 네비게이션">
-        <div className="relative">
+        <nav className="flex items-center gap-3" aria-label="사용자 네비게이션">
           <button
             type="button"
-            onClick={() => setShowTestLink((prev) => !prev)}
+            onClick={() => router.push(ROUTES.DASHBOARD)}
             className="px-4 py-2 text-white/90 text-sm font-bold rounded-none bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
-            aria-expanded={showTestLink}
           >
             테스트
           </button>
-          {showTestLink && (
-            <div className="absolute right-0 mt-2 w-72 bg-white text-gray-900 rounded shadow-xl border border-gray-100 p-4 z-50">
-              <p className="text-xs font-semibold text-gray-500 mb-2">테스트 이미지 링크</p>
-              <a
-                href={testImageLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-blue-600 underline break-all"
-              >
-                {testImageLink}
-              </a>
-            </div>
-          )}
-        </div>
         {isAuthenticated && user ? (
           <>
             {/* 사용자 이메일 표시 */}

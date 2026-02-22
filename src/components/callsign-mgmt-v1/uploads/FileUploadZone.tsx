@@ -74,9 +74,8 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
       <h3 className="text-lg font-black text-gray-900 mb-6">📁 엑셀 업로드</h3>
 
       <div
-        className={`relative border-2 border-dashed rounded-none p-8 text-center transition-all cursor-pointer ${
-          isDragging ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary hover:bg-primary/5'
-        }`}
+        className={`relative border-2 border-dashed rounded-none p-8 text-center transition-all cursor-pointer ${isDragging ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary hover:bg-primary/5'
+          }`}
         onDrop={handleDrop}
         onDragOver={(e) => {
           e.preventDefault();
@@ -128,8 +127,8 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
             </svg>
             <span className="text-sm font-bold text-gray-700">처리 중... {Math.floor(progress)}%</span>
           </div>
-          <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-            <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+          <div className="w-full bg-gray-100 h-1.5 rounded-none overflow-hidden">
+            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
           </div>
         </div>
       )}

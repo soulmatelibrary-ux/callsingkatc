@@ -45,12 +45,12 @@ export function StatisticsTab() {
       // 평균 대응시간 계산 (간단한 예시)
       const avgDays = actions.length > 0
         ? (actions.reduce((sum, a) => {
-            if (a.completed_at && a.registered_at) {
-              const diff = new Date(a.completed_at).getTime() - new Date(a.registered_at).getTime();
-              return sum + diff / (1000 * 60 * 60 * 24);
-            }
-            return sum;
-          }, 0) / actions.length).toFixed(1)
+          if (a.completed_at && a.registered_at) {
+            const diff = new Date(a.completed_at).getTime() - new Date(a.registered_at).getTime();
+            return sum + diff / (1000 * 60 * 60 * 24);
+          }
+          return sum;
+        }, 0) / actions.length).toFixed(1)
         : '-';
 
       return {
@@ -92,12 +92,12 @@ export function StatisticsTab() {
           <div className="space-y-4">
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700">매우높음</span>
-                <span className="text-sm font-bold text-red-600">{riskStats.veryHigh}개</span>
+                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">매우높음</span>
+                <span className="text-sm font-black text-red-600">{riskStats.veryHigh}건</span>
               </div>
-              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
                 <div
-                  className="h-full bg-red-500"
+                  className="h-full bg-red-600 transition-all duration-1000"
                   style={{
                     width: `${stats.totalCallsigns > 0 ? (riskStats.veryHigh / stats.totalCallsigns) * 100 : 0}%`,
                   }}
@@ -106,12 +106,12 @@ export function StatisticsTab() {
             </div>
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700">높음</span>
-                <span className="text-sm font-bold text-amber-600">{riskStats.high}개</span>
+                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">높음</span>
+                <span className="text-sm font-black text-amber-600">{riskStats.high}건</span>
               </div>
-              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
                 <div
-                  className="h-full bg-amber-500"
+                  className="h-full bg-amber-600 transition-all duration-1000"
                   style={{
                     width: `${stats.totalCallsigns > 0 ? (riskStats.high / stats.totalCallsigns) * 100 : 0}%`,
                   }}
@@ -120,12 +120,12 @@ export function StatisticsTab() {
             </div>
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700">낮음</span>
-                <span className="text-sm font-bold text-emerald-600">{riskStats.low}개</span>
+                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">낮음</span>
+                <span className="text-sm font-black text-emerald-600">{riskStats.low}건</span>
               </div>
-              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
                 <div
-                  className="h-full bg-emerald-500"
+                  className="h-full bg-emerald-600 transition-all duration-1000"
                   style={{
                     width: `${stats.totalCallsigns > 0 ? (riskStats.low / stats.totalCallsigns) * 100 : 0}%`,
                   }}
@@ -141,54 +141,51 @@ export function StatisticsTab() {
           <div className="space-y-4">
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700">미조치 (Pending)</span>
-                <span className="text-sm font-bold text-amber-600">{stats.pending}개</span>
+                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">미조치 (Pending)</span>
+                <span className="text-sm font-black text-amber-600">{stats.pending}건</span>
               </div>
-              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
                 <div
-                  className="h-full bg-amber-500"
+                  className="h-full bg-amber-600 transition-all duration-1000"
                   style={{
-                    width: `${
-                      stats.pending + stats.inProgress + stats.completed > 0
-                        ? (stats.pending / (stats.pending + stats.inProgress + stats.completed)) * 100
-                        : 0
-                    }%`,
+                    width: `${stats.pending + stats.inProgress + stats.completed > 0
+                      ? (stats.pending / (stats.pending + stats.inProgress + stats.completed)) * 100
+                      : 0
+                      }%`,
                   }}
                 />
               </div>
             </div>
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700">진행중 (In Progress)</span>
-                <span className="text-sm font-bold text-blue-600">{stats.inProgress}개</span>
+                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">진행중 (In Progress)</span>
+                <span className="text-sm font-black text-blue-600">{stats.inProgress}건</span>
               </div>
-              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
                 <div
-                  className="h-full bg-blue-500"
+                  className="h-full bg-blue-600 transition-all duration-1000"
                   style={{
-                    width: `${
-                      stats.pending + stats.inProgress + stats.completed > 0
-                        ? (stats.inProgress / (stats.pending + stats.inProgress + stats.completed)) * 100
-                        : 0
-                    }%`,
+                    width: `${stats.pending + stats.inProgress + stats.completed > 0
+                      ? (stats.inProgress / (stats.pending + stats.inProgress + stats.completed)) * 100
+                      : 0
+                      }%`,
                   }}
                 />
               </div>
             </div>
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700">완료 (Completed)</span>
-                <span className="text-sm font-bold text-emerald-600">{stats.completed}개</span>
+                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">완료 (Completed)</span>
+                <span className="text-sm font-black text-emerald-600">{stats.completed}건</span>
               </div>
-              <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
                 <div
-                  className="h-full bg-emerald-500"
+                  className="h-full bg-emerald-600 transition-all duration-1000"
                   style={{
-                    width: `${
-                      stats.pending + stats.inProgress + stats.completed > 0
-                        ? (stats.completed / (stats.pending + stats.inProgress + stats.completed)) * 100
-                        : 0
-                    }%`,
+                    width: `${stats.pending + stats.inProgress + stats.completed > 0
+                      ? (stats.completed / (stats.pending + stats.inProgress + stats.completed)) * 100
+                      : 0
+                      }%`,
                   }}
                 />
               </div>

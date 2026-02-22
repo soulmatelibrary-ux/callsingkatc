@@ -36,11 +36,10 @@ export function UploadHistory({ history }: UploadHistoryProps) {
                 </p>
               </div>
               <span
-                className={`text-xs font-bold px-2 py-1 rounded-full ${
-                  item.failedCount === 0
-                    ? 'bg-emerald-50 text-emerald-600'
-                    : 'bg-red-50 text-red-600'
-                }`}
+                className={`text-[10px] font-black px-2.5 py-1 rounded-none border ${item.failedCount === 0
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                    : 'bg-red-50 text-red-600 border-red-100'
+                  }`}
               >
                 {item.totalRows}건
               </span>

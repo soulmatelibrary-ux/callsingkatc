@@ -84,7 +84,7 @@ export function OverviewTab() {
                 setSelectedAirline(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
             >
               <option value="">항공사 선택</option>
               {airlinesQuery.data?.map((airline) => (
@@ -99,7 +99,7 @@ export function OverviewTab() {
                 setSelectedRiskLevel(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
             >
               <option value="">위험도 선택</option>
               <option value="매우높음">매우높음</option>
@@ -136,13 +136,12 @@ export function OverviewTab() {
                     <td className="px-8 py-5 font-medium text-gray-700">{callsign.callsign_pair}</td>
                     <td className="px-8 py-5">
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border ${
-                          callsign.risk_level === '매우높음'
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border ${callsign.risk_level === '매우높음'
                             ? 'bg-red-50 text-red-600 border-red-100'
                             : callsign.risk_level === '높음'
-                            ? 'bg-amber-50 text-amber-600 border-amber-100'
-                            : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                        }`}
+                              ? 'bg-amber-50 text-amber-600 border-amber-100'
+                              : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                          }`}
                       >
                         {callsign.risk_level}
                       </span>
@@ -150,9 +149,9 @@ export function OverviewTab() {
                     <td className="px-8 py-5 text-gray-400 font-medium">
                       {callsign.uploaded_at
                         ? new Date(callsign.uploaded_at).toLocaleDateString('ko-KR', {
-                            month: 'short',
-                            day: 'numeric',
-                          })
+                          month: 'short',
+                          day: 'numeric',
+                        })
                         : '-'}
                     </td>
                   </tr>
