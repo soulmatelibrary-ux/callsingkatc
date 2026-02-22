@@ -1,10 +1,11 @@
 interface UploadResultProps {
   result: {
-    success_count: number;
-    failed_count: number;
-    updated_count: number;
-    total_rows: number;
-    errors?: Array<{ row: number; message: string }>;
+    success: boolean;
+    total: number;
+    inserted: number;
+    updated: number;
+    failed: number;
+    errors?: string[];
   };
 }
 
@@ -31,15 +32,15 @@ export function UploadResult({ result }: UploadResultProps) {
       <div className="space-y-3">
         <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-none border border-emerald-100">
           <span className="text-sm font-bold text-gray-700">추가</span>
-          <span className="text-lg font-black text-emerald-600">{result.success_count}개</span>
+          <span className="text-lg font-black text-emerald-600">{result.inserted}개</span>
         </div>
         <div className="flex justify-between items-center p-3 bg-blue-50 rounded-none border border-blue-100">
           <span className="text-sm font-bold text-gray-700">수정</span>
-          <span className="text-lg font-black text-blue-600">{result.updated_count}개</span>
+          <span className="text-lg font-black text-blue-600">{result.updated}개</span>
         </div>
         <div className="flex justify-between items-center p-3 bg-red-50 rounded-none border border-red-100">
           <span className="text-sm font-bold text-gray-700">실패</span>
-          <span className="text-lg font-black text-red-600">{result.failed_count}개</span>
+          <span className="text-lg font-black text-red-600">{result.failed}개</span>
         </div>
       </div>
 
@@ -51,7 +52,7 @@ export function UploadResult({ result }: UploadResultProps) {
           <div className="mt-3 space-y-2 bg-red-50 p-3 rounded-none max-h-48 overflow-y-auto">
             {result.errors.slice(0, 10).map((err, idx) => (
               <p key={idx} className="text-xs text-red-700">
-                <strong>Row {err.row}:</strong> {err.message}
+                {err}
               </p>
             ))}
             {result.errors.length > 10 && (

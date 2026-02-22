@@ -43,7 +43,7 @@ export function FileUploadZone({ onUploadComplete }: FileUploadZoneProps) {
         setProgress((prev) => Math.min(prev + Math.random() * 20, 90));
       }, 200);
 
-      const res = await fetch('/api/admin/uploads', {
+      const res = await fetch('/api/admin/upload-callsigns', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${accessToken}`,

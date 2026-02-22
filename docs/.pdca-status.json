@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-22T03:29:20.350Z",
+  "lastUpdated": "2026-02-22T03:36:33.628Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -49,9 +49,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:37:49.180Z",
-        "lastUpdated": "2026-02-22T03:26:27.094Z"
+        "lastUpdated": "2026-02-22T03:29:32.748Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/lib/db.ts"
+      "lastFile": "/Users/sein/Desktop/katc1/src/hooks/useAnnouncements.ts"
     },
     "api": {
       "phase": "do",
@@ -361,9 +361,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T02:15:21.252Z",
-        "lastUpdated": "2026-02-21T14:09:17.408Z"
+        "lastUpdated": "2026-02-22T03:34:05.470Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/airlines/page.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/airlines/route.ts"
     },
     "actions": {
       "phase": "do",
@@ -455,7 +455,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:06.344Z",
-        "lastUpdated": "2026-02-22T03:29:20.350Z"
+        "lastUpdated": "2026-02-22T03:29:27.139Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/components/announcements/AnnouncementForm.tsx"
     },
@@ -495,9 +495,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-22T02:47:15.995Z",
-        "lastUpdated": "2026-02-22T03:28:20.173Z"
+        "lastUpdated": "2026-02-22T03:36:33.628Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/callsign-mgmt-v1/page.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/components/callsign-mgmt-v1/ActionsTab.tsx"
     },
     "uploads": {
       "phase": "do",
@@ -508,9 +508,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-22T02:52:30.653Z",
-        "lastUpdated": "2026-02-22T02:53:00.393Z"
+        "lastUpdated": "2026-02-22T03:35:23.968Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/callsign-mgmt-v1/uploads/UploadHistory.tsx"
+      "lastFile": "/Users/sein/Desktop/katc1/src/components/callsign-mgmt-v1/uploads/UploadResult.tsx"
     }
   },
   "pipeline": {
@@ -521,7 +521,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-22T03:29:20.350Z"
+    "lastActivity": "2026-02-22T03:36:33.628Z"
   },
   "history": [
     {
@@ -5303,6 +5303,54 @@
     {
       "timestamp": "2026-02-22T03:29:20.350Z",
       "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T03:29:27.139Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T03:29:32.748Z",
+      "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T03:34:05.470Z",
+      "feature": "airlines",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T03:34:53.981Z",
+      "feature": "uploads",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T03:35:23.968Z",
+      "feature": "uploads",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T03:35:46.309Z",
+      "feature": "callsign-mgmt-v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T03:36:10.023Z",
+      "feature": "callsign-mgmt-v1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T03:36:33.628Z",
+      "feature": "callsign-mgmt-v1",
       "phase": "do",
       "action": "updated"
     }

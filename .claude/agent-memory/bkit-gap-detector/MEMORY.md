@@ -105,11 +105,54 @@
 - `src/app/announcements/page.tsx` - User history page
 - `src/app/admin/announcements/page.tsx` - Admin management page
 
+## Phase 6 Gap Analysis (2026-02-22) - callsign-management-v1
+- **Match Rate: 79%** (weighted across 9 categories)
+- Layout & Structure: 70% (horizontal tabs -> vertical left menu, sidebar -> 4th tab)
+- Tab 1 Overview: 82% (missing 5th KPI card, status column, status filter, search)
+- Tab 2 Actions: 90% (near-perfect, missing Reset button only)
+- Tab 3 Statistics: 78% (progress bars instead of Recharts, right chart changed)
+- Tab 4 Upload: 80% (works but API URL mismatch, history not persisted)
+- Styling: 88% (rounded-none consistent, select inputs use rounded-lg)
+- Data Flow: 72% (5/7 design hooks missing, client-side stats calc)
+- Architecture: 75% (Tabs.tsx created but unused, FileUploadZone direct fetch)
+- Convention: 98% (naming, imports, folder structure all correct)
+
+## Phase 6 Critical Bugs
+1. FileUploadZone calls `/api/admin/uploads` but actual API is `/api/admin/upload-callsigns` - upload broken
+2. UploadResult expects `{success_count, updated_count, failed_count}` but API returns `{inserted, updated, failed}` - display wrong
+
+## Phase 6 Key Architectural Change
+- Design: Horizontal tabs (3) + persistent right sidebar for upload
+- Implementation: Vertical left menu (4 items) + content area, upload as 4th tab
+- Tabs.tsx component implements exact design spec but page.tsx doesn't use it
+
+## Phase 6 Missing Features
+- Statistics API (`/api/admin/statistics`) - not implemented
+- Upload history API (`/api/admin/uploads/history`) - not implemented
+- 5 dedicated hooks (useStatistics, useAirlineStats, useChartData, useUploadFile, useUploadHistory)
+- Overview: status filter, search input, status table column, 5th KPI card
+- Statistics: Recharts charts (replaced with progress bars)
+
+## Phase 6 File Map
+- `src/app/admin/callsign-mgmt-v1/page.tsx` - Main page (left menu layout)
+- `src/components/callsign-mgmt-v1/OverviewTab.tsx` - Tab 1: callsigns + KPI
+- `src/components/callsign-mgmt-v1/ActionsTab.tsx` - Tab 2: airline action status
+- `src/components/callsign-mgmt-v1/StatisticsTab.tsx` - Tab 3: statistics + charts
+- `src/components/callsign-mgmt-v1/Sidebar.tsx` - Tab 4: upload container
+- `src/components/callsign-mgmt-v1/StatCard.tsx` - Reusable KPI card
+- `src/components/callsign-mgmt-v1/Tabs.tsx` - UNUSED horizontal tabs (matches design)
+- `src/components/callsign-mgmt-v1/uploads/FileUploadZone.tsx` - Drag & drop upload
+- `src/components/callsign-mgmt-v1/uploads/UploadResult.tsx` - Upload result display
+- `src/components/callsign-mgmt-v1/uploads/UploadHistory.tsx` - Upload history list
+- `src/app/api/admin/upload-callsigns/route.ts` - POST Excel upload API
+- Header.tsx:132 - Link to callsign-mgmt-v1 page
+
 ## Analysis Reports
 - `docs/03-analysis/features/katc1-auth-gap.md` - v4.0 auth-focused (92%)
 - `docs/03-analysis/features/katc1-full-gap-v5.md` - v5.0 full system (65%)
 - `docs/03-analysis/features/airline-data-action-management.analysis.md` - Phase 4 (63%)
 - `docs/03-analysis/features/announcement-system.analysis.md` - Phase 5 (94%)
+- `docs/03-analysis/features/callsign-management-v1.analysis.md` - Phase 6 (79%)
 
 ## Implementation File Map
 - `src/app/page.tsx` - Portal login (airline/admin toggle)

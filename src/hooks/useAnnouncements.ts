@@ -223,12 +223,9 @@ export function useViewAnnouncement() {
       });
 
       // 이력 캐시 무효화 (모든 필터 조건의 history 캐시를 무효화)
+      // ['announcements', 'history', ...filters] 패턴의 모든 쿼리 대상
       queryClient.invalidateQueries({
-        queryKey: announcementQueryKeys.all(),
-        predicate: (query) => {
-          const queryKey = query.queryKey as (string | object)[];
-          return queryKey.length >= 2 && queryKey[1] === 'history';
-        },
+        queryKey: ['announcements', 'history'],
       });
     },
   });

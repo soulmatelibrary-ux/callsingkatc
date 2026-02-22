@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        data: result.rows,
+        airlines: result.rows,
       },
       { status: 200 }
     );

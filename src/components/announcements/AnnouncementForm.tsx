@@ -208,7 +208,7 @@ export function AnnouncementForm({ announcement, onSuccess }: Props) {
           대상항공사 (선택사항 - 공란 시 전체 항공사)
         </label>
         <div className="border rounded p-3 bg-gray-50 space-y-2 max-h-48 overflow-y-auto">
-          {AIRLINES.map((airline) => (
+          {airlines.map((airline) => (
             <label key={airline.code} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
