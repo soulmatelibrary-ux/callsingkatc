@@ -37,8 +37,8 @@ export default function CallsignManagementPublicPage() {
       <Header />
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* 왼쪽 메뉴 */}
-        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-[calc(100vh-64px)] overflow-y-auto sticky top-[64px]">
-          <div className="px-6 py-8 mb-2">
+        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-screen overflow-y-auto sticky top-0">
+          <div className="px-6 py-4 mb-0">
             <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
               유사호출부호 관리
             </h2>
@@ -72,7 +72,7 @@ export default function CallsignManagementPublicPage() {
 
         {/* 메인 콘텐츠 영역 */}
         <div className="flex-1 overflow-y-auto">
-          <main className="flex-1 w-full px-6 pt-8 pb-10">
+          <main className="flex-1 w-full px-6 pt-6 pb-10">
             {/* 페이지 헤더 */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-200 pb-8 mb-8">
               <div>

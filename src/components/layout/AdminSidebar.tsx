@@ -5,7 +5,6 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { NanoIcon } from '@/components/ui/NanoIcon';
 import {
-    LayoutDashboard,
     Users,
     Plane,
     Megaphone,
@@ -38,7 +37,6 @@ export function AdminSidebar() {
     }, [pathname, searchParams]);
 
     const menuItems = [
-        { id: 'dashboard', label: '대시보드', href: '/admin', icon: LayoutDashboard, color: 'primary' },
         { id: 'users', label: '사용자 관리', href: '/admin/users?tab=users', icon: Users, color: 'info' },
         { id: 'airlines', label: '항공사 관리', href: '/admin/users?tab=airlines', icon: Plane, color: 'purple' },
         { id: 'announcements', label: '공지사항 관리', href: '/admin/announcements', icon: Megaphone, color: 'orange' },

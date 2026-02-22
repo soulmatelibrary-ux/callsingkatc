@@ -94,8 +94,8 @@ export default function Home() {
           setIsSubmitting(false);
           return;
         }
-        // 관리자 페이지: /admin/callsign-management
-        router.push('/admin/callsign-management');
+        // 관리자 페이지: 유사호출부호 관리 대시보드
+        router.push('/callsign-management');
       } else {
         // 항공사 로그인
         if (result.user.role === 'admin') {
