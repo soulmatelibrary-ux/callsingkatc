@@ -20,6 +20,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const normalizedEmail = email.trim();
+
     // 사용자 조회 (항공사 정보, 비밀번호 정책 추적 필드 포함)
     const result = await query(
       `SELECT
@@ -28,8 +30,8 @@ export async function POST(request: NextRequest) {
          a.code as airline_code, a.name_ko as airline_name_ko, a.name_en as airline_name_en
        FROM users u
        LEFT JOIN airlines a ON u.airline_id = a.id
-       WHERE u.email = $1`,
-      [email]
+       WHERE LOWER(u.email) = LOWER($1)`,
+      [normalizedEmail]
     );
 
     if (result.rows.length === 0) {
@@ -141,9 +143,12 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('로그인 오류:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('[LOGIN_ERROR]', errorMessage);
+    console.error('[LOGIN_ERROR_STACK]', errorStack);
     return NextResponse.json(
-      { error: '로그인 중 오류가 발생했습니다.' },
+      { error: errorMessage, stack: errorStack },
       { status: 500 }
     );
   }

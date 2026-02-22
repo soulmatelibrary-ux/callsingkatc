@@ -24,6 +24,14 @@ function AuthInitializer({ children }: ProvidersProps) {
   useEffect(() => {
     // 페이지 로드 시 한 번만 세션 복원 (refreshToken 쿠키 → 새로운 accessToken)
     async function initializeAuth() {
+      const hasRefreshToken =
+        typeof document !== 'undefined' && document.cookie.includes('refreshToken=');
+
+      if (!hasRefreshToken) {
+        setIsInitialized(true);
+        return;
+      }
+
       try {
         // refreshToken 쿠키로부터 새로운 accessToken 생성
         const response = await fetch('/api/auth/refresh', {

@@ -65,8 +65,9 @@ export default function Home() {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
-          email,
+          email: email.trim().toLowerCase(),
           password,
         }),
       });
@@ -181,28 +182,28 @@ export default function Home() {
 
         {/* 오른쪽 로그인 영역 */}
         <div className="w-full max-w-[460px] animate-in fade-in slide-in-from-right-8 duration-1000 delay-400 fill-mode-both">
-          <div className="bg-slate-900/75 backdrop-blur-[28px] rounded-[48px] p-10 md:p-14 border border-white/5 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden">
+          <div className="bg-slate-900/75 backdrop-blur-[28px] rounded-[48px] p-8 md:p-10 border border-white/5 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.8)] relative overflow-hidden">
             <div className="absolute -top-32 -right-32 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
 
             <div className="relative z-10">
-              <div className="mb-12 text-center text-white/80">
-                <span className="text-[11px] font-extrabold text-blue-400 uppercase tracking-[0.5em] block mb-4">Login System</span>
-                <h3 className="text-3xl font-black text-white tracking-tight">서비스 접속</h3>
+              <div className="mb-8 text-center text-white/80">
+                <span className="text-[11px] font-extrabold text-blue-400 uppercase tracking-[0.5em] block mb-3">Login System</span>
+                <h3 className="text-4xl font-black text-white tracking-[0.2em] uppercase">LOGIN</h3>
               </div>
 
               {/* 탭 스타일 */}
-              <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-10 shadow-2xl">
+              <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-8 shadow-2xl">
                 <button
                   type="button"
                   onClick={() => setIsAdmin(false)}
-                  className={`flex-1 py-4 rounded-[18px] text-sm font-bold transition-all duration-300 ${!isAdmin ? 'bg-white/10 text-white border border-white/5 shadow-xl' : 'text-white/40 hover:text-white'}`}
+                  className={`flex-1 py-3.5 rounded-[18px] text-sm font-bold transition-all duration-300 ${!isAdmin ? 'bg-white/10 text-white border border-white/5 shadow-xl' : 'text-white/40 hover:text-white'}`}
                 >
                   항공사 업무
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsAdmin(true)}
-                  className={`flex-1 py-4 rounded-[18px] text-sm font-bold transition-all duration-300 ${isAdmin ? 'bg-white/10 text-white border border-white/5 shadow-xl' : 'text-white/40 hover:text-white'}`}
+                  className={`flex-1 py-3.5 rounded-[18px] text-sm font-bold transition-all duration-300 ${isAdmin ? 'bg-white/10 text-white border border-white/5 shadow-xl' : 'text-white/40 hover:text-white'}`}
                 >
                   운영 관리자
                 </button>
@@ -220,7 +221,7 @@ export default function Home() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@kac.or.kr"
-                      className="w-full pl-14 pr-6 py-5.5 bg-black/40 border border-white/5 rounded-2xl text-white placeholder-white/20 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all shadow-inner"
+                      className="w-full pl-14 pr-6 py-4.5 bg-black/40 border border-white/5 rounded-2xl text-white placeholder-white/20 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all shadow-inner"
                       required
                     />
                   </div>
@@ -237,7 +238,7 @@ export default function Home() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-14 pr-6 py-5.5 bg-black/40 border border-white/5 rounded-2xl text-white placeholder-white/20 text-sm tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all font-mono shadow-inner"
+                      className="w-full pl-14 pr-6 py-4.5 bg-black/40 border border-white/5 rounded-2xl text-white placeholder-white/20 text-sm tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-black/60 transition-all font-mono shadow-inner"
                       required
                     />
                   </div>
@@ -263,16 +264,15 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full py-6.5 mt-8 rounded-2xl text-base font-black text-white bg-blue-600 hover:bg-blue-500 shadow-2xl shadow-blue-600/30 active:scale-[0.98] transition-all tracking-[0.3em] uppercase ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full py-5.5 mt-6 rounded-2xl text-base font-black text-white bg-blue-600 hover:bg-blue-500 shadow-2xl shadow-blue-600/30 active:scale-[0.98] transition-all tracking-[0.3em] uppercase ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {isSubmitting ? '접속 중...' : '접속하기'}
                 </button>
               </form>
 
-              <div className="mt-14 pt-10 border-t border-white/5 text-center">
-                <p className="text-[10px] font-bold text-white/20 tracking-[0.15em] uppercase leading-loose">
-                  Korea Airports Corporation · Safety Management<br />
-                  Aviation Safety Management System
+              <div className="mt-10 pt-8 border-t border-white/5 text-center">
+                <p className="text-[11px] font-black text-white/30 tracking-[0.2em] uppercase leading-loose">
+                  한국공항공사 <span className="text-white/10 mx-1">|</span> 항공교통본부
                 </p>
               </div>
             </div>

@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-22T05:41:14.977Z",
+  "lastUpdated": "2026-02-22T05:51:53.220Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -37,7 +37,8 @@
     "announcement-system - Gap analysis verification",
     "callsign-mgmt-v1",
     "uploads",
-    "callsign-management"
+    "callsign-management",
+    "tmp"
   ],
   "primaryFeature": "katc1",
   "features": {
@@ -154,7 +155,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:43:44.364Z",
-        "lastUpdated": "2026-02-20T06:34:17.235Z"
+        "lastUpdated": "2026-02-22T05:51:53.220Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/auth/login/route.ts"
     },
@@ -525,6 +526,19 @@
         "lastUpdated": "2026-02-22T05:29:00.618Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/callsign-management/page.tsx"
+    },
+    "tmp": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-22T05:44:28.881Z",
+        "lastUpdated": "2026-02-22T05:44:28.881Z"
+      },
+      "lastFile": "/tmp/simple_perf_test.sh"
     }
   },
   "pipeline": {
@@ -535,7 +549,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-22T05:41:14.977Z"
+    "lastActivity": "2026-02-22T05:51:53.220Z"
   },
   "history": [
     {
@@ -5551,6 +5565,24 @@
     {
       "timestamp": "2026-02-22T05:41:14.977Z",
       "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T05:44:28.881Z",
+      "feature": "tmp",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T05:48:37.741Z",
+      "feature": "login",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-22T05:51:53.220Z",
+      "feature": "login",
       "phase": "do",
       "action": "updated"
     }
