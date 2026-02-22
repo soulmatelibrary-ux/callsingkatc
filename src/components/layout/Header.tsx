@@ -154,12 +154,12 @@ export function Header() {
         )}
         {isAuthenticated && user ? (
           <>
-            <div className="bg-white/10 backdrop-blur-md border border-white/10 px-5 py-2.5 rounded-full flex items-center gap-4">
+            <div className="bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2">
               <div className="relative">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                 <div className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-20"></div>
               </div>
-              <span className="text-white/90 text-xs font-black tracking-widest uppercase">
+              <span className="text-white/70 text-[10px] font-bold tracking-wide uppercase">
                 {user.email}
               </span>
             </div>
@@ -186,7 +186,7 @@ export function Header() {
             {/* 로그아웃 */}
             <button
               onClick={handleLogout}
-              className="bg-rose-600 hover:bg-rose-700 text-white px-8 py-3 text-xs font-black uppercase tracking-widest transition-all shadow-[0_10px_20px_rgba(225,29,72,0.3)] active:scale-95 border border-rose-500/50 ml-1"
+              className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all shadow-[0_4px_10px_rgba(225,29,72,0.2)] active:scale-95 border border-rose-500/50"
               type="button"
             >
               Logout

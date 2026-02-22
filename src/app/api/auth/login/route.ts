@@ -144,11 +144,10 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : '';
     console.error('[LOGIN_ERROR]', errorMessage);
-    console.error('[LOGIN_ERROR_STACK]', errorStack);
+    console.error('[LOGIN_ERROR_FULL]', error);
     return NextResponse.json(
-      { error: errorMessage, stack: errorStack },
+      { error: '로그인 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
