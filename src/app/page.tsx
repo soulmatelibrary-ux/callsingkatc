@@ -37,7 +37,7 @@ export default function Home() {
           const data = await response.json();
           if (data.user) {
             setUser(data.user);
-            const target = data.user.role === 'admin' ? ROUTES.DASHBOARD : ROUTES.AIRLINE;
+            const target = data.user.role === 'admin' ? ROUTES.AIRLINE : ROUTES.AIRLINE;
             router.replace(target);
             return;
           }
@@ -95,7 +95,7 @@ export default function Home() {
           return;
         }
         // 관리자 첫 페이지는 대시보드
-        router.push(ROUTES.DASHBOARD);
+        router.push(ROUTES.AIRLINE);
       } else {
         // 항공사 로그인
         if (result.user.role === 'admin') {

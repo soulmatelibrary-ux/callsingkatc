@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // 보호되는 라우트
-const protectedRoutes = ['/airline', '/admin', '/dashboard', '/announcements', '/callsign-management'];
+const protectedRoutes = ['/airline', '/admin', '/announcements', '/callsign-management'];
 const authRoutes = ['/login', '/signup', '/forgot-password', '/change-password'];
 
 export function middleware(request: NextRequest) {
@@ -44,7 +44,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  const defaultRedirect = userRole === 'admin' ? '/admin/dashboard' : '/airline';
+  const defaultRedirect = userRole === 'admin' ? '/admin/callsign-management' : '/airline';
 
   console.log('[Middleware] isLoggedIn:', isLoggedIn, 'isProtectedRoute:', isProtectedRoute, 'isAuthRoute:', isAuthRoute);
 

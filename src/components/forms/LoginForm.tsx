@@ -75,7 +75,7 @@ export function LoginForm() {
       } else {
         // 정상 로그인 - 역할에 따라 리다이렉트
         if (result.user.role === 'admin') {
-          router.push(ROUTES.DASHBOARD);
+          router.push(ROUTES.AIRLINE);
         } else {
           router.push('/airline');
         }

@@ -140,16 +140,6 @@ export function Header() {
 
       {/* 우측 영역 */}
       <nav className="flex items-center gap-5 z-10" aria-label="사용자 네비게이션">
-        {/* 테스트 버튼 (관리자만) */}
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => router.push(ROUTES.DASHBOARD)}
-            className="px-4 py-2 text-white/90 text-xs font-black uppercase tracking-widest rounded-none bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
-          >
-            테스트
-          </button>
-        )}
         {isAuthenticated && user ? (
           <>
             <div className="bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2">

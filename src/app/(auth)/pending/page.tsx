@@ -51,7 +51,7 @@ export default function PendingPage() {
 
     if (user.status === 'active') {
       setUser(user);
-      router.push(ROUTES.DASHBOARD);
+      router.push(ROUTES.AIRLINE);
     }
   }, [user, setUser, router]);
 

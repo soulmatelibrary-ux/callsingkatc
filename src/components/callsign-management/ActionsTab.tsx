@@ -38,6 +38,11 @@ export function ActionsTab() {
   // 선택한 항공사의 호출부호 목록
   const callsignsQuery = useAirlineCallsigns(selectedAirlineId, { limit: 100 });
 
+  // 전체 필터 적용되지 않은 데이터로 통계 계산 (모든 훅 최상단에 선언)
+  const allActionsQuery = useAllActions({
+    limit: 1000, // 전체 데이터 조회
+  });
+
   const statusColors: Record<string, string> = {
     pending: 'bg-yellow-50 text-yellow-600 border-yellow-100',
     in_progress: 'bg-blue-50 text-blue-600 border-blue-100',
@@ -67,6 +72,37 @@ export function ActionsTab() {
   const actions = useMemo(() => {
     return actionsQuery.data?.data || [];
   }, [actionsQuery.data]);
+
+  // 상태별 집계 (훅 규칙을 위해 반환 전에 계산)
+  const allActions = allActionsQuery.data?.data || [];
+  const totalCount = actionsQuery.data?.pagination.total || 0;
+  const pendingCount = allActions.filter(a => a.status === 'pending').length;
+  const inProgressCount = allActions.filter(a => a.status === 'in_progress').length;
+  const completedCount = allActions.filter(a => a.status === 'completed').length;
+
+  // 항공사별 통계 (현재 필터 기준)
+  const airlineStats = useMemo(() => {
+    const stats = new Map<string, { total: number; pending: number; in_progress: number; completed: number }>();
+
+    actions.forEach(action => {
+      const airlineId = action.airline_id;
+      if (!stats.has(airlineId)) {
+        stats.set(airlineId, { total: 0, pending: 0, in_progress: 0, completed: 0 });
+      }
+      const stat = stats.get(airlineId)!;
+      stat.total += 1;
+      if (action.status === 'pending') stat.pending += 1;
+      else if (action.status === 'in_progress') stat.in_progress += 1;
+      else if (action.status === 'completed') stat.completed += 1;
+    });
+
+    return Array.from(stats.entries()).map(([airlineId, counts]) => ({
+      airlineId,
+      airlineCode: airlineMap[airlineId]?.code || '-',
+      airlineName: airlineMap[airlineId]?.name_ko || '-',
+      ...counts,
+    }));
+  }, [actions, airlineMap]);
 
   const handleExportExcel = () => {
     if (!actionsQuery.data?.data) return;
@@ -106,6 +142,74 @@ export function ActionsTab() {
 
   return (
     <div className="space-y-6">
+      {/* 조치 이력 요약 */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-black text-gray-900">조치 이력</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* 전체 조치 */}
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+            <p className="text-sm font-bold text-blue-600 mb-2">전체 조치</p>
+            <p className="text-4xl font-black text-blue-600">{totalCount}</p>
+          </div>
+          {/* 진행중 */}
+          <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-6 border border-cyan-200">
+            <p className="text-sm font-bold text-cyan-600 mb-2">진행중</p>
+            <p className="text-4xl font-black text-cyan-600">{inProgressCount}</p>
+          </div>
+          {/* 완료 */}
+          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-6 border border-emerald-200">
+            <p className="text-sm font-bold text-emerald-600 mb-2">완료</p>
+            <p className="text-4xl font-black text-emerald-600">{completedCount}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* 항공사별 조치 현황 */}
+      {airlineStats.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-black text-gray-900">항공사별 조치 현황</h3>
+            <p className="text-xs text-gray-500">날짜 필터와 동기화됨</p>
+          </div>
+          <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">항공사</th>
+                  <th className="px-6 py-3 text-center text-xs font-bold text-gray-600 uppercase">전체</th>
+                  <th className="px-6 py-3 text-center text-xs font-bold text-gray-600 uppercase">대기중</th>
+                  <th className="px-6 py-3 text-center text-xs font-bold text-gray-600 uppercase">진행중</th>
+                  <th className="px-6 py-3 text-center text-xs font-bold text-gray-600 uppercase">완료</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {airlineStats.map((stat) => (
+                  <tr key={stat.airlineId} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-gray-900">{stat.airlineCode}</td>
+                    <td className="px-6 py-4 text-center font-bold text-gray-700">{stat.total}</td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-50 text-yellow-600">
+                        {stat.pending}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-cyan-50 text-cyan-600">
+                        {stat.in_progress}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600">
+                        {stat.completed}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-none shadow-sm border border-gray-100">
         {/* 헤더 */}
         <div className="px-8 py-6 border-b border-gray-50 bg-gray-50/30">
