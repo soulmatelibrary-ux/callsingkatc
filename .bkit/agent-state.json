@@ -1,14 +1,25 @@
 {
   "version": "1.0",
-  "enabled": false,
+  "enabled": true,
   "teamName": "",
   "feature": "katc1",
   "pdcaPhase": "do",
   "orchestrationPattern": "leader",
   "ctoAgent": "opus",
-  "startedAt": "2026-02-22T05:19:44.249Z",
-  "lastUpdated": "2026-02-22T05:23:37.979Z",
-  "teammates": [],
+  "startedAt": "2026-02-22T05:26:36.449Z",
+  "lastUpdated": "2026-02-22T05:26:36.449Z",
+  "teammates": [
+    {
+      "name": "a3c0504",
+      "role": "bkit:qa-monitor",
+      "model": "sonnet",
+      "status": "spawning",
+      "currentTask": null,
+      "taskId": null,
+      "startedAt": "2026-02-22T05:26:36.449Z",
+      "lastActivityAt": "2026-02-22T05:26:36.449Z"
+    }
+  ],
   "progress": {
     "totalTasks": 0,
     "completedTasks": 0,

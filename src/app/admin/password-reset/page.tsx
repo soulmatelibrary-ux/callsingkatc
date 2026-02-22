@@ -16,15 +16,20 @@ export default function AdminPasswordResetPage() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <main className="flex-1 w-full px-4 sm:px-6 pb-10 space-y-6">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/admin"
-            className="text-sm text-gray-500 hover:text-gray-900 hover:underline"
-          >
-            대시보드
-          </Link>
-          <span className="text-gray-300">/</span>
-          <h1 className="text-2xl font-bold text-gray-900">비밀번호 초기화</h1>
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <Link
+              href="/admin"
+              className="text-sm text-gray-500 hover:text-gray-900 hover:underline"
+            >
+              대시보드
+            </Link>
+            <span className="text-gray-300">/</span>
+            <h1 className="text-2xl font-bold text-gray-900">비밀번호 초기화</h1>
+          </div>
+          <p className="text-gray-600">
+            사용자 계정의 비밀번호를 초기화하고 임시 비밀번호를 생성합니다.
+          </p>
         </div>
 
         <PasswordResetSection />
