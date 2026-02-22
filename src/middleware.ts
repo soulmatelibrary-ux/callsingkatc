@@ -9,7 +9,7 @@ import type { NextRequest } from 'next/server';
 
 // 보호되는 라우트
 const protectedRoutes = ['/airline', '/admin', '/announcements', '/callsign-management'];
-const authRoutes = ['/login', '/signup', '/forgot-password', '/change-password'];
+const authRoutes = ['/login', '/forgot-password', '/change-password'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -44,7 +44,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  const defaultRedirect = userRole === 'admin' ? '/admin/callsign-management' : '/airline';
+  const defaultRedirect = userRole === 'admin' ? '/callsign-management' : '/airline';
 
   console.log('[Middleware] isLoggedIn:', isLoggedIn, 'isProtectedRoute:', isProtectedRoute, 'isAuthRoute:', isAuthRoute);
 
@@ -86,7 +86,6 @@ export const config = {
     '/admin/:path*',
     // 인증 라우트
     '/login',
-    '/signup',
     '/forgot-password',
     '/change-password',
     // 제외 라우트
