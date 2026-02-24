@@ -1157,13 +1157,6 @@ export default function AirlinePage() {
                     전체
                   </button>
                   <button
-                    onClick={() => setActionStatusFilter('pending')}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'pending' ? 'bg-orange-600 text-white shadow-none' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                      }`}
-                  >
-                    미조치
-                  </button>
-                  <button
                     onClick={() => setActionStatusFilter('in_progress')}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-rose-700 text-white shadow-none' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}

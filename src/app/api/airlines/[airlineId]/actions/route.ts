@@ -266,10 +266,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { airlineId: string } }
+  { params }: { params: Promise<{ airlineId: string }> }
 ) {
   try {
-    const airlineId = params.airlineId;
+    const { airlineId } = await params;
 
     // 인증 확인
     const authHeader = request.headers.get('Authorization');
@@ -310,9 +310,9 @@ export async function POST(
       );
     }
 
-    // 항공사 존재 여부 확인
+    // 항공사 존재 여부 및 코드 조회
     const airlineCheck = await query(
-      'SELECT id FROM airlines WHERE id = $1',
+      'SELECT id, code FROM airlines WHERE id = $1',
       [airlineId]
     );
 
@@ -323,10 +323,13 @@ export async function POST(
       );
     }
 
-    // 호출부호 존재 및 항공사 일치 확인
+    const airlineCode = airlineCheck.rows[0].code;
+
+    // 호출부호 존재 및 항공사 코드 일치 확인
+    // (내 항공사이거나 상대 항공사인 경우 모두 허용)
     const callsignCheck = await query(
-      'SELECT id FROM callsigns WHERE id = $1 AND airline_id = $2',
-      [callsignId, airlineId]
+      'SELECT id FROM callsigns WHERE id = $1 AND (airline_code = $2 OR other_airline_code = $2)',
+      [callsignId, airlineCode]
     );
 
     if (callsignCheck.rows.length === 0) {
