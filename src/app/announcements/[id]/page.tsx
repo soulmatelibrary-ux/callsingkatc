@@ -43,7 +43,7 @@ export default function AnnouncementDetailPage({
       viewRecorded.current = true;
       viewMutation.mutate(params.id);
     }
-  }, [announcement, params.id]);
+  }, [announcement, params.id, viewMutation]);
 
   if (isLoading) {
     return (

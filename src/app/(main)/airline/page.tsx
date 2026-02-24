@@ -687,9 +687,9 @@ export default function AirlinePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50">
       <Header />
-      <main className="flex flex-1 min-h-0 overflow-hidden">
+      <main className="flex flex-1 min-h-0 overflow-y-auto">
         {/* 왼쪽 사이드바 */}
         <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-0 shrink-0 h-full overflow-y-auto">
           <div className="px-6 py-8 mb-2">
@@ -701,12 +701,11 @@ export default function AirlinePage() {
           <nav className="flex-1 px-4 space-y-2">
             {[
               { id: 'incidents', label: '발생현황', icon: BarChart3, color: 'primary' },
-              { id: 'analysis', label: '세부오류분석', icon: PieChart, color: 'warning', hideWhen: 'actions' },
+              { id: 'analysis', label: '세부오류분석', icon: PieChart, color: 'warning' },
               { id: 'actions', label: '조치이력', icon: ClipboardList, color: 'info' },
               { id: 'statistics', label: '통계', icon: TrendingUp, color: 'success' },
               { id: 'announcements', label: '공지사항', icon: Megaphone, color: 'orange' },
             ]
-              .filter((item) => !item.hideWhen || activeTab !== item.hideWhen)
               .map((item) => {
               const isActive = activeTab === item.id;
               return (

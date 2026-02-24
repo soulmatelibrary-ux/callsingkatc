@@ -10,6 +10,7 @@ import { useAirlineActions, useAirlineActionStats, useAirlineCallsigns } from '@
 import { useActiveAnnouncements, useAnnouncementHistory } from '@/hooks/useAnnouncements';
 import { useAuthStore } from '@/store/authStore';
 import { ActionModal } from '@/components/actions/ActionModal';
+import { Header } from '@/components/layout/Header';
 import { AirlineStatisticsTab } from '@/components/airline/AirlineStatisticsTab';
 import { NanoIcon } from '@/components/ui/NanoIcon';
 import {
@@ -111,9 +112,7 @@ export default function AirlinePage() {
   const [errorTypeFilter, setErrorTypeFilter] = useState<'all' | '관제사 오류' | '조종사 오류' | '오류 미발생'>('all');
   const [statsStartDate, setStatsStartDate] = useState<string>(() => {
     const now = new Date();
-    const start = new Date(now);
-    start.setDate(now.getDate() - 29);
-    return formatDateInput(start);
+    return formatDateInput(new Date(now.getFullYear(), now.getMonth(), 1));
   });
   const [statsEndDate, setStatsEndDate] = useState<string>(() => formatDateInput(new Date()));
   const [statsActiveRange, setStatsActiveRange] = useState<'custom' | 'today' | '1w' | '2w' | '1m'>('1m');
@@ -688,8 +687,9 @@ export default function AirlinePage() {
   };
 
   return (
-    <>
-      <main className="flex flex-1 h-full bg-gray-50 overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+      <main className="flex flex-1 min-h-0 overflow-hidden">
         {/* 왼쪽 사이드바 */}
         <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-0 shrink-0 h-full overflow-y-auto">
           <div className="px-6 py-8 mb-2">
@@ -701,7 +701,7 @@ export default function AirlinePage() {
           <nav className="flex-1 px-4 space-y-2">
             {[
               { id: 'incidents', label: '발생현황', icon: BarChart3, color: 'primary' },
-              { id: 'analysis', label: '세부오류분석', icon: PieChart, color: 'warning', hideWhen: 'actions' },
+              { id: 'analysis', label: '세부오류분석', icon: PieChart, color: 'warning' },
               { id: 'actions', label: '조치이력', icon: ClipboardList, color: 'info' },
               { id: 'statistics', label: '통계', icon: TrendingUp, color: 'success' },
               { id: 'announcements', label: '공지사항', icon: Megaphone, color: 'orange' },
@@ -1774,8 +1774,6 @@ export default function AirlinePage() {
           </div>
         </div>
       </footer>
-
-
-    </>
+    </div>
   );
 }

@@ -68,7 +68,7 @@ export function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 flex items-center justify-between px-12 h-36 border-b-8 border-rose-700 overflow-hidden" // h-36 is 144px
+      className="sticky top-0 z-50 flex items-center justify-between px-12 h-36 border-b border-gray-200 overflow-hidden" // h-36 is 144px
       style={{
         background: 'linear-gradient(135deg, #00205b 0%, #003380 100%)',
         boxShadow: '0 4px 20px rgba(0,0,0,0.12)',

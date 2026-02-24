@@ -237,6 +237,20 @@ FROM airlines
 WHERE airlines.code = 'KAL'
 ON CONFLICT (email) DO NOTHING;
 
+-- 11. 관리자 사용자: parkeungi21@korea.kr (비밀번호: 1234)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT
+  'parkeungi21@korea.kr',
+  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id,
+  'active',
+  'admin',
+  false,
+  false
+FROM airlines
+WHERE airlines.code = 'KAL'
+ON CONFLICT (email) DO NOTHING;
+
 -- ================================================================
 -- Phase 4: 항공사 데이터 및 조치 관리 시스템
 -- ================================================================

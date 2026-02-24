@@ -60,5 +60,5 @@ export function useSessionTimeout() {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [isAuthenticated, logout, router]);
+  }, [resetTimer, isAuthenticated, logout, router]);
 }
