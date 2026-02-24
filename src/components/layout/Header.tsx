@@ -139,7 +139,7 @@ export function Header() {
       </div>
 
       {/* 우측 영역 */}
-      <nav className="flex items-center gap-5 z-10" aria-label="사용자 네비게이션">
+      <nav className="flex items-end gap-8 z-10" aria-label="사용자 네비게이션">
         {isAuthenticated && user ? (
           <>
             <div className="bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2">
@@ -156,7 +156,7 @@ export function Header() {
             {isAdmin && (
               <Link
                 href={ROUTES.CALLSIGN_MANAGEMENT}
-                className="px-4 py-2 text-white/70 hover:text-white text-xs font-black uppercase tracking-widest rounded-none transition-all"
+                className="pb-2 text-white/60 hover:text-white text-[11px] font-black uppercase tracking-widest rounded-none transition-all"
               >
                 유사호출부호
               </Link>
@@ -165,7 +165,7 @@ export function Header() {
             {isAdmin && (
               <Link
                 href="/admin/users?tab=users"
-                className="px-6 py-2.5 bg-white/20 text-white text-xs font-black uppercase tracking-widest rounded-none border border-white/20 hover:bg-white/30 transition-all"
+                className="px-5 py-1.5 bg-white/20 text-white text-[11px] font-black uppercase tracking-widest rounded-none border border-white/20 hover:bg-white/30 transition-all"
               >
                 관리자 페이지
               </Link>
