@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
 
--- 국내 항공사 9개 데이터 삽입 (display_order 포함)
+-- 국내 항공사 11개 데이터 삽입 (display_order 포함)
 INSERT INTO airlines (code, name_ko, name_en, display_order) VALUES
 ('KAL', '대한항공', 'KOREAN AIR', 1),
 ('AAR', '아시아나항공', 'ASIANA AIRLINES', 2),
@@ -74,35 +74,55 @@ INSERT INTO airlines (code, name_ko, name_en, display_order) VALUES
 ('ABL', '에어부산', 'AIR BUSAN', 6),
 ('ASV', '에어서울', 'AIR SEOUL', 7),
 ('EOK', '이스타항공', 'EASTAR JET', 8),
-('FGW', '플라이강원', 'Aero K', 9)
+('FGW', '플라이강원', 'Aero K', 9),
+('APZ', '에어프레미아', 'Air Premia', 10),
+('ESR', '이스타항공', 'EASTAR JET', 11)
 ON CONFLICT (code) DO NOTHING;
 
--- 기본 관리자 사용자 삽입 (비밀번호: Admin1234 - bcrypt hash)
--- 프로덕션 환경에서는 이 관리자 계정을 제거하거나 비밀번호를 변경해야 함
+-- ================================================================
+-- 기본 사용자 계정 (비밀번호: 1234)
+-- ================================================================
+
+-- 1. 관리자 계정: lsi117@airport.co.kr (비밀번호: 1234)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
 SELECT
-  'admin@katc.com',
-  '$2b$10$Lt/H/23KNwU4ctxRXoGr1OjUddKuCxpxVJ2M3NZrgxc37WWrGGzoa',
+  'lsi117@airport.co.kr',
+  '$2b$10$vozhD./zxIG/MBRiT0wKy.KyrzlmRIo7eP.Gq1d8gPxF5.JcbcJKu',
   airlines.id,
   'active',
   'admin',
-  false,
+  true,
   false
 FROM airlines
 WHERE airlines.code = 'KAL'
 ON CONFLICT (email) DO NOTHING;
 
--- 샘플 항공사 사용자 삽입 (비밀번호: User1234)
--- 테스트용 사용자 계정 (프로덕션 환경에서는 제거해야 함)
+-- 2. 대한항공 계정: kal@naver.com (비밀번호: 1234)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT 'kal-user@katc.com', '$2b$10$3uZyHJQMHHXF9VXCjGQ.iuQPvCJzZxBXczRY6q7p.kRBCEv1NWr7K', id, 'active', 'user', true, false
-FROM airlines WHERE code = 'KAL'
-UNION ALL
-SELECT 'aar-user@katc.com', '$2b$10$3uZyHJQMHHXF9VXCjGQ.iuQPvCJzZxBXczRY6q7p.kRBCEv1NWr7K', id, 'active', 'user', true, false
-FROM airlines WHERE code = 'AAR'
-UNION ALL
-SELECT 'jja-user@katc.com', '$2b$10$3uZyHJQMHHXF9VXCjGQ.iuQPvCJzZxBXczRY6q7p.kRBCEv1NWr7K', id, 'active', 'user', true, false
-FROM airlines WHERE code = 'JJA'
+SELECT
+  'kal@naver.com',
+  '$2b$10$vozhD./zxIG/MBRiT0wKy.KyrzlmRIo7eP.Gq1d8gPxF5.JcbcJKu',
+  airlines.id,
+  'active',
+  'user',
+  true,
+  false
+FROM airlines
+WHERE airlines.code = 'KAL'
+ON CONFLICT (email) DO NOTHING;
+
+-- 3. 아시아나항공 계정: aar@naver.com (비밀번호: 1234)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT
+  'aar@naver.com',
+  '$2b$10$vozhD./zxIG/MBRiT0wKy.KyrzlmRIo7eP.Gq1d8gPxF5.JcbcJKu',
+  airlines.id,
+  'active',
+  'user',
+  true,
+  false
+FROM airlines
+WHERE airlines.code = 'AAR'
 ON CONFLICT (email) DO NOTHING;
 
 -- ================================================================
@@ -144,11 +164,31 @@ CREATE TABLE IF NOT EXISTS callsigns (
   other_callsign VARCHAR(20) NOT NULL,       -- "KAL851"
   other_airline_code VARCHAR(10),            -- "AAR", "JJA" 등
 
-  -- 위험도 정보
-  error_type VARCHAR(30),                    -- "관제사 오류", "조종사 오류", "오류 미발생"
-  sub_error VARCHAR(30),                     -- "복창오류", "무응답/재호출" 등
-  risk_level VARCHAR(20),                    -- "매우높음", "높음", "낮음"
-  similarity VARCHAR(20),                    -- "매우높음", "높음", "낮음"
+  -- 관할 섹터 및 공항 정보 (엑셀 추가 필드)
+  sector VARCHAR(20),                        -- 관할섹터명 (EL, GL, JN 등)
+  departure_airport1 VARCHAR(10),            -- 편명1 출발공항 (RKSI 등)
+  arrival_airport1 VARCHAR(10),              -- 편명1 목적공항
+  departure_airport2 VARCHAR(10),            -- 편명2 출발공항
+  arrival_airport2 VARCHAR(10),              -- 편명2 목적공항
+
+  -- 유사도 분석 정보
+  same_airline_code VARCHAR(10),             -- 항공사코드동일여부 (일치/불일치)
+  same_callsign_length VARCHAR(10),          -- 편명번호길이동일여부 (일치/불일치)
+  same_number_position VARCHAR(20),          -- 편명번호동일숫자위치 (앞/뒤/앞뒤/전체)
+  same_number_count INT,                     -- 편명번호동일숫자갯수
+  same_number_ratio DECIMAL(5,2),            -- 편명번호동일숫자구성비율(%)
+  similarity VARCHAR(20),                    -- 편명유사도 (매우높음/높음/낮음/정의되지않음)
+
+  -- 관제 정보
+  max_concurrent_traffic INT,                -- 최대동시관제량
+  coexistence_minutes INT,                   -- 공존시간(분)
+  error_probability INT,                     -- 오류발생가능성 (0-100)
+  atc_recommendation VARCHAR(50),            -- 관제사권고사항 (즉시조치/주의감시/-)
+
+  -- 오류 정보
+  error_type VARCHAR(30),                    -- 오류유형 (관제사오류/조종사오류/오류미발생)
+  sub_error VARCHAR(30),                     -- 세부오류유형 (복창오류/응답오류/기타 등)
+  risk_level VARCHAR(20),                    -- 위험도 (매우높음/높음/낮음) - 기존 호환
 
   -- 발생 통계
   occurrence_count INT DEFAULT 0,            -- 발생 건수
@@ -159,9 +199,6 @@ CREATE TABLE IF NOT EXISTS callsigns (
   uploaded_at TIMESTAMP,
 
   -- 상태 관리
-  -- 관리자 입력 → 'in_progress' (즉시)
-  -- 항공사 조치 완료 → 'completed'
-  -- 항공사 완료 취소 → 'in_progress'로 복원
   status VARCHAR(20) NOT NULL DEFAULT 'in_progress'
     CHECK (status IN ('in_progress', 'completed')),
 
@@ -263,117 +300,6 @@ CREATE INDEX IF NOT EXISTS idx_action_history_action_id ON action_history(action
 CREATE INDEX IF NOT EXISTS idx_action_history_changed_at ON action_history(changed_at DESC);
 
 -- ================================================================
--- Phase 4 샘플 데이터 (선택사항 - 개발 용도)
--- ================================================================
-
--- 호출부호 샘플 데이터 (대한항공 - KAL)
-INSERT INTO callsigns
-  (airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
-   other_airline_code, error_type, sub_error, risk_level, similarity, occurrence_count)
-SELECT
-  airlines.id, 'KAL',
-  'KAL852 | KAL851', 'KAL852', 'KAL851', 'KAL',
-  '관제사 오류', '복창오류', '매우높음', '매우높음', 4
-FROM airlines WHERE airlines.code = 'KAL'
-ON CONFLICT (airline_code, callsign_pair) DO NOTHING;
-
-INSERT INTO callsigns
-  (airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
-   other_airline_code, error_type, sub_error, risk_level, similarity, occurrence_count)
-SELECT
-  airlines.id, 'KAL',
-  'KAL789 | AAR789', 'KAL789', 'AAR789', 'AAR',
-  '관제사 오류', '무응답/재호출', '높음', '높음', 2
-FROM airlines WHERE airlines.code = 'KAL'
-ON CONFLICT (airline_code, callsign_pair) DO NOTHING;
-
-INSERT INTO callsigns
-  (airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
-   other_airline_code, error_type, sub_error, risk_level, similarity, occurrence_count)
-SELECT
-  airlines.id, 'KAL',
-  'KAL456 | AAR456', 'KAL456', 'AAR456', 'AAR',
-  '조종사 오류', '고도이탈', '매우높음', '높음', 4
-FROM airlines WHERE airlines.code = 'KAL'
-ON CONFLICT (airline_code, callsign_pair) DO NOTHING;
-
--- ================================================================
--- Phase 4 샘플 조치 데이터 (actions + action_history)
--- ================================================================
-
--- 조치 샘플 데이터 (관리자가 등록한 조치들)
-INSERT INTO actions
-  (airline_id, callsign_id, action_type, description, manager_name, manager_email,
-   planned_due_date, status, result_detail, completed_at, registered_by, registered_at, updated_at)
-SELECT
-  airlines.id,
-  cs.id,
-  '편명 변경',
-  'KAL852 호출부호 변경을 위한 사전 협의 및 시스템 수정',
-  '김항공',
-  'kim@katc.com',
-  CURRENT_DATE + INTERVAL '7 days',
-  'in_progress',
-  NULL,
-  NULL,
-  users.id,
-  NOW(),
-  NOW()
-FROM airlines
-JOIN callsigns cs ON airlines.id = cs.airline_id AND cs.callsign_pair = 'KAL852 | KAL851'
-JOIN users ON users.email = 'admin@katc.com'
-WHERE airlines.code = 'KAL'
-ON CONFLICT DO NOTHING;
-
--- 조치 샘플 데이터 2 (완료된 조치)
-INSERT INTO actions
-  (airline_id, callsign_id, action_type, description, manager_name, manager_email,
-   planned_due_date, status, result_detail, completed_at, registered_by, registered_at, updated_at)
-SELECT
-  airlines.id,
-  cs.id,
-  '브리핑 시행',
-  'KAL789 호출부호 관련 안전 브리핑 실시 (조종사 및 관제사 대상)',
-  '이안전',
-  'lee@katc.com',
-  CURRENT_DATE - INTERVAL '3 days',
-  'completed',
-  '2월 20일 서울 항공 운항팀 브리핑 완료, 2월 21일 제주 운항팀 브리핑 완료',
-  NOW() - INTERVAL '1 days',
-  users.id,
-  NOW() - INTERVAL '5 days',
-  NOW() - INTERVAL '1 days'
-FROM airlines
-JOIN callsigns cs ON airlines.id = cs.airline_id AND cs.callsign_pair = 'KAL789 | AAR789'
-JOIN users ON users.email = 'admin@katc.com'
-WHERE airlines.code = 'KAL'
-ON CONFLICT DO NOTHING;
-
--- 조치 샘플 데이터 3 (진행중)
-INSERT INTO actions
-  (airline_id, callsign_id, action_type, description, manager_name, manager_email,
-   planned_due_date, status, result_detail, completed_at, registered_by, registered_at, updated_at)
-SELECT
-  airlines.id,
-  cs.id,
-  '모니터링 강화',
-  'KAL456 호출부호의 교신 빈도 증가에 따른 강화된 모니터링 체계 도입',
-  '박운항',
-  'park@katc.com',
-  CURRENT_DATE + INTERVAL '5 days',
-  'in_progress',
-  NULL,
-  NULL,
-  users.id,
-  NOW() - INTERVAL '2 days',
-  NOW()
-FROM airlines
-JOIN callsigns cs ON airlines.id = cs.airline_id AND cs.callsign_pair = 'KAL456 | AAR456'
-JOIN users ON users.email = 'admin@katc.com'
-WHERE airlines.code = 'KAL'
-ON CONFLICT DO NOTHING;
-
--- ================================================================
 -- Phase 5: 공지사항 관리 시스템
 -- ================================================================
 
@@ -432,48 +358,4 @@ CREATE INDEX IF NOT EXISTS idx_announcement_views_announcement_id ON announcemen
 CREATE INDEX IF NOT EXISTS idx_announcement_views_user_id ON announcement_views(user_id);
 CREATE INDEX IF NOT EXISTS idx_announcement_views_viewed_at ON announcement_views(viewed_at DESC);
 
--- ================================================================
--- Phase 5 샘플 데이터 (선택사항 - 개발 용도)
--- ================================================================
-
--- 샘플 공지사항 1: 긴급 경고 (Warning)
-INSERT INTO announcements (title, content, level, start_date, end_date, is_active, target_airlines, created_by)
-SELECT
-  '🚨 KAL-AAL 호출부호 유사 경고',
-  '대한항공(KAL852)과 아시아나항공(AAR789) 호출부호 유사도가 높습니다. 2026년 2월 21일부터 조치가 시작됩니다. 모든 조종사 및 관제사는 각별한 주의가 필요합니다.',
-  'warning',
-  NOW(),
-  NOW() + INTERVAL '7 days',
-  true,
-  NULL,  -- 전체 항공사
-  users.id
-FROM users WHERE users.email = 'admin@katc.com'
-ON CONFLICT DO NOTHING;
-
--- 샘플 공지사항 2: 일반 정보 (Info)
-INSERT INTO announcements (title, content, level, start_date, end_date, is_active, target_airlines, created_by)
-SELECT
-  '📢 조치 관리 시스템 사용 방법',
-  '새로운 조치 관리 시스템이 도입되었습니다. 조치 등록, 수정, 완료 기능을 사용하여 유사호출부호 문제를 신속하게 관리하세요.',
-  'info',
-  NOW(),
-  NOW() + INTERVAL '30 days',
-  true,
-  NULL,  -- 전체 항공사
-  users.id
-FROM users WHERE users.email = 'admin@katc.com'
-ON CONFLICT DO NOTHING;
-
--- 샘플 공지사항 3: 완료 정보 (Success)
-INSERT INTO announcements (title, content, level, start_date, end_date, is_active, target_airlines, created_by)
-SELECT
-  '✅ KAL 조치 완료 안내',
-  '대한항공의 KAL852 호출부호 조치가 완료되었습니다. 모든 조종사 대상 안전 브리핑이 실시되었습니다.',
-  'success',
-  NOW() - INTERVAL '1 days',
-  NOW() + INTERVAL '14 days',
-  true,
-  NULL,  -- 전체 항공사
-  users.id
-FROM users WHERE users.email = 'admin@katc.com'
-ON CONFLICT DO NOTHING;
+-- 샘플 데이터 제거됨 - 실제 데이터는 엑셀 업로드를 통해 등록

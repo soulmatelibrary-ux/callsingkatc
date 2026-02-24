@@ -11,6 +11,43 @@ import type { NextRequest } from 'next/server';
 const protectedRoutes = ['/airline', '/admin', '/announcements', '/callsign-management'];
 const authRoutes = ['/login', '/forgot-password', '/change-password'];
 
+interface RefreshTokenPayload {
+  userId: string;
+  exp?: number;
+}
+
+const decodeJwtPayload = (token: string): RefreshTokenPayload | null => {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    const base64Payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64Payload.padEnd(base64Payload.length + (4 - (base64Payload.length % 4)) % 4, '=');
+    const decoded = atob(padded);
+    const jsonPayload = decodeURIComponent(
+      decoded
+        .split('')
+        .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`)
+        .join('')
+    );
+
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.warn('[Middleware] refreshToken payload decode 실패:', error);
+    return null;
+  }
+};
+
+const isTokenExpired = (payload: RefreshTokenPayload | null): boolean => {
+  if (!payload?.exp) {
+    return true;
+  }
+
+  return payload.exp * 1000 <= Date.now();
+};
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -21,16 +58,29 @@ export function middleware(request: NextRequest) {
   const userCookie = request.cookies.get('user')?.value;
 
   console.log('[Middleware] refreshToken exists:', !!refreshToken);
-  
-  // 기본 토큰 형태 검증 (JWT 형태인지만 확인)
+
+  // 토큰 유효성/만료 여부 체크
+  let tokenPayload: RefreshTokenPayload | null = null;
+  let shouldDeleteRefreshToken = false;
   let isValidFormat = false;
+
   if (refreshToken) {
     const parts = refreshToken.split('.');
-    isValidFormat = parts.length === 3 && parts.every(part => part.length > 0);
-    console.log('[Middleware] token format valid:', isValidFormat);
+    isValidFormat = parts.length === 3 && parts.every((part) => part.length > 0);
+
+    if (!isValidFormat) {
+      shouldDeleteRefreshToken = true;
+    } else {
+      tokenPayload = decodeJwtPayload(refreshToken);
+      if (!tokenPayload || isTokenExpired(tokenPayload)) {
+        console.log('[Middleware] refreshToken 만료 또는 손상 → 삭제 예정');
+        shouldDeleteRefreshToken = true;
+        tokenPayload = null;
+      }
+    }
   }
 
-  const isLoggedIn = !!refreshToken && isValidFormat;
+  const isLoggedIn = !!refreshToken && isValidFormat && !!tokenPayload;
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
@@ -48,32 +98,32 @@ export function middleware(request: NextRequest) {
 
   console.log('[Middleware] isLoggedIn:', isLoggedIn, 'isProtectedRoute:', isProtectedRoute, 'isAuthRoute:', isAuthRoute);
 
+  const finalizeResponse = (response: NextResponse) => {
+    if (shouldDeleteRefreshToken) {
+      response.cookies.delete('refreshToken');
+    }
+    return response;
+  };
+
   // 1. 로그인 안 된 상태 + 보호 라우트 → /으로 리다이렉트
   if (!isLoggedIn && isProtectedRoute) {
     console.log('[Middleware] 리다이렉트: 보호 라우트 - 인증 실패 → 홈으로 이동');
-    const redirectResponse = NextResponse.redirect(new URL('/', request.url));
-
-    // 형식이 잘못된 쿠키 제거
-    if (refreshToken && !isValidFormat) {
-      redirectResponse.cookies.delete('refreshToken');
-    }
-
-    return redirectResponse;
+    return finalizeResponse(NextResponse.redirect(new URL('/', request.url)));
   }
 
   // 2. 로그인 상태 + 인증 라우트 → 역할별 기본 페이지로 리다이렉트
   if (isLoggedIn && isAuthRoute) {
     console.log('[Middleware] 리다이렉트: 인증 라우트 →', defaultRedirect);
-    return NextResponse.redirect(new URL(defaultRedirect, request.url));
+    return finalizeResponse(NextResponse.redirect(new URL(defaultRedirect, request.url)));
   }
 
   // 3. 로그인 상태 + 홈(/) 접속 → 역할별 기본 페이지로 리다이렉트
   if (isLoggedIn && pathname === '/') {
     console.log('[Middleware] 리다이렉트: 홈 →', defaultRedirect);
-    return NextResponse.redirect(new URL(defaultRedirect, request.url));
+    return finalizeResponse(NextResponse.redirect(new URL(defaultRedirect, request.url)));
   }
 
-  return NextResponse.next();
+  return finalizeResponse(NextResponse.next());
 }
 
 /**

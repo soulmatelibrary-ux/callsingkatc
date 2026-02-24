@@ -49,12 +49,22 @@ export async function GET(request: NextRequest) {
         c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
         c.occurrence_count, c.last_occurred_at, c.file_upload_id, c.uploaded_at,
         c.created_at, c.updated_at,
-        NULL::uuid as latest_action_id,
-        NULL::varchar as latest_action_status,
-        NULL::varchar as latest_action_responsible_staff,
-        NULL::varchar as latest_action_manager_name,
-        NULL::timestamp as latest_action_updated_at
+        latest_action.id AS latest_action_id,
+        latest_action.status AS latest_action_status,
+        latest_action.manager_name AS latest_action_manager_name,
+        latest_action.updated_at AS latest_action_updated_at
       FROM callsigns c
+      LEFT JOIN LATERAL (
+        SELECT
+          a.id,
+          a.status,
+          a.manager_name,
+          a.updated_at
+        FROM actions a
+        WHERE a.callsign_id = c.id
+        ORDER BY a.updated_at DESC NULLS LAST, a.registered_at DESC
+        LIMIT 1
+      ) latest_action ON true
       WHERE 1=1
     `;
     const params: any[] = [];
@@ -122,7 +132,6 @@ export async function GET(request: NextRequest) {
         updated_at: callsign.updated_at,
         latest_action_id: callsign.latest_action_id,
         latest_action_status: callsign.latest_action_status,
-        latest_action_responsible_staff: callsign.latest_action_responsible_staff,
         latest_action_manager_name: callsign.latest_action_manager_name,
         latest_action_updated_at: callsign.latest_action_updated_at,
         // camelCase 별칭
@@ -143,7 +152,6 @@ export async function GET(request: NextRequest) {
         updatedAt: callsign.updated_at,
         latestActionId: callsign.latest_action_id,
         latestActionStatus: callsign.latest_action_status,
-        latestActionResponsibleStaff: callsign.latest_action_responsible_staff,
         latestActionManager: callsign.latest_action_manager_name,
         latestActionUpdatedAt: callsign.latest_action_updated_at,
       })),

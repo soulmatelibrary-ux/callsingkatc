@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { useAuthStore } from '@/store/authStore';
 import { OverviewTab } from '@/components/callsign-management/OverviewTab';
 import { ActionsTab } from '@/components/callsign-management/ActionsTab';
 import { StatisticsTab } from '@/components/callsign-management/StatisticsTab';
@@ -19,7 +21,27 @@ export const dynamic = 'force-dynamic';
 export default function CallsignManagementPublicPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, accessToken } = useAuthStore((state) => ({
+    user: state.user,
+    accessToken: state.accessToken,
+  }));
+  const isInitialized = useAuthStore((s) => s.isInitialized);
   const activeTab = searchParams.get('tab') || 'overview';
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    if (!accessToken || !user) {
+      // httpOnly refreshToken 쿠키 서버에서 삭제 후 로그인 페이지로 이동
+      // 미들웨어가 stale 쿠키를 보고 다시 이 페이지로 리다이렉트하는 무한루프 방지
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+        .finally(() => { window.location.href = '/'; });
+    }
+  }, [isInitialized, accessToken, user]);
+
+  if (!isInitialized || !accessToken || !user) {
+    return null;
+  }
 
   const menuItems = [
     { id: 'overview', label: '전체현황', icon: BarChart3, color: 'primary' },

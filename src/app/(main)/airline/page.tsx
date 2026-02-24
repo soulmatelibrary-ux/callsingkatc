@@ -3,9 +3,11 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import * as XLSX from 'xlsx';
 import { parseJsonCookie } from '@/lib/cookies';
 import { ROUTES } from '@/lib/constants';
 import { useAirlineActions, useAirlineActionStats, useAirlineCallsigns } from '@/hooks/useActions';
+import { useActiveAnnouncements, useAnnouncementHistory } from '@/hooks/useAnnouncements';
 import { useAuthStore } from '@/store/authStore';
 import { ActionModal } from '@/components/actions/ActionModal';
 import { AirlineStatisticsTab } from '@/components/airline/AirlineStatisticsTab';
@@ -37,6 +39,39 @@ interface CookieUser {
     name_ko?: string;
   };
 }
+
+const ANNOUNCEMENT_LEVEL_META: Record<'warning' | 'info' | 'success', { label: string; badge: string }> = {
+  warning: { label: '긴급', badge: 'bg-red-100 text-red-700' },
+  info: { label: '일반', badge: 'bg-blue-100 text-blue-600' },
+  success: { label: '완료', badge: 'bg-emerald-100 text-emerald-700' },
+};
+
+const ANNOUNCEMENT_STATUS_META: Record<'active' | 'expired', { label: string; badge: string }> = {
+  active: { label: '진행중', badge: 'bg-emerald-50 text-emerald-600' },
+  expired: { label: '종료', badge: 'bg-gray-100 text-gray-500' },
+};
+
+const formatAnnouncementPeriod = (start?: string | null, end?: string | null) => {
+  const format = (value?: string | null) =>
+    value
+      ? new Date(value).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+      : '-';
+
+  if (!start && !end) {
+    return '-';
+  }
+
+  if (!start || !end) {
+    return format(start || end);
+  }
+
+  return `${format(start)} ~ ${format(end)}`;
+};
+
+const truncateText = (value?: string | null, limit = 120) => {
+  if (!value) return '';
+  return value.length > limit ? `${value.slice(0, limit)}…` : value;
+};
 
 // 목업 데이터 제거 - 실제 DB 데이터 사용
 
@@ -94,6 +129,7 @@ export default function AirlinePage() {
 
   const [selectedCallsignForDetail, setSelectedCallsignForDetail] = useState<any | null>(null);
   const [isCallsignDetailModalOpen, setIsCallsignDetailModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const accessToken = useAuthStore((s) => s.accessToken);
 
   // 상태 필터 변경 시 캐시 완전 초기화 및 리페치
@@ -139,6 +175,46 @@ export default function AirlinePage() {
     dateFrom: statsStartDate,
     dateTo: statsEndDate,
   });
+
+  const { data: activeAnnouncementsData, isLoading: activeAnnouncementsLoading } = useActiveAnnouncements();
+  const { data: announcementHistoryData, isLoading: announcementHistoryLoading } = useAnnouncementHistory({
+    status: 'all',
+    limit: 5,
+    page: 1,
+  });
+
+  const activeAnnouncements = activeAnnouncementsData?.announcements ?? [];
+  const latestAnnouncements = announcementHistoryData?.announcements ?? [];
+  const totalActiveAnnouncements = activeAnnouncementsData?.total ?? activeAnnouncements.length;
+  const warningActiveCount = activeAnnouncements.filter((item) => item.level === 'warning').length;
+  const completedAnnouncementsCount = latestAnnouncements.filter((item) => item.status === 'expired').length;
+
+  const announcementSummaryCards = [
+    {
+      id: 'active-total',
+      icon: '📢',
+      title: '공지사항',
+      value: totalActiveAnnouncements,
+      description: '활성 공지사항',
+      loading: activeAnnouncementsLoading,
+    },
+    {
+      id: 'active-warning',
+      icon: '🚨',
+      title: '긴급공지',
+      value: warningActiveCount,
+      description: '경고 레벨',
+      loading: activeAnnouncementsLoading,
+    },
+    {
+      id: 'completed',
+      icon: '✅',
+      title: '완료',
+      value: completedAnnouncementsCount,
+      description: '최근 종료된 공지',
+      loading: announcementHistoryLoading,
+    },
+  ];
 
   useEffect(() => {
     console.log('🔄 airline/page useEffect 실행됨');
@@ -306,6 +382,43 @@ export default function AirlinePage() {
     setStatsStartDate(formatDateInput(start));
     setStatsEndDate(formatDateInput(end));
     setStatsActiveRange(type);
+  }
+
+  function handleExportIncidents() {
+    if (isExporting) return;
+    if (!allFilteredIncidents.length) {
+      window.alert('내보낼 수 있는 발생 현황 데이터가 없습니다.');
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+
+      const rows = allFilteredIncidents.map((incident) => ({
+        '호출부호 쌍': incident.pair,
+        '자사 호출부호': incident.mine,
+        '타사 호출부호': incident.other,
+        '관할 항공사': incident.airline,
+        '오류 유형': incident.errorType,
+        '세부 오류': incident.subError || '-',
+        '위험도': incident.risk,
+        '유사성': incident.similarity,
+        '발생횟수': incident.count,
+        '최초 발생일': incident.firstDate || '',
+        '최근 발생일': incident.lastDate || '',
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Incidents');
+      const fileName = `callsign_incidents_${airlineCode || 'airline'}_${formatDateInput(new Date())}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+    } catch (error) {
+      console.error('Excel 내보내기 실패:', error);
+      window.alert('엑셀 파일 생성 중 문제가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   function handleOpenActionModal(incident: any) {
@@ -575,9 +688,9 @@ export default function AirlinePage() {
 
   return (
     <>
-      <main className="flex min-h-screen bg-gray-50">
+      <main className="flex flex-1 h-full bg-gray-50 overflow-hidden">
         {/* 왼쪽 사이드바 */}
-        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-0 shrink-0 h-[calc(100vh-64px)] overflow-y-auto">
+        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-0 shrink-0 h-full overflow-y-auto">
           <div className="px-6 py-8 mb-2">
             <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
               Airline Service
@@ -617,8 +730,8 @@ export default function AirlinePage() {
         </aside>
 
         {/* 오른쪽 콘텐츠 영역 */}
-        <div className="flex-1 overflow-auto">
-          <div className="w-full px-8 py-10 space-y-8 animate-fade-in flex flex-col">
+        <div className="flex-1 overflow-y-auto h-full bg-gray-50">
+          <div className="w-full max-w-6xl mx-auto px-8 py-10 space-y-8 animate-fade-in flex flex-col">
             {activeTab === 'incidents' && (
               <>
                 {/* 요약 통계 - 상단 카드 */}
@@ -754,11 +867,19 @@ export default function AirlinePage() {
                   </div>
 
                   <div className="flex gap-3 w-full md:w-auto">
-                    <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-none font-bold shadow-sm hover:bg-gray-50 transition-all text-sm">
+                    <button
+                      type="button"
+                      onClick={handleExportIncidents}
+                      disabled={isExporting || allFilteredIncidents.length === 0}
+                      className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-none font-bold shadow-sm transition-all text-sm border ${isExporting || allFilteredIncidents.length === 0
+                          ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                          : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                        }`}
+                    >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
-                      <span>Excel 내보내기</span>
+                      <span>{isExporting ? '내보내는 중...' : 'Excel 내보내기'}</span>
                     </button>
                   </div>
                 </div>
@@ -1192,34 +1313,89 @@ export default function AirlinePage() {
               <div className="space-y-6">
                 {/* 공지사항 요약 카드 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-none p-6 border border-blue-200 shadow-sm">
-                    <div className="text-3xl mb-2">📢</div>
-                    <p className="text-xs font-black text-blue-600 uppercase tracking-widest mb-1">공지사항</p>
-                    <p className="text-2xl font-black text-gray-900">-</p>
-                    <p className="text-xs text-gray-600 mt-2">활성 공지사항</p>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-none p-6 border border-amber-200 shadow-sm">
-                    <div className="text-3xl mb-2">🚨</div>
-                    <p className="text-xs font-black text-amber-600 uppercase tracking-widest mb-1">긴급공지</p>
-                    <p className="text-2xl font-black text-gray-900">-</p>
-                    <p className="text-xs text-gray-600 mt-2">경고 레벨</p>
-                  </div>
-
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-none p-6 border border-green-200 shadow-sm">
-                    <div className="text-3xl mb-2">✅</div>
-                    <p className="text-xs font-black text-green-600 uppercase tracking-widest mb-1">완료</p>
-                    <p className="text-2xl font-black text-gray-900">-</p>
-                    <p className="text-xs text-gray-600 mt-2">완료 공지사항</p>
-                  </div>
+                  {announcementSummaryCards.map((card) => {
+                    const gradientClass = card.id === 'active-total'
+                      ? 'from-blue-50 to-blue-100 border-blue-200'
+                      : card.id === 'active-warning'
+                        ? 'from-amber-50 to-amber-100 border-amber-200'
+                        : 'from-green-50 to-green-100 border-green-200';
+                    return (
+                      <div
+                        key={card.id}
+                        className={`bg-gradient-to-br rounded-none p-6 border shadow-sm ${gradientClass}`}
+                      >
+                        <div className="text-3xl mb-2">{card.icon}</div>
+                        <p className="text-xs font-black uppercase tracking-widest mb-1 text-gray-600">
+                          {card.title}
+                        </p>
+                        <p className="text-2xl font-black text-gray-900">
+                          {card.loading ? '-' : `${card.value}건`}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-2">{card.description}</p>
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {/* 공지사항 이력 */}
-                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-12 text-center">
-                  <div className="text-5xl mb-4">📭</div>
-                  <h3 className="text-lg font-black text-gray-900 mb-2 tracking-tight">공지사항 이력</h3>
-                  <p className="text-gray-500 font-bold">표시할 공지사항이 없습니다</p>
-                  <p className="text-gray-400 text-sm mt-2">관리자가 새로운 공지사항을 등록하면 여기에 표시됩니다</p>
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                    <div>
+                      <h3 className="text-lg font-black text-gray-900 mb-1 tracking-tight">공지사항 이력</h3>
+                      <p className="text-sm text-gray-500">최근 등록된 공지 {latestAnnouncements.length}건</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push('/announcements')}
+                      className="px-4 py-2 border border-gray-200 rounded-none text-sm font-bold text-gray-600 hover:bg-gray-50 transition"
+                    >
+                      전체 보기
+                    </button>
+                  </div>
+
+                  {announcementHistoryLoading ? (
+                    <div className="py-12 text-center text-gray-400 font-semibold">공지사항을 불러오는 중입니다...</div>
+                  ) : latestAnnouncements.length === 0 ? (
+                    <div className="py-12 text-center text-gray-400 font-semibold">
+                      표시할 공지사항이 없습니다.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {latestAnnouncements.map((item) => {
+                        const levelMeta = ANNOUNCEMENT_LEVEL_META[item.level as 'warning' | 'info' | 'success'] || ANNOUNCEMENT_LEVEL_META.info;
+                        const statusKey = (item.status as 'active' | 'expired') || 'active';
+                        const statusMeta = ANNOUNCEMENT_STATUS_META[statusKey];
+                        return (
+                          <div
+                            key={item.id}
+                            className="border border-gray-100 rounded-lg p-5 hover:border-primary/30 transition"
+                          >
+                            <div className="flex flex-wrap items-center gap-2 text-[11px] font-black text-gray-500 uppercase tracking-widest">
+                              <span className={`px-2 py-1 rounded-full ${levelMeta.badge}`}>{levelMeta.label}</span>
+                              <span className={`px-2 py-1 rounded-full ${statusMeta.badge}`}>{statusMeta.label}</span>
+                              <span className="text-gray-400 ml-auto">
+                                {formatAnnouncementPeriod(item.startDate, item.endDate)}
+                              </span>
+                            </div>
+                            <h4 className="text-lg font-black text-gray-900 mt-3">{item.title}</h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {truncateText(item.content, 140)}
+                            </p>
+                            <div className="flex justify-between items-center text-xs text-gray-400 mt-4">
+                              <span>작성 {new Date(item.createdAt).toLocaleDateString('ko-KR')}</span>
+                              <button
+                                type="button"
+                                onClick={() => router.push('/announcements')}
+                                className="text-rose-600 font-semibold hover:underline"
+                              >
+                                상세보기
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

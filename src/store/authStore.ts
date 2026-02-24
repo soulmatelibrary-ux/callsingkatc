@@ -12,12 +12,14 @@ interface AuthStore {
   user: User | null;
   accessToken: string | null;
   isLoading: boolean;
+  isInitialized: boolean;
 
   // 액션
   setAuth: (user: User, accessToken: string) => void;
   setAccessToken: (token: string) => void;
   setUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
+  setInitialized: (value: boolean) => void;
   logout: () => void;
   fetchUserInfo: () => Promise<User | null>;
 
@@ -32,6 +34,7 @@ export const authStore = create<AuthStore>((set, get) => ({
   user: null,
   accessToken: null,
   isLoading: false,
+  isInitialized: false,
 
   setAuth: (user, accessToken) => {
     // 메모리에만 저장, 쿠키 저장 제거
@@ -48,6 +51,9 @@ export const authStore = create<AuthStore>((set, get) => ({
 
   setLoading: (loading) =>
     set({ isLoading: loading }),
+
+  setInitialized: (value) =>
+    set({ isInitialized: value }),
 
   // 서버에서 현재 사용자 정보 가져오기
   fetchUserInfo: async () => {

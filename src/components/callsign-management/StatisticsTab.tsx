@@ -1,37 +1,65 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useCallsigns, useAllActions } from '@/hooks/useActions';
 import { useAirlines } from '@/hooks/useAirlines';
+import { useAuthStore } from '@/store/authStore';
 import { StatCard } from './StatCard';
 
+interface CallsignStatsResponse {
+  total: number;
+  veryHigh: number;
+  high: number;
+  low: number;
+}
+
 export function StatisticsTab() {
-  const callsignsQuery = useCallsigns({ limit: 1000 });
-  const actionsQuery = useAllActions({ limit: 1000 });
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const callsignsQuery = useCallsigns({ limit: 50 });
+  const actionsQuery = useAllActions({ limit: 50 });
   const airlinesQuery = useAirlines();
 
+  // 전체 호출부호 통계 (위험도별)
+  const callsignStatsQuery = useQuery<CallsignStatsResponse>({
+    queryKey: ['callsigns-stats', 'all'],
+    queryFn: async () => {
+      if (!accessToken) {
+        throw new Error('인증 토큰이 없습니다.');
+      }
+
+      const response = await fetch('/api/callsigns/stats', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('통계 조회 실패');
+      }
+
+      return (await response.json()) as CallsignStatsResponse;
+    },
+    enabled: !!accessToken,
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+
+  // 전체 조치 건수 및 상태별 집계 (pagination.total 활용)
+  const totalActionsQuery = useAllActions({ page: 1, limit: 1 });
+  const pendingActionsQuery = useAllActions({ page: 1, limit: 1, status: 'pending' });
+  const inProgressActionsQuery = useAllActions({ page: 1, limit: 1, status: 'in_progress' });
+  const completedActionsQuery = useAllActions({ page: 1, limit: 1, status: 'completed' });
+
   // KPI 데이터 계산
-  const stats = useMemo(() => {
-    const callsigns = callsignsQuery.data?.data || [];
-    const actions = actionsQuery.data?.data || [];
-
-    return {
-      totalCallsigns: callsigns.length,
-      pending: actions.filter((a) => a.status === 'pending').length,
-      inProgress: actions.filter((a) => a.status === 'in_progress').length,
-      completed: actions.filter((a) => a.status === 'completed').length,
-    };
-  }, [callsignsQuery.data, actionsQuery.data]);
-
-  // 위험도별 현황
-  const riskStats = useMemo(() => {
-    const callsigns = callsignsQuery.data?.data || [];
-    return {
-      veryHigh: callsigns.filter((c) => c.risk_level === '매우높음').length,
-      high: callsigns.filter((c) => c.risk_level === '높음').length,
-      low: callsigns.filter((c) => c.risk_level === '낮음').length,
-    };
-  }, [callsignsQuery.data]);
+  const totalCallsigns = callsignsQuery.data?.pagination.total ?? 0;
+  const riskStats = callsignStatsQuery.data || { total: 0, veryHigh: 0, high: 0, low: 0 };
+  const actionCounts = {
+    total: totalActionsQuery.data?.pagination.total ?? 0,
+    pending: pendingActionsQuery.data?.pagination.total ?? 0,
+    inProgress: inProgressActionsQuery.data?.pagination.total ?? 0,
+    completed: completedActionsQuery.data?.pagination.total ?? 0,
+  };
 
   // 항공사별 상세 통계
   const airlineDetailStats = useMemo(() => {
@@ -39,7 +67,7 @@ export function StatisticsTab() {
     return airlinesQuery.data?.map((airline) => {
       const actions = actionsList.filter((a) => a.airline_id === airline.id) || [];
       const completed = actions.filter((a) => a.status === 'completed').length;
-      const total = actions.length || 1;
+      const total = actions.length;
       const completionRate = total > 0 ? (completed / total) * 100 : 0;
 
       // 평균 대응시간 계산 (간단한 예시)
@@ -63,7 +91,16 @@ export function StatisticsTab() {
     }) || [];
   }, [airlinesQuery.data, actionsQuery.data]);
 
-  if (callsignsQuery.isLoading || actionsQuery.isLoading) {
+  const isLoading =
+    callsignsQuery.isLoading ||
+    actionsQuery.isLoading ||
+    callsignStatsQuery.isLoading ||
+    totalActionsQuery.isLoading ||
+    pendingActionsQuery.isLoading ||
+    inProgressActionsQuery.isLoading ||
+    completedActionsQuery.isLoading;
+
+  if (isLoading) {
     return (
       <div className="py-20 text-center">
         <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -78,10 +115,10 @@ export function StatisticsTab() {
     <div className="space-y-8">
       {/* KPI 카드 */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-        <StatCard label="총 호출부호" value={stats.totalCallsigns} color="text-gray-900" />
-        <StatCard label="미조치" value={stats.pending} color="text-amber-600" />
-        <StatCard label="진행중" value={stats.inProgress} color="text-blue-600" />
-        <StatCard label="완료" value={stats.completed} color="text-emerald-600" />
+        <StatCard label="총 호출부호" value={totalCallsigns} color="text-gray-900" />
+        <StatCard label="미조치" value={actionCounts.pending} color="text-amber-600" />
+        <StatCard label="진행중" value={actionCounts.inProgress} color="text-blue-600" />
+        <StatCard label="완료" value={actionCounts.completed} color="text-emerald-600" />
       </div>
 
       {/* 차트 영역 */}
@@ -99,7 +136,7 @@ export function StatisticsTab() {
                 <div
                   className="h-full bg-red-600 transition-all duration-1000"
                   style={{
-                    width: `${stats.totalCallsigns > 0 ? (riskStats.veryHigh / stats.totalCallsigns) * 100 : 0}%`,
+                    width: `${totalCallsigns > 0 ? (riskStats.veryHigh / totalCallsigns) * 100 : 0}%`,
                   }}
                 />
               </div>
@@ -113,7 +150,7 @@ export function StatisticsTab() {
                 <div
                   className="h-full bg-amber-600 transition-all duration-1000"
                   style={{
-                    width: `${stats.totalCallsigns > 0 ? (riskStats.high / stats.totalCallsigns) * 100 : 0}%`,
+                    width: `${totalCallsigns > 0 ? (riskStats.high / totalCallsigns) * 100 : 0}%`,
                   }}
                 />
               </div>
@@ -127,7 +164,7 @@ export function StatisticsTab() {
                 <div
                   className="h-full bg-emerald-600 transition-all duration-1000"
                   style={{
-                    width: `${stats.totalCallsigns > 0 ? (riskStats.low / stats.totalCallsigns) * 100 : 0}%`,
+                    width: `${totalCallsigns > 0 ? (riskStats.low / totalCallsigns) * 100 : 0}%`,
                   }}
                 />
               </div>
@@ -142,14 +179,14 @@ export function StatisticsTab() {
             <div>
               <div className="flex justify-between mb-2">
                 <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">미조치 (Pending)</span>
-                <span className="text-sm font-black text-amber-600">{stats.pending}건</span>
+                <span className="text-sm font-black text-amber-600">{actionCounts.pending}건</span>
               </div>
               <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
                 <div
                   className="h-full bg-amber-600 transition-all duration-1000"
                   style={{
-                    width: `${stats.pending + stats.inProgress + stats.completed > 0
-                      ? (stats.pending / (stats.pending + stats.inProgress + stats.completed)) * 100
+                    width: `${actionCounts.total > 0
+                      ? (actionCounts.pending / actionCounts.total) * 100
                       : 0
                       }%`,
                   }}
@@ -159,14 +196,14 @@ export function StatisticsTab() {
             <div>
               <div className="flex justify-between mb-2">
                 <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">진행중 (In Progress)</span>
-                <span className="text-sm font-black text-blue-600">{stats.inProgress}건</span>
+                <span className="text-sm font-black text-blue-600">{actionCounts.inProgress}건</span>
               </div>
               <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
                 <div
                   className="h-full bg-blue-600 transition-all duration-1000"
                   style={{
-                    width: `${stats.pending + stats.inProgress + stats.completed > 0
-                      ? (stats.inProgress / (stats.pending + stats.inProgress + stats.completed)) * 100
+                    width: `${actionCounts.total > 0
+                      ? (actionCounts.inProgress / actionCounts.total) * 100
                       : 0
                       }%`,
                   }}
@@ -176,14 +213,14 @@ export function StatisticsTab() {
             <div>
               <div className="flex justify-between mb-2">
                 <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">완료 (Completed)</span>
-                <span className="text-sm font-black text-emerald-600">{stats.completed}건</span>
+                <span className="text-sm font-black text-emerald-600">{actionCounts.completed}건</span>
               </div>
               <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
                 <div
                   className="h-full bg-emerald-600 transition-all duration-1000"
                   style={{
-                    width: `${stats.pending + stats.inProgress + stats.completed > 0
-                      ? (stats.completed / (stats.pending + stats.inProgress + stats.completed)) * 100
+                    width: `${actionCounts.total > 0
+                      ? (actionCounts.completed / actionCounts.total) * 100
                       : 0
                       }%`,
                   }}

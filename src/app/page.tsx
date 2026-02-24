@@ -148,10 +148,10 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="relative z-30 w-full w-full flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-32 px-10">
+      <main className="relative z-30 w-full flex-1 flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-32 px-10 pb-20 lg:pb-32">
 
         {/* 왼쪽 메인 슬로건 영역 */}
-        <div className="flex-1 text-left animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200 fill-mode-both">
+        <div className="flex-1 text-left animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200 fill-mode-both lg:self-end">
           <div className="inline-flex items-center gap-3 px-4 py-2 rounded-none bg-blue-500/10 border border-blue-400/20 mb-10">
             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
             <span className="text-[11px] font-black text-blue-400 uppercase tracking-widest leading-none">실시간 영공 감시 중</span>

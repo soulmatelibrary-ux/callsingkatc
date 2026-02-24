@@ -23,10 +23,28 @@ interface ExcelRow {
   my_callsign: string;
   other_callsign: string;
   other_airline_code?: string;
+  // 관할 섹터 및 공항 정보
+  sector?: string;
+  departure_airport1?: string;
+  arrival_airport1?: string;
+  departure_airport2?: string;
+  arrival_airport2?: string;
+  // 유사도 분석 정보
+  same_airline_code?: string;
+  same_callsign_length?: string;
+  same_number_position?: string;
+  same_number_count?: number;
+  same_number_ratio?: number;
+  similarity?: string;
+  // 관제 정보
+  max_concurrent_traffic?: number;
+  coexistence_minutes?: number;
+  error_probability?: number;
+  atc_recommendation?: string;
+  // 오류 정보
   error_type?: string;
   sub_error?: string;
   risk_level?: string;
-  similarity?: string;
   occurrence_count?: number;
 }
 
@@ -110,22 +128,44 @@ export async function POST(request: NextRequest) {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         
-        // 빈 행 스킵
-        if (!row || row.length === 0 || !row[2]) continue;
+        // 빈 행 스킵 (편명1이 있어야 유효한 행)
+        if (!row || row.length === 0 || !row[4]) continue;
 
         try {
-          // 실제 Excel 구조에 맞게 열 매핑
-          // 컬럼: 시작일시(0), 종료일시(1), 편명1(2), 편명2(3), 편명1|편명2(4), 
-          //       항공사구분(5), 항공사한글명(6), 섹터(7), 항공사코드(8),
-          //       ...유사도(13), ...오류발생가능성(19), 권고사항(21)
-          
-          const callsign1 = String(row[2] || '').trim();
-          const callsign2 = String(row[3] || '').trim();
-          const airlineCode = String(row[5] || '').trim();
-          
+          // 엑셀 컬럼 매핑 (callsign.xlsx 기준)
+          // 0: 순서, 1: 시작일시, 2: 종료일시, 3: 관할섹터명, 4: 편명1
+          // 5: 출발공항1, 6: 목적공항1, 7: 편명2, 8: 출발공항2, 9: 목적공항2
+          // 10: CALLSIGNPAIR, 11: 항공사구분, 12: 항공사국문
+          // 13: 항공사코드동일여부, 14: 편명번호길이동일여부, 15: 편명번호동일숫자위치
+          // 16: 편명번호동일숫자갯수, 17: 편명번호동일숫자구성비율(%)
+          // 18: 편명유사도, 19: 최대동시관제량, 20: 공존시간(분)
+          // 21: 오류발생가능성, 22: 관제사권고사항, 23: 오류유형, 24: 세부오류유형
+
+          const callsign1 = String(row[4] || '').trim();
+          const callsign2 = String(row[7] || '').trim();
+          const airlineCodeRaw = String(row[11] || '').trim(); // "KAL | TWB" 또는 "KAL"
+
+          // 추가 필드 추출
+          const sector = row[3] ? String(row[3]).trim() : undefined;
+          const departureAirport1 = row[5] ? String(row[5]).trim() : undefined;
+          const arrivalAirport1 = row[6] ? String(row[6]).trim() : undefined;
+          const departureAirport2 = row[8] ? String(row[8]).trim() : undefined;
+          const arrivalAirport2 = row[9] ? String(row[9]).trim() : undefined;
+          const sameAirlineCode = row[13] ? String(row[13]).trim() : undefined;
+          const sameCallsignLength = row[14] ? String(row[14]).trim() : undefined;
+          const sameNumberPosition = row[15] ? String(row[15]).trim() : undefined;
+          const sameNumberCount = row[16] !== undefined ? Number(row[16]) : undefined;
+          const sameNumberRatio = row[17] !== undefined ? Number(row[17]) : undefined;
+          const similarity = row[18] ? String(row[18]).trim() : undefined;
+          const maxConcurrentTraffic = row[19] !== undefined ? Number(row[19]) : undefined;
+          const coexistenceMinutes = row[20] !== undefined ? Number(row[20]) : undefined;
+          const errorProbability = row[21] !== undefined ? Number(row[21]) : undefined;
+          const atcRecommendation = row[22] ? String(row[22]).trim() : undefined;
+          const errorType = row[23] ? String(row[23]).trim() : undefined;
+          const subError = row[24] ? String(row[24]).trim() : undefined;
+
           // 항공사 코드가 우리 시스템의 항공사 코드에 매핑되는지 확인
           // 우리 시스템에서 관리하는 국내 항공사만 필터링
-          // 참고: docs/02-design/AIRLINES_DATA.md
           const domesticAirlines = [
             'KAL', // 대한항공
             'AAR', // 아시아나항공
@@ -135,49 +175,79 @@ export async function POST(request: NextRequest) {
             'ABL', // 에어부산
             'ASV', // 에어서울
             'ESR', // 이스타항공
+            'EOK', // 이스타항공 (구코드)
             'FGW', // 플라이강원
             'ARK', // 에어로케이항공
             'APZ', // 에어프레미아
           ];
-          
+
           // 편명1과 편명2에서 항공사 코드 추출 (예: KAL852 -> KAL)
           const airlineCode1 = callsign1.replace(/[0-9]/g, '').trim();
           const airlineCode2 = callsign2.replace(/[0-9]/g, '').trim();
-          
+
           // 편명1 또는 편명2 중 하나라도 국내 항공사인지 확인
           const isCallsign1Domestic = domesticAirlines.includes(airlineCode1);
           const isCallsign2Domestic = domesticAirlines.includes(airlineCode2);
-          
+
           // 둘 다 국내 항공사가 아니면 스킵
           if (!isCallsign1Domestic && !isCallsign2Domestic) {
             continue;
           }
-          
+
           // 국내 항공사를 my_callsign으로, 나머지를 other_callsign으로 설정
-          let myAirlineCode, myCallsign, otherCallsign, otherAirlineCode;
+          let myAirlineCode: string, myCallsign: string, otherCallsign: string, otherAirlineCode: string;
+          let myDepartureAirport: string | undefined, myArrivalAirport: string | undefined;
+          let otherDepartureAirport: string | undefined, otherArrivalAirport: string | undefined;
+
           if (isCallsign1Domestic) {
             myAirlineCode = airlineCode1;
             myCallsign = callsign1;
             otherCallsign = callsign2;
             otherAirlineCode = airlineCode2;
+            myDepartureAirport = departureAirport1;
+            myArrivalAirport = arrivalAirport1;
+            otherDepartureAirport = departureAirport2;
+            otherArrivalAirport = arrivalAirport2;
           } else {
             myAirlineCode = airlineCode2;
             myCallsign = callsign2;
             otherCallsign = callsign1;
             otherAirlineCode = airlineCode1;
+            myDepartureAirport = departureAirport2;
+            myArrivalAirport = arrivalAirport2;
+            otherDepartureAirport = departureAirport1;
+            otherArrivalAirport = arrivalAirport1;
           }
-          
+
           const rowData: ExcelRow = {
             airline_code: myAirlineCode,
             callsign_pair: `${myCallsign} | ${otherCallsign}`,
             my_callsign: myCallsign,
             other_callsign: otherCallsign,
             other_airline_code: otherAirlineCode || undefined,
-            error_type: undefined, // Excel에 없음
-            sub_error: undefined,  // Excel에 없음
-            risk_level: row[19] ? String(row[19]).trim() : '낮음', // 오류발생가능성
-            similarity: row[13] ? String(row[13]).trim() : '낮음', // 유사도
-            occurrence_count: 0, // 초기값
+            // 관할 섹터 및 공항 정보
+            sector,
+            departure_airport1: myDepartureAirport,
+            arrival_airport1: myArrivalAirport,
+            departure_airport2: otherDepartureAirport,
+            arrival_airport2: otherArrivalAirport,
+            // 유사도 분석 정보
+            same_airline_code: sameAirlineCode,
+            same_callsign_length: sameCallsignLength,
+            same_number_position: sameNumberPosition,
+            same_number_count: sameNumberCount,
+            same_number_ratio: sameNumberRatio,
+            similarity,
+            // 관제 정보
+            max_concurrent_traffic: maxConcurrentTraffic,
+            coexistence_minutes: coexistenceMinutes,
+            error_probability: errorProbability,
+            atc_recommendation: atcRecommendation,
+            // 오류 정보
+            error_type: errorType,
+            sub_error: subError,
+            risk_level: similarity, // 유사도를 risk_level로도 사용
+            occurrence_count: 0,
           };
 
           // 필수 필드 검증
@@ -199,15 +269,38 @@ export async function POST(request: NextRequest) {
 
           const airlineId = airlineResult.rows[0].id;
 
-          // Step 1: callsigns 테이블에 호출부호 쌍 저장 (없으면 생성, 있으면 유지)
+          // Step 1: callsigns 테이블에 호출부호 쌍 저장 (없으면 생성, 있으면 업데이트)
           const callsignResult = await query(
             `INSERT INTO callsigns
               (airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
-               other_airline_code, error_type, sub_error, risk_level, similarity,
-               file_upload_id, uploaded_at, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), 'in_progress')
+               other_airline_code, sector, departure_airport1, arrival_airport1,
+               departure_airport2, arrival_airport2, same_airline_code, same_callsign_length,
+               same_number_position, same_number_count, same_number_ratio, similarity,
+               max_concurrent_traffic, coexistence_minutes, error_probability, atc_recommendation,
+               error_type, sub_error, risk_level, file_upload_id, uploaded_at, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), 'in_progress')
              ON CONFLICT (airline_code, callsign_pair)
-             DO UPDATE SET updated_at = NOW(), status = 'in_progress'
+             DO UPDATE SET
+               sector = EXCLUDED.sector,
+               departure_airport1 = EXCLUDED.departure_airport1,
+               arrival_airport1 = EXCLUDED.arrival_airport1,
+               departure_airport2 = EXCLUDED.departure_airport2,
+               arrival_airport2 = EXCLUDED.arrival_airport2,
+               same_airline_code = EXCLUDED.same_airline_code,
+               same_callsign_length = EXCLUDED.same_callsign_length,
+               same_number_position = EXCLUDED.same_number_position,
+               same_number_count = EXCLUDED.same_number_count,
+               same_number_ratio = EXCLUDED.same_number_ratio,
+               similarity = EXCLUDED.similarity,
+               max_concurrent_traffic = EXCLUDED.max_concurrent_traffic,
+               coexistence_minutes = EXCLUDED.coexistence_minutes,
+               error_probability = EXCLUDED.error_probability,
+               atc_recommendation = EXCLUDED.atc_recommendation,
+               error_type = EXCLUDED.error_type,
+               sub_error = EXCLUDED.sub_error,
+               risk_level = EXCLUDED.risk_level,
+               updated_at = NOW(),
+               status = 'in_progress'
              RETURNING id, (xmax = 0) AS inserted`,
             [
               airlineId,
@@ -216,10 +309,24 @@ export async function POST(request: NextRequest) {
               rowData.my_callsign,
               rowData.other_callsign,
               rowData.other_airline_code,
+              rowData.sector,
+              rowData.departure_airport1,
+              rowData.arrival_airport1,
+              rowData.departure_airport2,
+              rowData.arrival_airport2,
+              rowData.same_airline_code,
+              rowData.same_callsign_length,
+              rowData.same_number_position,
+              rowData.same_number_count,
+              rowData.same_number_ratio,
+              rowData.similarity,
+              rowData.max_concurrent_traffic,
+              rowData.coexistence_minutes,
+              rowData.error_probability,
+              rowData.atc_recommendation,
               rowData.error_type,
               rowData.sub_error,
               rowData.risk_level,
-              rowData.similarity,
               uploadId,
             ]
           );
@@ -227,14 +334,14 @@ export async function POST(request: NextRequest) {
           const callsignId = callsignResult.rows[0].id;
           const isNewCallsign = callsignResult.rows[0].inserted;
 
-          // Step 2: 발생 날짜 추출 (시작일 row[0] 사용, 없으면 오늘)
+          // Step 2: 발생 날짜 추출 (시작일시 row[1] 사용, 없으면 오늘)
           let occurredDate: string;
 
-          if (!row[0]) {
+          if (!row[1]) {
             // 비어있으면 오늘 날짜
             occurredDate = new Date().toISOString().split('T')[0];
           } else {
-            const dateValue = row[0];
+            const dateValue = row[1];
             const dateNum = typeof dateValue === 'number' ? dateValue : parseFloat(String(dateValue));
 
             if (!isNaN(dateNum) && dateNum > 0) {

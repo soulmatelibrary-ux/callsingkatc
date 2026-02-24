@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
 import { OverviewTab } from '@/components/callsign-management/OverviewTab';
 import { ActionsTab } from '@/components/callsign-management/ActionsTab';
 import { StatisticsTab } from '@/components/callsign-management/StatisticsTab';
@@ -9,6 +11,13 @@ import { Sidebar } from '@/components/callsign-management/Sidebar';
 export const dynamic = 'force-dynamic';
 
 export default function CallsignManagementPage() {
+  const router = useRouter();
+  const { accessToken, user } = useAuthStore((state) => ({
+    accessToken: state.accessToken,
+    user: state.user,
+  }));
+  const isAdmin = useAuthStore((state) => state.isAdmin());
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'actions' | 'stats' | 'upload'>('overview');
 
   const menuItems = [
@@ -17,6 +26,29 @@ export default function CallsignManagementPage() {
     { id: 'stats', label: '통계', icon: '📈' },
     { id: 'upload', label: '엑셀입력', icon: '📁' },
   ];
+
+  useEffect(() => {
+    // 관리자가 아니면 항공사용 화면으로 즉시 이동
+    if (!accessToken || !user) {
+      router.replace('/login');
+      return;
+    }
+
+    if (!isAdmin) {
+      router.replace('/airline');
+      return;
+    }
+
+    setIsCheckingAuth(false);
+  }, [accessToken, isAdmin, router, user]);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <p className="text-sm font-semibold text-gray-500">접근 권한을 확인하고 있습니다...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col bg-[#f8fafc] selection:bg-primary/10 min-h-full">
