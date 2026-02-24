@@ -40,12 +40,14 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 기본 쿼리
+    // 기본 쿼리 (사용자 이메일 정보 JOIN)
     let sql = `
       SELECT
-        id, file_name, file_size, uploaded_by, uploaded_at,
-        total_rows, success_count, failed_count, error_message, status, processed_at
-      FROM file_uploads
+        fu.id, fu.file_name, fu.file_size, fu.uploaded_by, fu.uploaded_at,
+        fu.total_rows, fu.success_count, fu.failed_count, fu.error_message, fu.status, fu.processed_at,
+        u.email as uploader_email
+      FROM file_uploads fu
+      LEFT JOIN users u ON fu.uploaded_by = u.id
       WHERE 1=1
     `;
     const params: any[] = [];
@@ -81,6 +83,7 @@ export async function GET(request: NextRequest) {
         file_size: file.file_size,
         uploaded_by: file.uploaded_by,
         uploaded_at: file.uploaded_at,
+        uploader_email: file.uploader_email,
         total_rows: file.total_rows,
         success_count: file.success_count,
         failed_count: file.failed_count,
@@ -92,6 +95,7 @@ export async function GET(request: NextRequest) {
         fileSize: file.file_size,
         uploadedBy: file.uploaded_by,
         uploadedAt: file.uploaded_at,
+        uploaderEmail: file.uploader_email,
         totalRows: file.total_rows,
         successCount: file.success_count,
         failedCount: file.failed_count,

@@ -10,6 +10,7 @@ export interface FileUploadItem {
   file_name: string;
   file_size: number;
   uploaded_by: string;
+  uploader_email: string;
   uploaded_at: string;
   total_rows: number;
   success_count: number;
@@ -23,6 +24,7 @@ export interface FileUploadItem {
   fileName: string;
   fileSize: number;
   uploadedBy: string;
+  uploaderEmail: string;
   uploadedAt: string;
   totalRows: number;
   successCount: number;

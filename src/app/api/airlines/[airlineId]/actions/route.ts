@@ -70,12 +70,12 @@ export async function GET(
     let sql = `
       SELECT
         a.id, a.airline_id, a.callsign_id, a.action_type, a.description,
-        a.manager_name, a.manager_email, a.responsible_staff, a.planned_due_date,
+        a.manager_name, a.manager_email, a.planned_due_date,
         CASE WHEN a.id IS NULL THEN 'in_progress' ELSE 'completed' END as status,
         a.result_detail, a.completed_at,
         a.registered_by, a.registered_at, a.updated_at,
         a.reviewed_by, a.reviewed_at, a.review_comment,
-        al.code as airline_code, al.name_ko as airline_name_ko,
+        al.id as airline_id_ref, al.code as airline_code, al.name_ko as airline_name_ko,
         cs.id as cs_id,
         cs.callsign_pair,
         cs.my_callsign,

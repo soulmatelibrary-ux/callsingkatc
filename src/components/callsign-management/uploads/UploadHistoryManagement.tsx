@@ -129,6 +129,9 @@ export function UploadHistoryManagement() {
                   파일명
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
+                  업로더
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
                   업로드 일시
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">
@@ -153,6 +156,9 @@ export function UploadHistoryManagement() {
                 <tr key={fileUpload.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm text-gray-900 font-medium">
                     {fileUpload.fileName}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {fileUpload.uploaderEmail || '-'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {new Date(fileUpload.uploadedAt).toLocaleDateString('ko-KR', {
