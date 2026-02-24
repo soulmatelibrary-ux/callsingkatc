@@ -22,8 +22,9 @@ interface ProvidersProps {
 }
 
 function AuthInitializer({ children }: ProvidersProps) {
-  const authStore = useAuthStore();
   const isInitialized = useAuthStore((s) => s.isInitialized);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const setInitialized = useAuthStore((s) => s.setInitialized);
   const router = useRouter();
 
   useEffect(() => {
@@ -54,7 +55,7 @@ function AuthInitializer({ children }: ProvidersProps) {
       if (!hasRefreshToken) {
         console.log('[AuthInitializer] No refreshToken, initialization complete (not logged in)');
         redirectToHomeIfUnauthenticated();
-        authStore.setInitialized(true);
+        setInitialized(true);
         return;
       }
 
@@ -79,7 +80,7 @@ function AuthInitializer({ children }: ProvidersProps) {
           const data = await response.json();
           console.log('[AuthInitializer] Token refresh successful, user:', data.user.email);
           // accessToken과 user 정보 동시에 저장
-          authStore.setAuth(data.user, data.accessToken);
+          setAuth(data.user, data.accessToken);
         } else {
           console.warn('[AuthInitializer] Token refresh failed:', response.status);
           // httpOnly 쿠키는 클라이언트에서 삭제 불가 → logout API로 서버에서 삭제
@@ -101,12 +102,12 @@ function AuthInitializer({ children }: ProvidersProps) {
         }
         redirectToHomeIfUnauthenticated();
       } finally {
-        authStore.setInitialized(true);
+        setInitialized(true);
       }
     }
 
     initializeAuth();
-  }, [authStore, router]); // ✅ 페이지 로드 시 한 번만 실행
+  }, [setAuth, setInitialized, router]); // ✅ Zustand 액션은 안정적인 참조
 
   useEffect(() => {
     if (!isInitialized) {
