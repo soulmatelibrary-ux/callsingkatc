@@ -13,10 +13,26 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
-import { NanoIcon } from '@/components/ui/NanoIcon';
-import { Plane } from 'lucide-react';
 
-// function PlaneIcon() removed, using NanoIcon instead
+// KAC 로고 SVG 컴포넌트
+function KACLogo() {
+  return (
+    <svg viewBox="0 0 100 100" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+      {/* 배경 원 */}
+      <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
+
+      {/* KAC 텍스트 */}
+      <g fill="white" fontSize="42" fontWeight="bold" fontFamily="Arial, sans-serif" textAnchor="middle" dominantBaseline="middle">
+        <text x="50" y="45">KAC</text>
+      </g>
+
+      {/* 하단 한글 텍스트 */}
+      <g fill="white" fontSize="8" fontWeight="bold" fontFamily="Arial, sans-serif" textAnchor="middle">
+        <text x="50" y="70">한국공항공사</text>
+      </g>
+    </svg>
+  );
+}
 
 // 항공사별 시그니쳐 색상 (파란 배경에서 색 대비 고려)
 function getAirlineTextColor(airlineCode?: string): string {
@@ -99,9 +115,9 @@ export function Header() {
 
       {/* 로고 + 시스템명 + 항공사 정보 */}
       <div className="flex items-center gap-6 z-10">
-        {/* 로고 아이콘 */}
+        {/* KAC 로고 */}
         <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl backdrop-blur-md">
-          <NanoIcon icon={Plane} color="info" size="md" />
+          <KACLogo />
         </div>
 
         {/* 시스템명 */}
