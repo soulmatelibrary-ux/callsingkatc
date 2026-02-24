@@ -8,7 +8,6 @@ import {
     Users,
     Plane,
     Megaphone,
-    CheckCircle2,
     LockKeyhole
 } from 'lucide-react';
 
@@ -31,8 +30,6 @@ export function AdminSidebar() {
             }
         } else if (pathname.startsWith('/admin/announcements')) {
             setActiveMenu('announcements');
-        } else if (pathname.startsWith('/admin/actions')) {
-            setActiveMenu('actions');
         }
     }, [pathname, searchParams]);
 
@@ -40,12 +37,11 @@ export function AdminSidebar() {
         { id: 'users', label: '사용자 관리', href: '/admin/users?tab=users', icon: Users, color: 'info' },
         { id: 'airlines', label: '항공사 관리', href: '/admin/users?tab=airlines', icon: Plane, color: 'purple' },
         { id: 'announcements', label: '공지사항 관리', href: '/admin/announcements', icon: Megaphone, color: 'orange' },
-        { id: 'actions', label: '조치 관리', href: '/admin/actions', icon: CheckCircle2, color: 'success' },
         { id: 'password', label: '비밀번호 초기화', href: '/admin/users?tab=password', icon: LockKeyhole, color: 'danger' },
     ];
 
     return (
-        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-screen overflow-y-auto sticky top-0">
+        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-full overflow-y-auto">
             <div className="px-6 py-4 mb-0">
                 <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
                     Admin Terminal
