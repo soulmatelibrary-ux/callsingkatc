@@ -75,11 +75,11 @@ export function LoginForm() {
       } else {
         // 정상 로그인 - 역할에 따라 리다이렉트
         if (result.user.role === 'admin') {
-          // 관리자는 항상 유사호출부호 관리 대시보드로 이동
-          router.push(ROUTES.CALLSIGN_MANAGEMENT);
+          // 관리자는 항상 관리자 대시보드로 이동
+          router.push(ROUTES.ADMIN);
         } else {
           // 항공사 사용자는 항공사 대시보드로 이동
-          router.push('/airline');
+          router.push(ROUTES.AIRLINE);
         }
       }
     } catch (err: any) {

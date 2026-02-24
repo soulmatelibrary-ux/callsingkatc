@@ -94,7 +94,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  const defaultRedirect = userRole === 'admin' ? '/callsign-management' : '/airline';
+  const defaultRedirect = userRole === 'admin' ? '/admin' : '/airline';
 
   console.log('[Middleware] isLoggedIn:', isLoggedIn, 'isProtectedRoute:', isProtectedRoute, 'isAuthRoute:', isAuthRoute);
 
