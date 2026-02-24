@@ -116,7 +116,7 @@ export function Header() {
       {/* 로고 + 시스템명 + 항공사 정보 */}
       <div className="flex items-center gap-6 z-10">
         {/* KAC 로고 */}
-        <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl backdrop-blur-md">
+        <div className="w-14 h-14 flex items-center justify-center">
           <KACLogo />
         </div>
 
