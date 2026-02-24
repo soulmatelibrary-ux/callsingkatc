@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/store/authStore';
@@ -9,20 +11,18 @@ import { useAuthStore } from '@/store/authStore';
  */
 export default function AdminPage() {
   const user = useAuthStore((s) => s.user);
+  const router = useRouter();
 
-  // 권한 확인
+  // 권한 확인 - 관리자가 아니면 홈으로 리다이렉트
+  useEffect(() => {
+    if (user && user.role !== 'admin') {
+      router.replace(ROUTES.HOME);
+    }
+  }, [user, router]);
+
+  // 관리자가 아니면 아무것도 렌더링하지 않음
   if (!user || user.role !== 'admin') {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">접근 불가</h1>
-          <p className="text-gray-600 mb-4">관리자만 접근할 수 있습니다.</p>
-          <Link href={ROUTES.HOME} className="text-blue-600 hover:underline">
-            홈으로 돌아가기
-          </Link>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
