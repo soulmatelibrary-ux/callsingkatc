@@ -76,10 +76,6 @@ export function ActionModal({
       setError('조치 유형을 선택하세요.');
       return;
     }
-    if (!managerName.trim()) {
-      setError('담당자 이름을 입력하세요.');
-      return;
-    }
 
     try {
       if (actionId) {

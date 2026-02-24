@@ -122,7 +122,7 @@ export default function AirlinePage() {
   const [actionLimit, setActionLimit] = useState(10);
   const [actionSearch, setActionSearch] = useState('');
   const [actionSearchInput, setActionSearchInput] = useState('');
-  const [actionStatusFilter, setActionStatusFilter] = useState<'all' | 'in_progress' | 'completed'>('all');
+  const [actionStatusFilter, setActionStatusFilter] = useState<'all' | 'pending' | 'in_progress' | 'completed'>('all');
   const [airlineId, setAirlineId] = useState<string | undefined>(undefined);
   const [selectedAction, setSelectedAction] = useState<any | null>(null);
   const [isActionDetailModalOpen, setIsActionDetailModalOpen] = useState(false);
@@ -1157,6 +1157,13 @@ export default function AirlinePage() {
                     전체
                   </button>
                   <button
+                    onClick={() => setActionStatusFilter('pending')}
+                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'pending' ? 'bg-orange-600 text-white shadow-none' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                      }`}
+                  >
+                    미조치
+                  </button>
+                  <button
                     onClick={() => setActionStatusFilter('in_progress')}
                     className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-rose-700 text-white shadow-none' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
@@ -1197,9 +1204,9 @@ export default function AirlinePage() {
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {actionsData.data.map((action, index) => {
-                            const statusLabel = action.status === 'in_progress' ? '진행중' : '완료';
+                            const statusLabel = action.status === 'pending' ? '미조치' : action.status === 'in_progress' ? '진행중' : '완료';
                             const statusStyles =
-                              action.status === 'in_progress' ? 'text-rose-700 bg-rose-50 border border-rose-200' : 'text-emerald-600 bg-emerald-50 border border-emerald-200';
+                              action.status === 'pending' ? 'text-orange-700 bg-orange-50 border border-orange-200' : action.status === 'in_progress' ? 'text-rose-700 bg-rose-50 border border-rose-200' : 'text-emerald-600 bg-emerald-50 border border-emerald-200';
                             const registeredDate = action.registered_at ? new Date(action.registered_at).toLocaleDateString('ko-KR') : '-';
                             const rowNumber = (actionPage - 1) * actionLimit + index + 1;
 
