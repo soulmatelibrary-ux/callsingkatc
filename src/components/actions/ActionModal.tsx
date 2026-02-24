@@ -84,7 +84,7 @@ export function ActionModal({
           id: actionId,
           action_type: actionType,
           description: description || undefined,
-          manager_name: managerName,
+          manager_name: managerName || undefined,
           status: status,
           completed_at: processedDate,
         });
@@ -95,7 +95,7 @@ export function ActionModal({
           callsign_id: callsignId,
           action_type: actionType,
           description: description || undefined,
-          manager_name: managerName,
+          manager_name: managerName || undefined,
           status: 'completed', // 신규 등록은 항상 완료 상태
           completed_at: processedDate,
         });
@@ -264,7 +264,7 @@ export function ActionModal({
                 marginBottom: '6px',
               }}
             >
-              담당자 <span style={{ color: '#ef4444' }}>*</span>
+              담당자 <span style={{ color: '#9ca3af', fontSize: '12px' }}>(선택)</span>
             </label>
             <input
               type="text"
