@@ -80,49 +80,77 @@ INSERT INTO airlines (code, name_ko, name_en, display_order) VALUES
 ON CONFLICT (code) DO NOTHING;
 
 -- ================================================================
--- 기본 사용자 계정 (비밀번호: 1234)
+-- 기본 사용자 계정
 -- ================================================================
 
--- 1. 관리자 계정: lsi117@airport.co.kr (비밀번호: 1234)
+-- 1. 관리자 계정: admin@katc.com (비밀번호: Admin1234)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
 SELECT
-  'lsi117@airport.co.kr',
-  '$2b$10$vozhD./zxIG/MBRiT0wKy.KyrzlmRIo7eP.Gq1d8gPxF5.JcbcJKu',
+  'admin@katc.com',
+  '$2b$10$Lt/H/23KNwU4ctxRXoGr1OjUddKuCxpxVJ2M3NZrgxc37WWrGGzoa',
   airlines.id,
   'active',
   'admin',
-  true,
+  false,
   false
 FROM airlines
 WHERE airlines.code = 'KAL'
 ON CONFLICT (email) DO NOTHING;
 
--- 2. 대한항공 계정: kal@naver.com (비밀번호: 1234)
+-- 2. 대한항공 사용자: kal-user@katc.com (비밀번호: User1234)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
 SELECT
-  'kal@naver.com',
-  '$2b$10$vozhD./zxIG/MBRiT0wKy.KyrzlmRIo7eP.Gq1d8gPxF5.JcbcJKu',
+  'kal-user@katc.com',
+  '$2b$10$KS7NfrdP5mnQ9bGZUUDmXeGJurpANIGX3g6Z6du/5pVn4KjVwvvh2',
   airlines.id,
   'active',
   'user',
-  true,
+  false,
   false
 FROM airlines
 WHERE airlines.code = 'KAL'
 ON CONFLICT (email) DO NOTHING;
 
--- 3. 아시아나항공 계정: aar@naver.com (비밀번호: 1234)
+-- 3. 아시아나항공 사용자: aar-user@katc.com (비밀번호: 1234)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
 SELECT
-  'aar@naver.com',
-  '$2b$10$vozhD./zxIG/MBRiT0wKy.KyrzlmRIo7eP.Gq1d8gPxF5.JcbcJKu',
+  'aar-user@katc.com',
+  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
   airlines.id,
   'active',
   'user',
-  true,
+  false,
   false
 FROM airlines
 WHERE airlines.code = 'AAR'
+ON CONFLICT (email) DO NOTHING;
+
+-- 4. 제주항공 사용자: jja-user@katc.com (비밀번호: 1234)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT
+  'jja-user@katc.com',
+  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id,
+  'active',
+  'user',
+  false,
+  false
+FROM airlines
+WHERE airlines.code = 'JJA'
+ON CONFLICT (email) DO NOTHING;
+
+-- 5. 테스트 사용자: starred1@naver.com (비밀번호: Starred1!)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT
+  'starred1@naver.com',
+  '$2b$10$mG7zNrmB0kuIJtilAK6MEeu6S5ckJJyEjzmZoV9kOU1wTnZSFAlVS',
+  airlines.id,
+  'active',
+  'user',
+  false,
+  false
+FROM airlines
+WHERE airlines.code = 'KAL'
 ON CONFLICT (email) DO NOTHING;
 
 -- ================================================================
