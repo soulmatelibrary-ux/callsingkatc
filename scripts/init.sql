@@ -318,6 +318,7 @@ CREATE TABLE IF NOT EXISTS callsigns (
 
   -- 발생 통계
   occurrence_count INT DEFAULT 0,            -- 발생 건수
+  first_occurred_at TIMESTAMP,               -- 첫 발생 시간
   last_occurred_at TIMESTAMP,                -- 최근 발생 시간
 
   -- 업로드 정보

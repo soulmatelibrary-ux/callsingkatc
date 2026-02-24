@@ -57,7 +57,8 @@ export interface Callsign {
 
   // 발생 통계
   occurrence_count: number;
-  last_occurred_at?: string;
+  first_occurred_at?: string; // 첫 발생 시간
+  last_occurred_at?: string; // 최근 발생 시간
 
   // 업로드 정보
   file_upload_id?: string;
@@ -84,7 +85,8 @@ export interface Callsign {
   subError?: string;
   riskLevel?: string;
   occurrenceCount?: number;
-  lastOccurredAt?: string;
+  firstOccurredAt?: string; // 첫 발생 시간
+  lastOccurredAt?: string; // 최근 발생 시간
   fileUploadId?: string;
   uploadedAt?: string;
   createdAt?: string;
