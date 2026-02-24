@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { AdminSidebar } from '@/components/layout/AdminSidebar';
 import { useAuthStore } from '@/store/authStore';
-import { ROUTES } from '@/lib/constants';
 
 export default function AdminLayout({
     children,
@@ -15,14 +14,18 @@ export default function AdminLayout({
     const user = useAuthStore((s) => s.user);
     const router = useRouter();
 
-    // 관리자가 아니면 홈으로 리다이렉트
+    // 관리자가 아니면 즉시 홈으로 리다이렉트
     useEffect(() => {
-        if (user && user.role !== 'admin') {
-            router.replace(ROUTES.HOME);
+        if (user === null) {
+            // user가 null이면 로그인하지 않은 상태 → 홈으로 리다이렉트
+            router.push('/');
+        } else if (user.role !== 'admin') {
+            // user가 있지만 admin이 아니면 홈으로 리다이렉트
+            router.push('/');
         }
     }, [user, router]);
 
-    // 관리자가 아니면 아무것도 렌더링하지 않음
+    // 관리자가 아니거나 로드 중이면 아무것도 렌더링하지 않음
     if (!user || user.role !== 'admin') {
         return null;
     }
