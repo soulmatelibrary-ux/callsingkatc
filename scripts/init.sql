@@ -139,7 +139,91 @@ FROM airlines
 WHERE airlines.code = 'JJA'
 ON CONFLICT (email) DO NOTHING;
 
--- 5. 테스트 사용자: starred1@naver.com (비밀번호: Starred1!)
+-- 4. 진에어 사용자: jna@katc.com (비밀번호: 1234)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT
+  'jna@katc.com',
+  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id,
+  'active',
+  'user',
+  false,
+  false
+FROM airlines
+WHERE airlines.code = 'JNA'
+ON CONFLICT (email) DO NOTHING;
+
+-- 5. 티웨이항공 사용자: twb@katc.com (비밀번호: 1234)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT
+  'twb@katc.com',
+  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id,
+  'active',
+  'user',
+  false,
+  false
+FROM airlines
+WHERE airlines.code = 'TWB'
+ON CONFLICT (email) DO NOTHING;
+
+-- 6. 에어부산 사용자: abl@katc.com (비밀번호: 1234)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT
+  'abl@katc.com',
+  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id,
+  'active',
+  'user',
+  false,
+  false
+FROM airlines
+WHERE airlines.code = 'ABL'
+ON CONFLICT (email) DO NOTHING;
+
+-- 7. 에어서울 사용자: asv@katc.com (비밀번호: 1234)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT
+  'asv@katc.com',
+  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id,
+  'active',
+  'user',
+  false,
+  false
+FROM airlines
+WHERE airlines.code = 'ASV'
+ON CONFLICT (email) DO NOTHING;
+
+-- 8. 이스타항공 사용자: eok@katc.com (비밀번호: 1234)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT
+  'eok@katc.com',
+  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id,
+  'active',
+  'user',
+  false,
+  false
+FROM airlines
+WHERE airlines.code = 'EOK'
+ON CONFLICT (email) DO NOTHING;
+
+-- 9. 플라이강원 사용자: fgw@katc.com (비밀번호: 1234)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT
+  'fgw@katc.com',
+  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id,
+  'active',
+  'user',
+  false,
+  false
+FROM airlines
+WHERE airlines.code = 'FGW'
+ON CONFLICT (email) DO NOTHING;
+
+-- 10. 테스트 사용자: starred1@naver.com (비밀번호: Starred1!)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
 SELECT
   'starred1@naver.com',
