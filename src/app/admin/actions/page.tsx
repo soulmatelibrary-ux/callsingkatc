@@ -8,10 +8,24 @@ import Link from 'next/link';
 import * as XLSX from 'xlsx';
 
 export default function AdminActionsPage() {
+  // 기본값: 이달 1월 1일부터 현재까지
+  const getDefaultDateFrom = () => {
+    const today = new Date();
+    return `${today.getFullYear()}-01-01`;
+  };
+
+  const getDefaultDateTo = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [selectedAirlineId, setSelectedAirlineId] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<'pending' | 'in_progress' | 'completed' | ''>('');
-  const [dateFrom, setDateFrom] = useState<string>('');
-  const [dateTo, setDateTo] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<string>(getDefaultDateFrom());
+  const [dateTo, setDateTo] = useState<string>(getDefaultDateTo());
   const [page, setPage] = useState(1);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [limit] = useState(20);
@@ -85,10 +99,10 @@ export default function AdminActionsPage() {
               조치
             </span>
             <Link
-              href="/admin/file-uploads"
+              href="/admin/callsign-management"
               className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
             >
-              업로드 이력
+              엑셀입력
             </Link>
           </div>
         </div>

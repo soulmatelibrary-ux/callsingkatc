@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { FileUploadZone } from './uploads/FileUploadZone';
 import { UploadResult } from './uploads/UploadResult';
 import { UploadHistory } from './uploads/UploadHistory';
+import { UploadHistoryManagement } from './uploads/UploadHistoryManagement';
 import { useFileUploads } from '@/hooks/useFileUploads';
 
 interface UploadResultData {
@@ -17,6 +18,7 @@ interface UploadResultData {
 
 export function Sidebar() {
   const [uploadResult, setUploadResult] = useState<UploadResultData | null>(null);
+  const [activeSubTab, setActiveSubTab] = useState<'upload' | 'history'>('upload');
 
   // 서버에 저장된 파일 업로드 이력 조회 (완료 상태 기준, 최근 5개)
   const {
@@ -44,9 +46,43 @@ export function Sidebar() {
 
   return (
     <div className="space-y-6">
-      <FileUploadZone onUploadComplete={handleUploadComplete} />
-      {uploadResult && <UploadResult result={uploadResult} />}
-      <UploadHistory history={history} />
+      {/* 업로드 / 이력 관리 탭 */}
+      <div className="flex gap-2 border-b border-gray-200">
+        <button
+          onClick={() => setActiveSubTab('upload')}
+          className={`px-4 py-2 font-semibold transition-colors ${
+            activeSubTab === 'upload'
+              ? 'text-primary border-b-2 border-primary -mb-[2px]'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          📁 업로드
+        </button>
+        <button
+          onClick={() => setActiveSubTab('history')}
+          className={`px-4 py-2 font-semibold transition-colors ${
+            activeSubTab === 'history'
+              ? 'text-primary border-b-2 border-primary -mb-[2px]'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          📋 이력 관리
+        </button>
+      </div>
+
+      {/* 업로드 탭 */}
+      {activeSubTab === 'upload' && (
+        <div className="space-y-6">
+          <FileUploadZone onUploadComplete={handleUploadComplete} />
+          {uploadResult && <UploadResult result={uploadResult} />}
+          <UploadHistory history={history} />
+        </div>
+      )}
+
+      {/* 이력 관리 탭 */}
+      {activeSubTab === 'history' && (
+        <UploadHistoryManagement />
+      )}
     </div>
   );
 }
