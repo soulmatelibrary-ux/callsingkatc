@@ -51,6 +51,10 @@ export interface Callsign {
   risk_level?: string; // "매우높음", "높음", "낮음"
   similarity?: string; // "매우높음", "높음", "낮음"
 
+  // 추가 분석 정보
+  sector?: string; // "EL", "GL", "JN" 등 관할섹터
+  atc_recommendation?: string; // "즉시조치", "주의감시", "-" 등
+
   // 발생 통계
   occurrence_count: number;
   last_occurred_at?: string;
@@ -90,6 +94,7 @@ export interface Callsign {
   latestActionManager?: string | null;
   latestActionResponsibleStaff?: string | null;
   latestActionUpdatedAt?: string | null;
+  atcRecommendation?: string;
 }
 
 /**

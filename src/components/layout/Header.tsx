@@ -54,13 +54,11 @@ export function Header() {
 
   async function handleLogout() {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      // 쿠키 삭제 후 약간의 딜레이 제공
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // store의 async logout 함수 사용 (쿠키 삭제 API 호출 포함)
+      await logout();
     } catch {
-      // 서버 오류여도 클라이언트 상태는 초기화
+      // 오류 발생해도 계속 진행
     } finally {
-      logout();
       // 로그인 페이지로 명확하게 이동
       router.push(ROUTES.LOGIN);
       // 페이지 새로고침으로 미들웨어 재실행
@@ -138,43 +136,49 @@ export function Header() {
         )}
       </div>
 
-      {/* 우측 영역 */}
-      <nav className="flex items-end gap-8 z-10" aria-label="사용자 네비게이션">
+      {/* 우측 하단 영역: 간소화된 네비게이션 */}
+      <nav className="absolute right-12 bottom-6 flex items-center gap-6 z-10" aria-label="사용자 네비게이션">
         {isAuthenticated && user ? (
           <>
-            <div className="bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full flex items-center gap-2">
+            {/* 이메일 표시 (간소화) */}
+            <div className="flex items-center gap-2">
               <div className="relative">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                <div className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-20"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
               </div>
-              <span className="text-white/70 text-[10px] font-bold tracking-wide uppercase">
+              <span className="text-white/40 text-[10px] font-bold tracking-wide uppercase">
                 {user.email}
               </span>
             </div>
+
+            <div className="w-px h-3 bg-white/10" />
 
             {/* 유사호출부호 관리 (관리자만) */}
             {isAdmin && (
               <Link
                 href={ROUTES.CALLSIGN_MANAGEMENT}
-                className="pb-2 text-white/60 hover:text-white text-[11px] font-black uppercase tracking-widest rounded-none transition-all"
+                className="text-white/60 hover:text-white text-[11px] font-black uppercase tracking-widest transition-all"
               >
                 유사호출부호
               </Link>
             )}
 
+            {isAdmin && <span className="text-white/10 text-[10px]">|</span>}
+
             {isAdmin && (
               <Link
                 href="/admin/users?tab=users"
-                className="px-5 py-1.5 bg-white/20 text-white text-[11px] font-black uppercase tracking-widest rounded-none border border-white/20 hover:bg-white/30 transition-all"
+                className="text-white/60 hover:text-white text-[11px] font-black uppercase tracking-widest transition-all"
               >
                 관리자 페이지
               </Link>
             )}
 
-            {/* 로그아웃 */}
+            <div className="w-px h-3 bg-white/10" />
+
+            {/* 로그아웃 (간소화) */}
             <button
               onClick={handleLogout}
-              className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-all shadow-[0_4px_10px_rgba(225,29,72,0.2)] active:scale-95 border border-rose-500/50"
+              className="text-rose-400/80 hover:text-rose-400 text-[11px] font-black uppercase tracking-widest transition-all"
               type="button"
             >
               Logout

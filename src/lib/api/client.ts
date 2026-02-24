@@ -89,8 +89,20 @@ export async function apiFetch(
   const newToken = await getRefreshedToken();
 
   if (!newToken) {
-    // 갱신 실패 → 로그아웃 (클라이언트 상태만 초기화)
-    authStore.getState().logout();
+    // 갱신 실패 → 로그아웃 및 쿠키 삭제 후 리다이렉트
+    // 쿠키 삭제 API를 기다린 후 리다이렉트해야 middleware가 올바르게 작동함
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch {
+      // 로그아웃 API 실패해도 계속 진행
+    }
+
+    // 메모리 상태 초기화
+    authStore.setState({ user: null, accessToken: null, isLoading: false });
+
     // 브라우저 환경에서만 리다이렉트
     if (typeof window !== 'undefined') {
       window.location.href = '/login';

@@ -3,11 +3,22 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import * as XLSX from 'xlsx';
 import { parseJsonCookie } from '@/lib/cookies';
 import { ROUTES } from '@/lib/constants';
-import { useAirlineActions, useAirlineCallsigns } from '@/hooks/useActions';
+import { useAirlineActions, useAirlineActionStats, useAirlineCallsigns } from '@/hooks/useActions';
+import { useActiveAnnouncements, useAnnouncementHistory } from '@/hooks/useAnnouncements';
 import { useAuthStore } from '@/store/authStore';
 import { ActionModal } from '@/components/actions/ActionModal';
+import { AirlineStatisticsTab } from '@/components/airline/AirlineStatisticsTab';
+import { NanoIcon } from '@/components/ui/NanoIcon';
+import {
+  BarChart3,
+  ClipboardList,
+  TrendingUp,
+  Megaphone,
+  PieChart
+} from 'lucide-react';
 
 const AL: Record<string, { n: string }> = {
   KAL: { n: '대한항공' },
@@ -29,6 +40,39 @@ interface CookieUser {
     name_ko?: string;
   };
 }
+
+const ANNOUNCEMENT_LEVEL_META: Record<'warning' | 'info' | 'success', { label: string; badge: string }> = {
+  warning: { label: '긴급', badge: 'bg-red-100 text-red-700' },
+  info: { label: '일반', badge: 'bg-blue-100 text-blue-600' },
+  success: { label: '완료', badge: 'bg-emerald-100 text-emerald-700' },
+};
+
+const ANNOUNCEMENT_STATUS_META: Record<'active' | 'expired', { label: string; badge: string }> = {
+  active: { label: '진행중', badge: 'bg-emerald-50 text-emerald-600' },
+  expired: { label: '종료', badge: 'bg-gray-100 text-gray-500' },
+};
+
+const formatAnnouncementPeriod = (start?: string | null, end?: string | null) => {
+  const format = (value?: string | null) =>
+    value
+      ? new Date(value).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
+      : '-';
+
+  if (!start && !end) {
+    return '-';
+  }
+
+  if (!start || !end) {
+    return format(start || end);
+  }
+
+  return `${format(start)} ~ ${format(end)}`;
+};
+
+const truncateText = (value?: string | null, limit = 120) => {
+  if (!value) return '';
+  return value.length > limit ? `${value.slice(0, limit)}…` : value;
+};
 
 // 목업 데이터 제거 - 실제 DB 데이터 사용
 
@@ -52,7 +96,7 @@ export default function AirlinePage() {
   const [airlineCode, setAirlineCode] = useState<string>('');
   const [airlineName, setAirlineName] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'incidents' | 'actions'>('incidents');
+  const [activeTab, setActiveTab] = useState<'incidents' | 'analysis' | 'actions' | 'statistics' | 'announcements'>('incidents');
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState<any | null>(null);
   const [startDate, setStartDate] = useState<string>(() => {
@@ -65,10 +109,18 @@ export default function AirlinePage() {
   });
   const [activeRange, setActiveRange] = useState<'custom' | 'today' | '1w' | '2w' | '1m'>('custom');
   const [errorTypeFilter, setErrorTypeFilter] = useState<'all' | '관제사 오류' | '조종사 오류' | '오류 미발생'>('all');
+  const [statsStartDate, setStatsStartDate] = useState<string>(() => {
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(now.getDate() - 29);
+    return formatDateInput(start);
+  });
+  const [statsEndDate, setStatsEndDate] = useState<string>(() => formatDateInput(new Date()));
+  const [statsActiveRange, setStatsActiveRange] = useState<'custom' | 'today' | '1w' | '2w' | '1m'>('1m');
 
   // 조치이력 탭용 state
   const [actionPage, setActionPage] = useState(1);
-  const [actionLimit, setActionLimit] = useState(30);
+  const [actionLimit, setActionLimit] = useState(10);
   const [actionSearch, setActionSearch] = useState('');
   const [actionSearchInput, setActionSearchInput] = useState('');
   const [actionStatusFilter, setActionStatusFilter] = useState<'all' | 'in_progress' | 'completed'>('all');
@@ -76,7 +128,34 @@ export default function AirlinePage() {
   const [selectedAction, setSelectedAction] = useState<any | null>(null);
   const [isActionDetailModalOpen, setIsActionDetailModalOpen] = useState(false);
 
+  const [selectedCallsignForDetail, setSelectedCallsignForDetail] = useState<any | null>(null);
+  const [isCallsignDetailModalOpen, setIsCallsignDetailModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const accessToken = useAuthStore((s) => s.accessToken);
+
+  // 상태 필터 변경 시 캐시 완전 초기화 및 리페치
+  useEffect(() => {
+    // 1단계: 모든 'airline-actions' 관련 쿼리 완전 제거
+    queryClient.removeQueries({ queryKey: ['airline-actions'], exact: false });
+
+    // 2단계: 페이지 리셋
+    setActionPage(1);
+
+    // 3단계: 새로운 status로 쿼리 강제 실행 (캐시 무시)
+    setTimeout(() => {
+      queryClient.invalidateQueries({
+        queryKey: ['airline-actions'],
+        exact: false
+      });
+    }, 0);
+  }, [actionStatusFilter, queryClient, airlineId]);
+
+
+  // 페이지 첫 로드: 1개월 필터 자동 적용
+  useEffect(() => {
+    applyQuickRange('1m');
+  }, []);
+
 
   // 조치 목록 데이터
   const { data: actionsData, isLoading: actionsLoading } = useAirlineActions({
@@ -87,17 +166,56 @@ export default function AirlinePage() {
     limit: actionLimit,
   });
 
-  const { data: completedActionsData } = useAirlineActions({
-    airlineId: airlineId,
-    status: 'completed',
-    page: 1,
-    limit: 1000,
-  });
-
-  // 호출부호 목록 (incidents 및 조치 등록에 사용)
+  // 호출부호 목록 (callsigns.status = 'in_progress'인 것들만 조회됨)
+  // callsigns API에서 이미 status = 'completed'인 것들은 필터링되므로 추가 처리 불필요
   const { data: callsignsData, isLoading: callsignsLoading } = useAirlineCallsigns(airlineId, {
     limit: 1000,
   });
+
+  const { data: actionStats, isLoading: actionStatsLoading } = useAirlineActionStats(airlineId, {
+    dateFrom: statsStartDate,
+    dateTo: statsEndDate,
+  });
+
+  const { data: activeAnnouncementsData, isLoading: activeAnnouncementsLoading } = useActiveAnnouncements();
+  const { data: announcementHistoryData, isLoading: announcementHistoryLoading } = useAnnouncementHistory({
+    status: 'all',
+    limit: 5,
+    page: 1,
+  });
+
+  const activeAnnouncements = activeAnnouncementsData?.announcements ?? [];
+  const latestAnnouncements = announcementHistoryData?.announcements ?? [];
+  const totalActiveAnnouncements = activeAnnouncementsData?.total ?? activeAnnouncements.length;
+  const warningActiveCount = activeAnnouncements.filter((item) => item.level === 'warning').length;
+  const completedAnnouncementsCount = latestAnnouncements.filter((item) => item.status === 'expired').length;
+
+  const announcementSummaryCards = [
+    {
+      id: 'active-total',
+      icon: '📢',
+      title: '공지사항',
+      value: totalActiveAnnouncements,
+      description: '활성 공지사항',
+      loading: activeAnnouncementsLoading,
+    },
+    {
+      id: 'active-warning',
+      icon: '🚨',
+      title: '긴급공지',
+      value: warningActiveCount,
+      description: '경고 레벨',
+      loading: activeAnnouncementsLoading,
+    },
+    {
+      id: 'completed',
+      icon: '✅',
+      title: '완료',
+      value: completedAnnouncementsCount,
+      description: '최근 종료된 공지',
+      loading: announcementHistoryLoading,
+    },
+  ];
 
   useEffect(() => {
     console.log('🔄 airline/page useEffect 실행됨');
@@ -137,6 +255,39 @@ export default function AirlinePage() {
     setAirlineName(name);
     if (id) {
       setAirlineId(id);
+    } else {
+      const fetchAirlineInfo = async () => {
+        try {
+          const response = await fetch('/api/auth/me', {
+            method: 'GET',
+            credentials: 'include',
+          });
+
+          if (!response.ok) {
+            return;
+          }
+
+          const data = await response.json();
+          const fallbackAirline = data.user?.airline;
+          const fallbackId = fallbackAirline?.id || data.user?.airline_id;
+
+          if (fallbackId) {
+            setAirlineId(fallbackId);
+
+            if (!code && fallbackAirline?.code) {
+              setAirlineCode(fallbackAirline.code);
+            }
+
+            if (!name && fallbackAirline?.name_ko) {
+              setAirlineName(fallbackAirline.name_ko);
+            }
+          }
+        } catch (err) {
+          console.error('❌ 항공사 정보 복구 실패:', err);
+        }
+      };
+
+      fetchAirlineInfo();
     }
     console.log('✅ 로딩 완료 - setLoading(false) 호출');
     setLoading(false);
@@ -147,6 +298,15 @@ export default function AirlinePage() {
     '높음': '#f59e0b',
     '낮음': '#16a34a',
     '매우낮음': '#0891b2',
+  };
+
+  const formatDisplayDate = (value?: string | null) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return '-';
+    }
+    return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
 
   function handleStartDateChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -164,6 +324,24 @@ export default function AirlinePage() {
     setActiveRange('custom');
     if (startDate && value && value < startDate) {
       setStartDate(value);
+    }
+  }
+
+  function handleStatsStartDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setStatsStartDate(value);
+    setStatsActiveRange('custom');
+    if (statsEndDate && value && value > statsEndDate) {
+      setStatsEndDate(value);
+    }
+  }
+
+  function handleStatsEndDateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setStatsEndDate(value);
+    setStatsActiveRange('custom');
+    if (statsStartDate && value && value < statsStartDate) {
+      setStatsStartDate(value);
     }
   }
 
@@ -187,6 +365,63 @@ export default function AirlinePage() {
     setActiveRange(type);
   }
 
+  function applyStatsQuickRange(type: 'today' | '1w' | '2w' | '1m') {
+    const now = new Date();
+    let start = new Date(now);
+    const end = new Date(now);
+
+    if (type === 'today') {
+      // keep today only
+    } else if (type === '1w') {
+      start.setDate(now.getDate() - 6);
+    } else if (type === '2w') {
+      start.setDate(now.getDate() - 13);
+    } else if (type === '1m') {
+      start.setDate(now.getDate() - 29);
+    }
+
+    setStatsStartDate(formatDateInput(start));
+    setStatsEndDate(formatDateInput(end));
+    setStatsActiveRange(type);
+  }
+
+  function handleExportIncidents() {
+    if (isExporting) return;
+    if (!allFilteredIncidents.length) {
+      window.alert('내보낼 수 있는 발생 현황 데이터가 없습니다.');
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+
+      const rows = allFilteredIncidents.map((incident) => ({
+        '호출부호 쌍': incident.pair,
+        '자사 호출부호': incident.mine,
+        '타사 호출부호': incident.other,
+        '관할 항공사': incident.airline,
+        '오류 유형': incident.errorType,
+        '세부 오류': incident.subError || '-',
+        '위험도': incident.risk,
+        '유사성': incident.similarity,
+        '발생횟수': incident.count,
+        '최초 발생일': incident.firstDate || '',
+        '최근 발생일': incident.lastDate || '',
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Incidents');
+      const fileName = `callsign_incidents_${airlineCode || 'airline'}_${formatDateInput(new Date())}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+    } catch (error) {
+      console.error('Excel 내보내기 실패:', error);
+      window.alert('엑셀 파일 생성 중 문제가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   function handleOpenActionModal(incident: any) {
     setSelectedIncident(incident);
     setIsActionModalOpen(true);
@@ -199,7 +434,7 @@ export default function AirlinePage() {
 
   if (loading || callsignsLoading) {
     return (
-      <div className="pt-16 flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="text-gray-600">로딩 중...</div>
       </div>
     );
@@ -217,6 +452,7 @@ export default function AirlinePage() {
     risk: cs.risk_level || '낮음',
     similarity: cs.similarity || '낮음',
     count: cs.occurrence_count || 0,
+    firstDate: cs.created_at ? new Date(cs.created_at).toISOString().split('T')[0] : null,
     lastDate: cs.last_occurred_at ? new Date(cs.last_occurred_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     dates: [], // 상세 날짜 이력은 별도 테이블 필요 시 추가
   })) || [];
@@ -231,27 +467,101 @@ export default function AirlinePage() {
     return incidentDate >= startDateObj && incidentDate <= endDateObj;
   });
 
-  // 조치 완료된 인시던트 필터링 (상태가 completed인 조치가 있는 인시던트 제외)
-  const completedActions = completedActionsData?.data || [];
-  const completedCallsigns = new Set(
-    completedActions
-      .map(a => a.callsign?.callsign_pair)
-      .filter(Boolean)
-  );
+  // callsigns API에서 이미 status = 'in_progress'인 것만 반환하므로
+  // 추가 필터링 불필요 (완료된 항목은 API 단계에서 제외됨)
+  const incidentsWithoutCompleted = filteredIncidents;
 
-  const incidentsWithoutCompleted = filteredIncidents.filter((incident) => {
-    // 유사호출부호(pair)로 매칭
-    if (completedCallsigns.has(incident.pair)) {
-      return false;
+  // 통계 계산과 노출 건수는 현재 화면에 표시된 데이터를 기준으로 함
+  const visibleIncidentCount = incidentsWithoutCompleted.length;
+
+  // 전체 진행 중 건수는 API에서 제공하는 pagination.total을 사용 (표시 개수와 다를 수 있음)
+  const totalIncidentCount = callsignsData?.pagination?.total ?? visibleIncidentCount;
+
+  const callsignDetailMeta = selectedCallsignForDetail
+    ? {
+      occurrenceCount:
+        selectedCallsignForDetail.occurrence_count ??
+        selectedCallsignForDetail.occurrenceCount ??
+        0,
+      firstOccurredAt:
+        selectedCallsignForDetail.firstDate ??
+        selectedCallsignForDetail.created_at ??
+        selectedCallsignForDetail.createdAt ??
+        null,
+      lastOccurredAt:
+        selectedCallsignForDetail.lastDate ??
+        selectedCallsignForDetail.last_occurred_at ??
+        selectedCallsignForDetail.lastOccurredAt ??
+        null,
+      similarity:
+        selectedCallsignForDetail.similarity ??
+        selectedCallsignForDetail.similarityLevel ??
+        '-',
+      riskLevel:
+        selectedCallsignForDetail.risk_level ??
+        selectedCallsignForDetail.riskLevel ??
+        selectedCallsignForDetail.risk ??
+        '-',
+      myCallsign:
+        selectedCallsignForDetail.my_callsign ??
+        selectedCallsignForDetail.myCallsign ??
+        '-',
+      otherCallsign:
+        selectedCallsignForDetail.other_callsign ??
+        selectedCallsignForDetail.otherCallsign ??
+        '-',
+      errorType:
+        selectedCallsignForDetail.error_type ??
+        selectedCallsignForDetail.errorType ??
+        '-',
+      subError:
+        selectedCallsignForDetail.sub_error ??
+        selectedCallsignForDetail.subError ??
+        '-',
     }
-    return true;
-  });
+    : null;
 
-  // 통계는 조치 완료된 것을 제외한 인시던트 기준
-  const atcCount = incidentsWithoutCompleted.filter(i => i.errorType === '관제사 오류').length;
-  const pilotCount = incidentsWithoutCompleted.filter(i => i.errorType === '조종사 오류').length;
-  const noneCount = incidentsWithoutCompleted.filter(i => i.errorType === '오류 미발생').length;
-  const total = incidentsWithoutCompleted.length;
+  const typeDistribution = actionStats?.typeDistribution ?? [];
+  const monthlyTrend = actionStats?.monthlyTrend ?? [];
+  type StatusKey = 'waiting' | 'in_progress' | 'completed';
+  const statusCounts: Record<StatusKey, number> = actionStats?.statusCounts ?? {
+    waiting: 0,
+    in_progress: 0,
+    completed: 0,
+  };
+
+  // 에러 타입별 동적 통계 생성
+  const errorTypeConfig: Record<string, { label: string; bgColor: string; textColor: string; description: string }> = {
+    '관제사 오류': { label: 'ATC RELATED', bgColor: 'bg-rose-50', textColor: 'text-rose-600', description: '관제사 요인으로 판명된 사례' },
+    '조종사 오류': { label: 'PILOT RELATED', bgColor: 'bg-amber-50', textColor: 'text-amber-600', description: '조종사 요인으로 판명된 사례' },
+    '오류 미발생': { label: 'NO ERROR', bgColor: 'bg-emerald-50', textColor: 'text-emerald-600', description: '오류 없이 경고만 발생한 사례' },
+  };
+
+  const errorTypeStats = (() => {
+    // 실제 데이터에 있는 error_type만 추출
+    const uniqueTypes = Array.from(new Set(
+      incidentsWithoutCompleted
+        .map(i => i.errorType)
+        .filter(Boolean)
+    ));
+
+    // 각 타입별로 count와 색상 정보와 함께 반환
+    return uniqueTypes.map(type => {
+      const count = incidentsWithoutCompleted.filter(i => i.errorType === type).length;
+      const config = errorTypeConfig[type] || {
+        label: type,
+        bgColor: 'bg-gray-50',
+        textColor: 'text-gray-600',
+        description: `${type}로 판명된 사례`
+      };
+      return {
+        type,
+        count,
+        percentage: visibleIncidentCount > 0 ? Math.round((count / visibleIncidentCount) * 100) : 0,
+        ...config
+      };
+    });
+  })();
 
   // 리스크 레벨을 숫자로 변환 (높을수록 큼)
   const riskLevelMap: Record<string, number> = {
@@ -260,7 +570,8 @@ export default function AirlinePage() {
     '낮음': 1,
   };
 
-  const visibleIncidents = (() => {
+  // 전체 필터링된 incidents (통계용)
+  const allFilteredIncidents = (() => {
     const filtered =
       errorTypeFilter === 'all'
         ? incidentsWithoutCompleted
@@ -283,6 +594,7 @@ export default function AirlinePage() {
     });
   })();
 
+
   const selectedErrorLabel =
     errorTypeFilter === 'all' ? '전체' : errorTypeFilter;
 
@@ -290,31 +602,31 @@ export default function AirlinePage() {
     {
       key: '복창오류',
       label: '복창오류',
-      count: visibleIncidents.filter((i) => i.subError === '복창오류').length,
+      count: allFilteredIncidents.filter((i) => i.subError === '복창오류').length,
       color: '#6366f1',
     },
     {
       key: '무응답/재호출',
       label: '무응답/재호출',
-      count: visibleIncidents.filter((i) => i.subError === '무응답/재호출').length,
+      count: allFilteredIncidents.filter((i) => i.subError === '무응답/재호출').length,
       color: '#4f46e5',
     },
     {
       key: '고도이탈',
       label: '고도이탈',
-      count: visibleIncidents.filter((i) => i.subError === '고도이탈').length,
+      count: allFilteredIncidents.filter((i) => i.subError === '고도이탈').length,
       color: '#10b981',
     },
     {
       key: '비행경로이탈',
       label: '비행경로이탈',
-      count: visibleIncidents.filter((i) => i.subError === '비행경로이탈').length,
+      count: allFilteredIncidents.filter((i) => i.subError === '비행경로이탈').length,
       color: '#f97316',
     },
     {
       key: '기타',
       label: '기타',
-      count: visibleIncidents.filter(
+      count: allFilteredIncidents.filter(
         (i) =>
           i.subError &&
           !['복창오류', '무응답/재호출', '고도이탈', '비행경로이탈'].includes(
@@ -326,7 +638,7 @@ export default function AirlinePage() {
     {
       key: '오류 미발생',
       label: '오류 미발생',
-      count: visibleIncidents.filter((i) => i.errorType === '오류 미발생').length,
+      count: allFilteredIncidents.filter((i) => i.errorType === '오류 미발생').length,
       color: '#22c55e',
     },
   ];
@@ -336,257 +648,284 @@ export default function AirlinePage() {
     1,
   );
 
+  const splitCallsignPair = (pair: string): [string, string] | null => {
+    if (!pair) return null;
+    const separators = ['↔', '|'];
+    for (const separator of separators) {
+      if (pair.includes(separator)) {
+        const [left, right] = pair.split(separator);
+        if (left && right) {
+          return [left.trim(), right.trim()];
+        }
+      }
+    }
+    return null;
+  };
+
+  const getCallsignCharColors = (my: string, other: string) => {
+    const myChars = Array.from(my);
+    const otherChars = Array.from(other);
+    const myColors = myChars.map(() => 'text-blue-700');
+    const otherColors = otherChars.map(() => 'text-blue-700');
+    const maxLength = Math.max(myChars.length, otherChars.length);
+
+    for (let i = 0; i < maxLength; i += 1) {
+      const myChar = myChars[i];
+      const otherChar = otherChars[i];
+      const isSame = myChar !== undefined && otherChar !== undefined && myChar === otherChar;
+
+      if (!isSame) {
+        if (myChar !== undefined) {
+          myColors[i] = 'text-rose-700';
+        }
+        if (otherChar !== undefined) {
+          otherColors[i] = 'text-rose-700';
+        }
+      }
+    }
+
+    return { myChars, otherChars, myColors, otherColors };
+  };
+
   return (
     <>
-      <main className="flex min-h-screen bg-gray-50">
+      <main className="flex flex-1 h-full bg-gray-50 overflow-hidden">
         {/* 왼쪽 사이드바 */}
-        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-4">
+        <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-0 shrink-0 h-full overflow-y-auto">
+          <div className="px-6 py-8 mb-2">
+            <h2 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
+              Airline Service
+            </h2>
+          </div>
           {/* 사이드바 네비게이션 */}
-          <nav className="flex-1 px-4 py-4 space-y-2">
-            <button
-              onClick={() => setActiveTab('incidents')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black tracking-tight transition-all text-left ${activeTab === 'incidents'
-                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                : 'text-gray-500 hover:bg-gray-100'
-                }`}
-            >
-              <span className="text-lg">📊</span>
-              <span>발생현황</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('actions')}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black tracking-tight transition-all text-left ${activeTab === 'actions'
-                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                : 'text-gray-500 hover:bg-gray-100'
-                }`}
-            >
-              <span className="text-lg">📋</span>
-              <span>조치이력</span>
-            </button>
+          <nav className="flex-1 px-4 space-y-2">
+            {[
+              { id: 'incidents', label: '발생현황', icon: BarChart3, color: 'primary' },
+              { id: 'analysis', label: '세부오류분석', icon: PieChart, color: 'warning', hideWhen: 'actions' },
+              { id: 'actions', label: '조치이력', icon: ClipboardList, color: 'info' },
+              { id: 'statistics', label: '통계', icon: TrendingUp, color: 'success' },
+              { id: 'announcements', label: '공지사항', icon: Megaphone, color: 'orange' },
+            ]
+              .filter((item) => !item.hideWhen || activeTab !== item.hideWhen)
+              .map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as any)}
+                  className={`w-full group flex items-center gap-4 px-4 py-4 rounded-none text-sm font-bold tracking-tight transition-all text-left border-l-4 ${isActive
+                    ? 'bg-navy text-white shadow-[0_10px_20px_rgba(30,58,95,0.2)] border-rose-700'
+                    : 'text-gray-500 hover:bg-gray-50 border-transparent hover:border-gray-200'
+                    }`}
+                >
+                  <NanoIcon
+                    icon={item.icon as any}
+                    color={item.color as any}
+                    size="sm"
+                    isActive={isActive}
+                  />
+                  <span className={`transition-all duration-300 ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
           </nav>
         </aside>
 
         {/* 오른쪽 콘텐츠 영역 */}
-        <div className="flex-1 overflow-auto">
-          <div className="max-w-6xl w-full mx-auto px-8 py-10 space-y-8 animate-fade-in">
+        <div className="flex-1 overflow-y-auto h-full bg-gray-50">
+          <div className="w-full max-w-6xl mx-auto px-8 py-10 space-y-8 animate-fade-in flex flex-col">
             {activeTab === 'incidents' && (
               <>
+                {/* 요약 통계 - 상단 카드 */}
+                {totalIncidentCount > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                      <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
+                      <div className="relative flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                          <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total Cases</p>
+                        </div>
+                        <div className="flex items-baseline gap-1">
+                          <p className="text-5xl font-black text-gray-900 tracking-tighter">{totalIncidentCount}</p>
+                          <span className="text-sm font-bold text-gray-400">건</span>
+                        </div>
+                        <p className="mt-1 text-[12px] font-bold text-gray-400 leading-tight">전체 진행 중 호출부호 누적 건수</p>
+                        {totalIncidentCount > visibleIncidentCount && (
+                          <p className="mt-2 text-[11px] font-bold text-gray-400 leading-tight">
+                            현재 화면에 {visibleIncidentCount}건 표시 중 (최대 {callsignsData?.pagination?.limit ?? visibleIncidentCount}건)
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 동적으로 생성된 에러 타입별 카드 */}
+                    {errorTypeStats.map((stat) => (
+                      <div
+                        key={stat.type}
+                        onClick={() => setErrorTypeFilter(errorTypeFilter === stat.type ? 'all' : stat.type as any)}
+                        className={`group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === stat.type ? `ring-2 ring-opacity-50 shadow-opacity-10` : ''
+                          }`}
+                        style={
+                          errorTypeFilter === stat.type
+                            ? {
+                              boxShadow: `0 0 0 2px var(--ring-color), 0 20px 40px var(--shadow-color)`,
+                              '--ring-color': stat.textColor.replace('text-', '--').match(/text-(\w+-\d+)/)?.[1],
+                            } as any
+                            : {}
+                        }
+                      >
+                        <div
+                          className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
+                          style={{ backgroundColor: stat.textColor.replace('text-', 'rgb(') + ')' }}
+                        />
+                        <div className="relative flex flex-col h-full">
+                          <div className="flex justify-between items-start mb-4">
+                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                              {stat.label}
+                            </p>
+                            {visibleIncidentCount > 0 && (
+                              <span className={`text-[10px] font-black px-2 py-1 rounded-none ${stat.bgColor} ${stat.textColor}`}>
+                                {stat.percentage}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-baseline gap-1">
+                            <p className={`text-5xl font-black tracking-tighter ${stat.textColor}`}>{stat.count}</p>
+                            <span className="text-sm font-bold text-gray-400">건</span>
+                          </div>
+                          <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">
+                            {stat.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* 조회 기간 필터 */}
-              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
-                <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-none">
+                  <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
+                    <div className="flex items-center gap-3">
+                      {/* bg-[url('data:image/svg+xml;utf8,<svg ... />')] */}
+                      <div className="w-10 h-10 bg-rose-50 text-rose-700 rounded-none flex items-center justify-center">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">조회 기간</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="date"
+                            value={startDate}
+                            onChange={handleStartDateChange}
+                            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
+                          />
+                          <span className="text-gray-300">~</span>
+                          <input
+                            type="date"
+                            value={endDate}
+                            onChange={handleEndDateChange}
+                            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex bg-gray-50/50 p-1 rounded-none border border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('today')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === 'today' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        오늘
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('1w')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '1w' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        1주
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('2w')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '2w' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        2주
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyQuickRange('1m')}
+                        className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${activeRange === '1m' ? 'bg-white text-rose-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                          }`}
+                      >
+                        1개월
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 w-full md:w-auto">
+                    <button
+                      type="button"
+                      onClick={handleExportIncidents}
+                      disabled={isExporting || allFilteredIncidents.length === 0}
+                      className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-none font-bold shadow-sm transition-all text-sm border ${isExporting || allFilteredIncidents.length === 0
+                          ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                          : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                        }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
-                    </div>
+                      <span>{isExporting ? '내보내는 중...' : 'Excel 내보내기'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 발생현황 테이블 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                  {/*
+                  <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-[#00205b] text-white">
                     <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">조회 기간</p>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="date"
-                          value={startDate}
-                          onChange={handleStartDateChange}
-                          className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
-                        />
-                        <span className="text-gray-300">~</span>
-                        <input
-                          type="date"
-                          value={endDate}
-                          onChange={handleEndDateChange}
-                          className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex bg-gray-50/50 p-1 rounded-xl border border-gray-100">
-                    <button
-                      type="button"
-                      onClick={() => applyQuickRange('today')}
-                      className={`px-4 py-2 rounded-lg text-xs font-black tracking-tight transition-all ${activeRange === 'today' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                        }`}
-                    >
-                      오늘
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyQuickRange('1w')}
-                      className={`px-4 py-2 rounded-lg text-xs font-black tracking-tight transition-all ${activeRange === '1w' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                        }`}
-                    >
-                      1주
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyQuickRange('2w')}
-                      className={`px-4 py-2 rounded-lg text-xs font-black tracking-tight transition-all ${activeRange === '2w' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                        }`}
-                    >
-                      2주
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyQuickRange('1m')}
-                      className={`px-4 py-2 rounded-lg text-xs font-black tracking-tight transition-all ${activeRange === '1m' ? 'bg-white text-primary shadow-sm' : 'text-gray-400 hover:text-gray-600'
-                        }`}
-                    >
-                      1개월
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 w-full md:w-auto">
-                  <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-2xl font-bold shadow-sm hover:bg-gray-50 transition-all text-sm">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    <span>Excel 내보내기</span>
-                  </button>
-                </div>
-              </div>
-              {/* 요약 통계 (Full Width) */}
-              {total > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                  <div className="group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
-                    <div className="relative flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Total Cases</p>
-                      </div>
-                      <div className="flex items-baseline gap-1">
-                        <p className="text-5xl font-black text-gray-900 tracking-tighter">{total}</p>
-                        <span className="text-sm font-bold text-gray-400">건</span>
-                      </div>
-                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">분석 기간 내 전체 발생 건수</p>
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => setErrorTypeFilter(errorTypeFilter === '관제사 오류' ? 'all' : '관제사 오류')}
-                    className={`group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === '관제사 오류' ? 'ring-2 ring-rose-500 shadow-rose-500/10' : ''}`}
-                  >
-                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-rose-600" />
-                    <div className="relative flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">ATC Related</p>
-                        {total > 0 && (
-                          <span className="text-[10px] font-black px-2 py-1 rounded-md bg-rose-50 text-rose-600">
-                            {Math.round((atcCount / total) * 100)}%
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-baseline gap-1">
-                        <p className="text-5xl font-black text-rose-600 tracking-tighter">{atcCount}</p>
-                        <span className="text-sm font-bold text-gray-400">건</span>
-                      </div>
-                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">관제사 요인으로 판명된 사례</p>
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => setErrorTypeFilter(errorTypeFilter === '조종사 오류' ? 'all' : '조종사 오류')}
-                    className={`group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === '조종사 오류' ? 'ring-2 ring-amber-500 shadow-amber-500/10' : ''}`}
-                  >
-                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-amber-600" />
-                    <div className="relative flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Pilot Related</p>
-                        {total > 0 && (
-                          <span className="text-[10px] font-black px-2 py-1 rounded-md bg-amber-50 text-amber-600">
-                            {Math.round((pilotCount / total) * 100)}%
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-baseline gap-1">
-                        <p className="text-5xl font-black text-amber-600 tracking-tighter">{pilotCount}</p>
-                        <span className="text-sm font-bold text-gray-400">건</span>
-                      </div>
-                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">조종사 요인으로 판명된 사례</p>
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => setErrorTypeFilter(errorTypeFilter === '오류 미발생' ? 'all' : '오류 미발생')}
-                    className={`group relative bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${errorTypeFilter === '오류 미발생' ? 'ring-2 ring-emerald-500 shadow-emerald-500/10' : ''}`}
-                  >
-                    <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-emerald-600" />
-                    <div className="relative flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">No Error</p>
-                        {total > 0 && (
-                          <span className="text-[10px] font-black px-2 py-1 rounded-md bg-emerald-50 text-emerald-600">
-                            {Math.round((noneCount / total) * 100)}%
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-baseline gap-1">
-                        <p className="text-5xl font-black text-emerald-600 tracking-tighter">{noneCount}</p>
-                        <span className="text-sm font-bold text-gray-400">건</span>
-                      </div>
-                      <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">오류 없이 경고만 발생한 사례</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* 발생현황 테이블 - 2단계 구조 */}
-              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-                  <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
-                    <div>
-                      <h3 className="text-xl font-black text-gray-900 tracking-tight">유사호출부호 발생현황</h3>
-                      <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-widest">
-                        Risk analyzed callsign pairs ({visibleIncidents.length} cases)
+                      <h3 className="text-xl font-black text-white tracking-tight">유사호출부호 발생현황</h3>
+                      <p className="text-xs font-bold text-gray-300 mt-1 uppercase tracking-widest">
+                        Risk analyzed callsign pairs ({allFilteredIncidents.length} cases)
                       </p>
                     </div>
                   </div>
+                  */}
 
                   <div className="overflow-x-auto flex-1">
                     <div className="divide-y divide-gray-50">
-                      {visibleIncidents.map((incident: any) => {
-                        // 호출부호 숫자 색상 처리: 같은 숫자끼리 같은 색
+                      {allFilteredIncidents.map((incident: any) => {
                         const renderColoredCallsign = (callsignPair: string) => {
-                          const parts = callsignPair.split('↔');
-                          if (parts.length !== 2) return callsignPair;
+                          const parts = splitCallsignPair(callsignPair);
+                          if (!parts) return callsignPair;
 
-                          const [my, other] = [parts[0].trim(), parts[1].trim()];
-
-                          // 모든 숫자 추출 및 색상 할당 (숫자별로 일관된 색상)
-                          const colorMap: Record<string, string> = {};
-                          const colors = [
-                            'text-blue-600', 'text-rose-600', 'text-amber-600', 'text-emerald-600',
-                            'text-cyan-600', 'text-purple-600', 'text-indigo-600', 'text-pink-600',
-                            'text-lime-600', 'text-teal-600'
-                          ];
-
-                          // 숫자별 색상 맵핑 (0-9)
-                          Array.from(new Set((my + other).split(''))).forEach((char, idx) => {
-                            if (char >= '0' && char <= '9') {
-                              const digitIdx = parseInt(char, 10);
-                              colorMap[char] = colors[digitIdx % colors.length];
-                            }
-                          });
+                          const [my, other] = parts;
+                          const { myChars, otherChars, myColors, otherColors } = getCallsignCharColors(my, other);
 
                           return (
                             <div className="flex items-center gap-0.5">
-                              {Array.from(my).map((char, idx) => (
+                              {myChars.map((char, idx) => (
                                 <span
                                   key={`my-${idx}`}
-                                  className={`font-black text-lg leading-none ${
-                                    char >= '0' && char <= '9' ? colorMap[char] : 'text-gray-900'
-                                  }`}
+                                  className={`font-black text-xl leading-none font-extrabold ${myColors[idx]}`}
                                 >
                                   {char}
                                 </span>
                               ))}
                               <span className="text-gray-400 font-bold mx-0.5">↔</span>
-                              {Array.from(other).map((char, idx) => (
+                              {otherChars.map((char, idx) => (
                                 <span
                                   key={`other-${idx}`}
-                                  className={`font-black text-lg leading-none ${
-                                    char >= '0' && char <= '9' ? colorMap[char] : 'text-gray-900'
-                                  }`}
+                                  className={`font-black text-xl leading-none font-extrabold ${otherColors[idx]}`}
                                 >
                                   {char}
                                 </span>
@@ -598,51 +937,29 @@ export default function AirlinePage() {
                         return (
                           <div
                             key={incident.id}
-                            className={`border-b-2 border-gray-100 last:border-b-0 border-l-4 ${
-                              incident.risk === '매우높음' ? 'border-l-red-600' :
+                            className={`border-b-2 border-gray-100 last:border-b-0 border-l-4 ${incident.risk === '매우높음' ? 'border-l-red-600' :
                               incident.risk === '높음' ? 'border-l-amber-500' : 'border-l-emerald-600'
-                            }`}
+                              }`}
                           >
                             {/* 첫 번째 행: 호출부호 | 분류 정보 태그 | 조치 버튼 */}
-                            <div className="px-8 py-4 flex items-center justify-between gap-6 group hover:bg-primary/[0.02] transition-colors border-b border-gray-50">
+                            <div className="px-6 py-3 flex items-center justify-between gap-5 group hover:bg-slate-50 transition-colors border-b border-gray-50">
                               {/* 호출부호 쌍 - 배경색 추가 */}
-                              <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50 rounded-lg px-2.5 py-1">
+                              <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50 rounded-none px-2 py-0.5">
                                 {(() => {
-                                  const parts = incident.pair.split('↔');
-                                  if (parts.length !== 2) return incident.pair;
-                                  const [my, other] = [parts[0].trim(), parts[1].trim()];
+                                  const parts = splitCallsignPair(incident.pair);
+                                  if (!parts) return incident.pair;
+                                  const [my, other] = parts;
 
-                                  // 모든 숫자 추출 및 색상 할당
-                                  const colorMap: Record<string, string> = {};
-                                  const colors = [
-                                    'text-blue-700', 'text-rose-700', 'text-amber-700', 'text-emerald-700',
-                                    'text-cyan-700', 'text-purple-700', 'text-indigo-700', 'text-pink-700',
-                                    'text-lime-700', 'text-teal-700'
-                                  ];
-
-                                  // 숫자별 색상 맵핑 (0-9)
-                                  Array.from(new Set((my + other).split(''))).forEach((char, idx) => {
-                                    if ((char as string) >= '0' && (char as string) <= '9') {
-                                      const digitIdx = parseInt(char as string, 10);
-                                      colorMap[char as string] = colors[digitIdx % colors.length];
-                                    }
-                                  });
-
-                                  // 항공사 코드 비교 (첫 3글자)
-                                  const myAirline = my.substring(0, 3);
-                                  const otherAirline = other.substring(0, 3);
-                                  const isSameAirline = myAirline === otherAirline;
+                                  const { myChars, otherChars, myColors, otherColors } = getCallsignCharColors(my, other);
 
                                   return (
                                     <div className="flex items-center gap-0.5">
                                       {/* 첫 번째 콜사인 - 파란색 텍스트 */}
                                       <div className="flex items-center gap-0">
-                                        {Array.from(my).map((char, idx) => (
+                                        {myChars.map((char, idx) => (
                                           <span
                                             key={`my-${idx}`}
-                                            className={`font-black text-2xl leading-tight ${
-                                              (char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : 'text-blue-700'
-                                            }`}
+                                            className={`font-black text-2xl leading-none font-extrabold ${myColors[idx]}`}
                                           >
                                             {char as string}
                                           </span>
@@ -652,14 +969,12 @@ export default function AirlinePage() {
                                       {/* 파이프 분리선 */}
                                       <span className="text-gray-400 font-bold text-sm px-0.5">|</span>
 
-                                      {/* 두 번째 콜사인 - 같은 항공사면 파란색, 다르면 빨간색 */}
+                                      {/* 두 번째 콜사인 - 동일 구간은 파란색, 차이는 빨간색 */}
                                       <div className="flex items-center gap-0">
-                                        {Array.from(other).map((char, idx) => (
+                                        {otherChars.map((char, idx) => (
                                           <span
                                             key={`other-${idx}`}
-                                            className={`font-black text-2xl leading-tight ${
-                                              (char as string) >= '0' && (char as string) <= '9' ? colorMap[char as string] : (isSameAirline ? 'text-blue-700' : 'text-rose-700')
-                                            }`}
+                                            className={`font-black text-2xl leading-none font-extrabold ${otherColors[idx]}`}
                                           >
                                             {char as string}
                                           </span>
@@ -672,14 +987,13 @@ export default function AirlinePage() {
 
                               {/* 분류 정보 태그 - 호출부호 바로 옆 */}
                               <div className="flex flex-wrap gap-2 items-center">
-                                <span className={`inline-block text-[10px] font-bold px-2.5 py-1 rounded-full ${
-                                  incident.errorType === '관제사 오류' ? 'text-rose-600 bg-rose-50' :
+                                <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-none ${incident.errorType === '관제사 오류' ? 'text-rose-600 bg-rose-50' :
                                   incident.errorType === '조종사 오류' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'
-                                }`}>
+                                  }`}>
                                   {incident.errorType}
                                 </span>
                                 {incident.subError && (
-                                  <span className="inline-block text-[10px] font-bold px-2.5 py-1 rounded-full text-indigo-600 bg-indigo-50">
+                                  <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-none text-indigo-600 bg-indigo-50">
                                     {incident.subError}
                                   </span>
                                 )}
@@ -687,29 +1001,39 @@ export default function AirlinePage() {
 
                               <button
                                 onClick={() => handleOpenActionModal(incident)}
-                                className="flex-shrink-0 px-4 py-2 bg-primary text-white text-[11px] font-black rounded-xl shadow-md shadow-primary/20 hover:scale-[1.05] active:scale-[0.95] transition-all uppercase tracking-widest whitespace-nowrap"
+                                className="flex-shrink-0 px-3 py-1.5 bg-rose-700 text-white text-[10px] font-black rounded-none shadow-none hover:bg-rose-800 transition-all uppercase tracking-widest whitespace-nowrap"
                               >
                                 조치 등록
                               </button>
                             </div>
 
                             {/* 두 번째 행: 상세 정보 - 개별 박스 */}
-                            <div className="px-8 py-5 bg-gray-50/40 grid grid-cols-4 gap-4">
+                            <div className="px-6 py-4 bg-gray-50/40 grid grid-cols-2 md:grid-cols-5 gap-3">
                               {/* 발생건수 */}
-                              <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">발생건수</span>
-                                <span className={`text-lg font-black ${
-                                  incident.risk === '매우높음' ? 'text-rose-600' :
+                                <span className={`text-base font-black ${incident.risk === '매우높음' ? 'text-rose-600' :
                                   incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
-                                }`}>
+                                  }`}>
                                   {incident.count}건
                                 </span>
                               </div>
 
+                              {/* 최초 발생일 */}
+                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">최초 발생일</span>
+                                <span className="text-[13px] font-bold text-gray-900">
+                                  {incident.firstDate
+                                    ? new Date(incident.firstDate).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
+                                    : '-'
+                                  }
+                                </span>
+                              </div>
+
                               {/* 최근 발생일 */}
-                              <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">최근 발생일</span>
-                                <span className="text-sm font-bold text-gray-900">
+                                <span className="text-[13px] font-bold text-gray-900">
                                   {incident.lastDate
                                     ? new Date(incident.lastDate).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' })
                                     : '-'
@@ -718,20 +1042,19 @@ export default function AirlinePage() {
                               </div>
 
                               {/* 유사성 */}
-                              <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">유사성</span>
-                                <span className="text-sm font-bold text-gray-900">
+                                <span className="text-[13px] font-bold text-gray-900">
                                   {incident.similarity}
                                 </span>
                               </div>
 
                               {/* 오류가능성 */}
-                              <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2.5 flex flex-col gap-1">
+                              <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">오류가능성</span>
-                                <span className={`text-sm font-bold ${
-                                  incident.risk === '매우높음' ? 'text-rose-600' :
+                                <span className={`text-[13px] font-black ${incident.risk === '매우높음' ? 'text-rose-600' :
                                   incident.risk === '높음' ? 'text-amber-600' : 'text-emerald-600'
-                                }`}>
+                                  }`}>
                                   {incident.risk}
                                 </span>
                               </div>
@@ -746,7 +1069,7 @@ export default function AirlinePage() {
                                   <div className="flex flex-wrap gap-2">
                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 self-center">발생 이력</span>
                                     {incident.dates.map((date: string, idx: number) => (
-                                      <span key={idx} className="inline-block text-xs font-bold px-3 py-1 rounded-lg bg-blue-50 text-blue-600">
+                                      <span key={idx} className="inline-block text-xs font-bold px-3 py-1 rounded-none bg-blue-50 text-blue-600">
                                         {new Date(date).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                       </span>
                                     ))}
@@ -761,8 +1084,9 @@ export default function AirlinePage() {
                   </div>
                 </div>
 
-                {visibleIncidents.length === 0 && (
-                  <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-gray-100 mt-8">
+
+                {allFilteredIncidents.length === 0 && (
+                  <div className="bg-white rounded-none p-12 text-center shadow-sm border border-gray-100">
                     <div className="text-4xl mb-4">✅</div>
                     <p className="text-gray-500 font-bold">등록된 유사호출부호 발생 이력이 없습니다</p>
                   </div>
@@ -791,26 +1115,28 @@ export default function AirlinePage() {
                           setActionPage(1);
                         }
                       }}
-                      className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-2xl text-sm font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-gray-300"
+                      className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-none text-sm font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-700/20 focus:border-rose-700 transition-all placeholder:text-gray-300"
                     />
                     <button
                       onClick={() => {
                         setActionSearch(actionSearchInput);
                         setActionPage(1);
                       }}
-                      className="absolute right-2 top-2 bottom-2 px-6 bg-primary text-white text-[11px] font-black rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest"
+                      className="absolute right-2 top-2 bottom-2 px-6 bg-[#00205b] text-white text-[11px] font-black rounded-none shadow-none hover:bg-[#001540] transition-all uppercase tracking-widest"
                     >
                       Search
                     </button>
                   </div>
 
-                  <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm border border-gray-100 flex items-center gap-2">
+                  <div className="bg-white/50 backdrop-blur-sm rounded-none p-1.5 shadow-sm border border-gray-100 flex items-center gap-2">
                     <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest px-3">Limit</span>
                     <select
                       value={actionLimit}
                       onChange={(e) => {
                         setActionLimit(parseInt(e.target.value, 10));
                         setActionPage(1);
+                        // 목록 개수 변경 시 캐시 초기화
+                        queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
                       }}
                       className="bg-transparent text-sm font-black text-gray-700 focus:outline-none cursor-pointer pr-4"
                     >
@@ -823,36 +1149,24 @@ export default function AirlinePage() {
                 </div>
 
                 {/* 상태 필터 탭 */}
-                <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/50 backdrop-blur-sm rounded-2xl p-1.5 shadow-sm border border-gray-100">
+                <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/50 backdrop-blur-sm rounded-none p-1.5 shadow-sm border border-gray-100">
                   <button
-                    onClick={() => {
-                      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
-                      setActionStatusFilter('all');
-                      setActionPage(1);
-                    }}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'all' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    onClick={() => setActionStatusFilter('all')}
+                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'all' ? 'bg-[#00205b] text-white shadow-none' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     전체
                   </button>
                   <button
-                    onClick={() => {
-                      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
-                      setActionStatusFilter('in_progress');
-                      setActionPage(1);
-                    }}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    onClick={() => setActionStatusFilter('in_progress')}
+                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'in_progress' ? 'bg-rose-700 text-white shadow-none' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     진행중
                   </button>
                   <button
-                    onClick={() => {
-                      queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
-                      setActionStatusFilter('completed');
-                      setActionPage(1);
-                    }}
-                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-xl text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'completed' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                    onClick={() => setActionStatusFilter('completed')}
+                    className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${actionStatusFilter === 'completed' ? 'bg-emerald-600 text-white shadow-none' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                       }`}
                   >
                     완료
@@ -868,11 +1182,12 @@ export default function AirlinePage() {
                 {actionsLoading ? (
                   <div className="p-20 text-center text-gray-400 font-bold animate-pulse">데이터 분석 중...</div>
                 ) : actionsData && actionsData.data.length > 0 ? (
-                  <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                  <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                     <div className="overflow-x-auto flex-1">
                       <table className="w-full">
                         <thead>
                           <tr className="bg-gray-50/30">
+                            <th className="px-8 py-4 text-center text-[11px] font-black text-gray-400 uppercase tracking-widest w-12">No.</th>
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Registered</th>
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Callsign Pair</th>
                             <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">Type</th>
@@ -882,20 +1197,35 @@ export default function AirlinePage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                          {actionsData.data.map((action) => {
+                          {actionsData.data.map((action, index) => {
                             const statusLabel = action.status === 'in_progress' ? '진행중' : '완료';
                             const statusStyles =
-                              action.status === 'in_progress' ? 'text-blue-600 bg-blue-50' : 'text-emerald-600 bg-emerald-50';
+                              action.status === 'in_progress' ? 'text-rose-700 bg-rose-50 border border-rose-200' : 'text-emerald-600 bg-emerald-50 border border-emerald-200';
                             const registeredDate = action.registered_at ? new Date(action.registered_at).toLocaleDateString('ko-KR') : '-';
+                            const rowNumber = (actionPage - 1) * actionLimit + index + 1;
 
                             return (
-                              <tr key={action.id} className="group hover:bg-primary/[0.02] transition-colors">
+                              <tr
+                                key={action.id}
+                                className="group hover:bg-primary/[0.02] transition-colors cursor-pointer"
+                                onDoubleClick={() => {
+                                  const targetId = action.callsign_id || action.callsignId || action.callsign?.id;
+                                  const detailFromIncidents = callsignsData?.data.find(
+                                    (cs) => cs.id === targetId,
+                                  );
+                                  const detailPayload = detailFromIncidents || action.callsign;
+                                  if (!detailPayload) return;
+                                  setSelectedCallsignForDetail(detailPayload);
+                                  setIsCallsignDetailModalOpen(true);
+                                }}
+                              >
+                                <td className="px-8 py-5 text-sm font-bold text-gray-500 text-center">{rowNumber}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-500">{registeredDate}</td>
                                 <td className="px-8 py-5 text-sm font-black text-gray-900 tracking-tight">{action.callsign?.callsign_pair || '-'}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.action_type}</td>
                                 <td className="px-8 py-5 text-sm font-bold text-gray-700">{action.manager_name}</td>
                                 <td className="px-8 py-5 text-center">
-                                  <span className={`inline-flex px-3 py-1 rounded-lg text-[10px] font-black tracking-widest ${statusStyles}`}>
+                                  <span className={`inline-flex px-3 py-1 rounded-none text-[10px] font-black tracking-widest ${statusStyles}`}>
                                     {statusLabel}
                                   </span>
                                 </td>
@@ -905,9 +1235,9 @@ export default function AirlinePage() {
                                       setSelectedAction(action);
                                       setIsActionDetailModalOpen(true);
                                     }}
-                                    className="px-3 py-1.5 bg-primary text-white text-[9px] font-black rounded-lg shadow-md shadow-primary/20 hover:scale-[1.05] active:scale-[0.95] transition-all uppercase tracking-wider"
+                                    className="px-4 py-2 bg-rose-700 text-white text-[9px] font-black rounded-none shadow-none hover:bg-rose-800 transition-all uppercase tracking-wider"
                                   >
-                                    상세보기
+                                    편집
                                   </button>
                                 </td>
                               </tr>
@@ -923,7 +1253,7 @@ export default function AirlinePage() {
                         <button
                           onClick={() => setActionPage(Math.max(1, actionPage - 1))}
                           disabled={actionPage === 1}
-                          className="p-2 rounded-xl border border-gray-200 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
+                          className="p-2 rounded-none border border-gray-200 text-gray-400 hover:text-rose-700 hover:border-rose-700 disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
                         >
                           PREV
                         </button>
@@ -937,9 +1267,9 @@ export default function AirlinePage() {
                               <button
                                 key={pageNum}
                                 onClick={() => setActionPage(pageNum)}
-                                className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${pageNum === actionPage
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
-                                    : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'
+                                className={`w-10 h-10 rounded-none text-xs font-black transition-all border border-transparent ${pageNum === actionPage
+                                  ? 'bg-rose-700 text-white shadow-none'
+                                  : 'text-gray-400 hover:text-gray-900 border-gray-200 hover:bg-gray-50'
                                   }`}
                               >
                                 {pageNum}
@@ -951,7 +1281,7 @@ export default function AirlinePage() {
                         <button
                           onClick={() => setActionPage(Math.min(actionsData.pagination.totalPages, actionPage + 1))}
                           disabled={actionPage === actionsData.pagination.totalPages}
-                          className="p-2 rounded-xl border border-gray-200 text-gray-400 hover:text-primary hover:border-primary disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
+                          className="p-2 rounded-none border border-gray-200 text-gray-400 hover:text-rose-700 hover:border-rose-700 disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
                         >
                           NEXT
                         </button>
@@ -959,12 +1289,227 @@ export default function AirlinePage() {
                     )}
                   </div>
                 ) : (
-                  <div className="bg-white rounded-3xl p-20 text-center shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-none p-20 text-center shadow-sm border border-gray-100">
                     <div className="text-4xl mb-4">📑</div>
                     <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">No action history found</p>
                   </div>
                 )}
               </>
+            )}
+
+            {/* 세부오류분석 탭 */}
+            {activeTab === 'analysis' && (
+              <div className="space-y-8">
+                {/* 헤더 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-black text-gray-900 tracking-tight">세부오류분석</h2>
+                      <p className="text-sm text-gray-500 mt-1">오류 유형별 상세 분석 및 인사이트</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-gray-500">필터:</span>
+                      <select
+                        value={errorTypeFilter}
+                        onChange={(e) => setErrorTypeFilter(e.target.value as any)}
+                        className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-none text-sm font-bold focus:outline-none focus:ring-2 focus:ring-rose-700/20"
+                      >
+                        <option value="all">전체</option>
+                        <option value="관제사 오류">관제사 오류</option>
+                        <option value="조종사 오류">조종사 오류</option>
+                        <option value="오류 미발생">오류 미발생</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 세부 오류 유형별 바 차트 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
+                  <h3 className="text-lg font-black text-gray-900 mb-6 tracking-tight">세부 오류 유형별 분포</h3>
+                  <div className="space-y-4">
+                    {subTypeStats.map((stat) => (
+                      <div key={stat.key} className="flex items-center gap-4">
+                        <div className="w-32 text-sm font-bold text-gray-700 truncate">{stat.label}</div>
+                        <div className="flex-1 h-10 bg-gray-100 rounded-none overflow-hidden relative">
+                          <div
+                            className="h-full transition-all duration-500 ease-out"
+                            style={{
+                              width: `${maxSubCount > 0 ? (stat.count / maxSubCount) * 100 : 0}%`,
+                              backgroundColor: stat.color,
+                            }}
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-black text-gray-600">
+                            {stat.count}건
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 분석 인사이트 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
+                  <h3 className="text-lg font-black text-gray-900 mb-4 tracking-tight">분석 인사이트</h3>
+                  <div className="space-y-4">
+                    {subTypeStats.filter(s => s.count > 0).length === 0 ? (
+                      <p className="text-gray-500">현재 필터 조건에 해당하는 오류 데이터가 없습니다.</p>
+                    ) : (
+                      <>
+                        {(() => {
+                          const topError = subTypeStats.reduce((max, curr) => curr.count > max.count ? curr : max, subTypeStats[0]);
+                          const totalErrors = subTypeStats.reduce((sum, s) => sum + s.count, 0);
+                          const topPercentage = totalErrors > 0 ? Math.round((topError.count / totalErrors) * 100) : 0;
+
+                          return (
+                            <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-none border border-blue-100">
+                              <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 bg-blue-100 rounded-none flex items-center justify-center text-2xl">
+                                  💡
+                                </div>
+                                <div>
+                                  <h4 className="font-black text-gray-900 mb-2">주요 발견사항</h4>
+                                  <p className="text-sm text-gray-700 leading-relaxed">
+                                    현재 <span className="font-black text-blue-700">{selectedErrorLabel}</span> 필터 기준,
+                                    가장 빈번한 세부 오류 유형은 <span className="font-black" style={{ color: topError.color }}>{topError.label}</span>이며
+                                    전체의 <span className="font-black text-blue-700">{topPercentage}%</span>를 차지합니다.
+                                    {topError.key === '복창오류' && ' 복창 절차 준수에 대한 교육 강화가 권장됩니다.'}
+                                    {topError.key === '무응답/재호출' && ' 통신 품질 및 주파수 관리 점검이 필요합니다.'}
+                                    {topError.key === '고도이탈' && ' 고도 유지 절차에 대한 추가 교육이 권장됩니다.'}
+                                    {topError.key === '비행경로이탈' && ' 항로 이탈 방지를 위한 모니터링 강화가 필요합니다.'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* 오류 유형별 요약 카드 */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                          {errorTypeStats.map((stat) => (
+                            <div
+                              key={stat.type}
+                              className={`p-6 rounded-none border ${stat.bgColor} border-opacity-50`}
+                            >
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                                {stat.label}
+                              </p>
+                              <p className={`text-3xl font-black ${stat.textColor}`}>{stat.count}건</p>
+                              <p className="text-xs text-gray-500 mt-2">{stat.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 통계 탭 */}
+            {activeTab === 'statistics' && (
+              <AirlineStatisticsTab
+                statsStartDate={statsStartDate}
+                statsEndDate={statsEndDate}
+                onStatsStartDateChange={handleStatsStartDateChange}
+                onStatsEndDateChange={handleStatsEndDateChange}
+                statsActiveRange={statsActiveRange}
+                onApplyStatsQuickRange={applyStatsQuickRange}
+                actionStatsLoading={actionStatsLoading}
+                actionStats={actionStats}
+                incidents={allFilteredIncidents}
+              />
+            )}
+
+            {/* 공지사항 탭 */}
+            {activeTab === 'announcements' && (
+              <div className="space-y-6">
+                {/* 공지사항 요약 카드 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {announcementSummaryCards.map((card) => {
+                    const gradientClass = card.id === 'active-total'
+                      ? 'from-blue-50 to-blue-100 border-blue-200'
+                      : card.id === 'active-warning'
+                        ? 'from-amber-50 to-amber-100 border-amber-200'
+                        : 'from-green-50 to-green-100 border-green-200';
+                    return (
+                      <div
+                        key={card.id}
+                        className={`bg-gradient-to-br rounded-none p-6 border shadow-sm ${gradientClass}`}
+                      >
+                        <div className="text-3xl mb-2">{card.icon}</div>
+                        <p className="text-xs font-black uppercase tracking-widest mb-1 text-gray-600">
+                          {card.title}
+                        </p>
+                        <p className="text-2xl font-black text-gray-900">
+                          {card.loading ? '-' : `${card.value}건`}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-2">{card.description}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 공지사항 이력 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                    <div>
+                      <h3 className="text-lg font-black text-gray-900 mb-1 tracking-tight">공지사항 이력</h3>
+                      <p className="text-sm text-gray-500">최근 등록된 공지 {latestAnnouncements.length}건</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push('/announcements')}
+                      className="px-4 py-2 border border-gray-200 rounded-none text-sm font-bold text-gray-600 hover:bg-gray-50 transition"
+                    >
+                      전체 보기
+                    </button>
+                  </div>
+
+                  {announcementHistoryLoading ? (
+                    <div className="py-12 text-center text-gray-400 font-semibold">공지사항을 불러오는 중입니다...</div>
+                  ) : latestAnnouncements.length === 0 ? (
+                    <div className="py-12 text-center text-gray-400 font-semibold">
+                      표시할 공지사항이 없습니다.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {latestAnnouncements.map((item) => {
+                        const levelMeta = ANNOUNCEMENT_LEVEL_META[item.level as 'warning' | 'info' | 'success'] || ANNOUNCEMENT_LEVEL_META.info;
+                        const statusKey = (item.status as 'active' | 'expired') || 'active';
+                        const statusMeta = ANNOUNCEMENT_STATUS_META[statusKey];
+                        return (
+                          <div
+                            key={item.id}
+                            className="border border-gray-100 rounded-lg p-5 hover:border-primary/30 transition"
+                          >
+                            <div className="flex flex-wrap items-center gap-2 text-[11px] font-black text-gray-500 uppercase tracking-widest">
+                              <span className={`px-2 py-1 rounded-full ${levelMeta.badge}`}>{levelMeta.label}</span>
+                              <span className={`px-2 py-1 rounded-full ${statusMeta.badge}`}>{statusMeta.label}</span>
+                              <span className="text-gray-400 ml-auto">
+                                {formatAnnouncementPeriod(item.startDate, item.endDate)}
+                              </span>
+                            </div>
+                            <h4 className="text-lg font-black text-gray-900 mt-3">{item.title}</h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {truncateText(item.content, 140)}
+                            </p>
+                            <div className="flex justify-between items-center text-xs text-gray-400 mt-4">
+                              <span>작성 {new Date(item.createdAt).toLocaleDateString('ko-KR')}</span>
+                              <button
+                                type="button"
+                                onClick={() => router.push('/announcements')}
+                                className="text-rose-600 font-semibold hover:underline"
+                              >
+                                상세보기
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -983,6 +1528,7 @@ export default function AirlinePage() {
             handleCloseActionModal();
             queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
             queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
+            queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
           }}
         />
       )
@@ -1013,9 +1559,223 @@ export default function AirlinePage() {
             setActionPage(1);
             queryClient.invalidateQueries({ queryKey: ['airline-actions'] });
             queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
+            queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
           }}
         />
       )}
+
+      {/* 발생내역 상세조회 모달 */}
+      {isCallsignDetailModalOpen && selectedCallsignForDetail && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
+          }}
+          onClick={() => setIsCallsignDetailModalOpen(false)}
+        >
+          <div
+            style={{
+              width: '800px',
+              maxWidth: '95vw',
+              background: '#ffffff',
+              borderRadius: '12px',
+              boxShadow: '0 20px 40px rgba(15,23,42,0.25)',
+              padding: '24px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 헤더 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '20px',
+              }}
+            >
+              <div>
+                <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#111827' }}>
+                  {selectedCallsignForDetail.callsign_pair}
+                </h2>
+                <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>
+                  발생내역 상세정보
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCallsignDetailModalOpen(false)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  lineHeight: 1,
+                  color: '#9ca3af',
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* 상세정보 그리드 */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '16px',
+              }}
+            >
+              <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                  발생건수
+                </p>
+                <p style={{ fontSize: '20px', fontWeight: 700, color: '#ef6c00' }}>
+                  {callsignDetailMeta?.occurrenceCount ?? 0}건
+                </p>
+              </div>
+
+              <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                  최초 발생일
+                </p>
+                <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+                  {formatDisplayDate(callsignDetailMeta?.firstOccurredAt)}
+                </p>
+              </div>
+
+              <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                  최근 발생일
+                </p>
+                <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+                  {formatDisplayDate(callsignDetailMeta?.lastOccurredAt)}
+                </p>
+              </div>
+
+              <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                  유사성
+                </p>
+                <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+                  {callsignDetailMeta?.similarity || '-'}
+                </p>
+              </div>
+
+              <div style={{ padding: '16px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', marginBottom: '8px' }}>
+                  오류가능성
+                </p>
+                <p style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>
+                  {callsignDetailMeta?.riskLevel || '-'}
+                </p>
+              </div>
+            </div>
+
+            {/* 추가정보 */}
+            <div style={{ marginTop: '20px', padding: '16px', background: '#f9fafb', borderRadius: '8px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '12px',
+                  fontSize: '13px',
+                }}
+              >
+                <div>
+                  <span style={{ color: '#6b7280' }}>자사 호출부호: </span>
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {callsignDetailMeta?.myCallsign}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ color: '#6b7280' }}>타사 호출부호: </span>
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {callsignDetailMeta?.otherCallsign}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ color: '#6b7280' }}>오류 유형: </span>
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {callsignDetailMeta?.errorType || '-'}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ color: '#6b7280' }}>세부 오류: </span>
+                  <span style={{ fontWeight: 600, color: '#111827' }}>
+                    {callsignDetailMeta?.subError || '-'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 닫기 버튼 */}
+            <div style={{ marginTop: '20px', textAlign: 'right' }}>
+              <button
+                onClick={() => setIsCallsignDetailModalOpen(false)}
+                style={{
+                  padding: '10px 20px',
+                  background: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer style={{
+        marginTop: '40px',
+        padding: '20px',
+        backgroundColor: '#1f2937',
+        color: '#e5e7eb',
+        borderTop: '1px solid #374151',
+      }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ fontSize: '14px', fontWeight: '500', color: '#ffffff' }}>
+              유사호출부호 경고시스템 | 한국공항공사 · 항공교통본부
+            </div>
+            <div style={{ display: 'flex', gap: '20px', fontSize: '13px' }}>
+              <div>
+                <span style={{ color: '#9ca3af' }}>항행안전팀</span>
+              </div>
+              <div>
+                <span style={{ color: '#9ca3af' }}>T.</span>
+                <span style={{ fontWeight: '500', marginLeft: '4px' }}>1588-2311</span>
+              </div>
+              <div>
+                <span style={{ color: '#9ca3af' }}>E.</span>
+                <span style={{ fontWeight: '500', marginLeft: '4px' }}>info@airport.kr</span>
+              </div>
+            </div>
+          </div>
+          <div style={{
+            borderTop: '1px solid #4b5563',
+            marginTop: '12px',
+            paddingTop: '12px',
+            fontSize: '11px',
+            color: '#9ca3af',
+            textAlign: 'center',
+          }}>
+            © 2026 한국공항공사 · 항공교통본부. 유사호출부호 경고시스템은 항공기 안전운항을 위해 개발되었습니다.
+          </div>
+        </div>
+      </footer>
+
+
     </>
   );
 }

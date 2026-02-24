@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
       SELECT
         c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
         c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
+        c.sector, c.atc_recommendation,
         c.occurrence_count, c.last_occurred_at, c.file_upload_id, c.uploaded_at,
         c.created_at, c.updated_at,
         latest_action.id AS latest_action_id,

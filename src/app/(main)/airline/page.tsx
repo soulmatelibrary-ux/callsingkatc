@@ -10,13 +10,15 @@ import { useAirlineActions, useAirlineActionStats, useAirlineCallsigns } from '@
 import { useActiveAnnouncements, useAnnouncementHistory } from '@/hooks/useAnnouncements';
 import { useAuthStore } from '@/store/authStore';
 import { ActionModal } from '@/components/actions/ActionModal';
+import { Header } from '@/components/layout/Header';
 import { AirlineStatisticsTab } from '@/components/airline/AirlineStatisticsTab';
 import { NanoIcon } from '@/components/ui/NanoIcon';
 import {
   BarChart3,
   ClipboardList,
   TrendingUp,
-  Megaphone
+  Megaphone,
+  PieChart
 } from 'lucide-react';
 
 const AL: Record<string, { n: string }> = {
@@ -95,7 +97,7 @@ export default function AirlinePage() {
   const [airlineCode, setAirlineCode] = useState<string>('');
   const [airlineName, setAirlineName] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'incidents' | 'actions' | 'statistics' | 'announcements'>('incidents');
+  const [activeTab, setActiveTab] = useState<'incidents' | 'analysis' | 'actions' | 'statistics' | 'announcements'>('incidents');
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState<any | null>(null);
   const [startDate, setStartDate] = useState<string>(() => {
@@ -110,9 +112,7 @@ export default function AirlinePage() {
   const [errorTypeFilter, setErrorTypeFilter] = useState<'all' | '관제사 오류' | '조종사 오류' | '오류 미발생'>('all');
   const [statsStartDate, setStatsStartDate] = useState<string>(() => {
     const now = new Date();
-    const start = new Date(now);
-    start.setDate(now.getDate() - 29);
-    return formatDateInput(start);
+    return formatDateInput(new Date(now.getFullYear(), now.getMonth(), 1));
   });
   const [statsEndDate, setStatsEndDate] = useState<string>(() => formatDateInput(new Date()));
   const [statsActiveRange, setStatsActiveRange] = useState<'custom' | 'today' | '1w' | '2w' | '1m'>('1m');
@@ -687,8 +687,9 @@ export default function AirlinePage() {
   };
 
   return (
-    <>
-      <main className="flex flex-1 h-full bg-gray-50 overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+      <main className="flex flex-1 min-h-0 overflow-hidden">
         {/* 왼쪽 사이드바 */}
         <aside className="w-72 bg-white border-r border-gray-100 flex flex-col pt-0 shrink-0 h-full overflow-y-auto">
           <div className="px-6 py-8 mb-2">
@@ -700,10 +701,13 @@ export default function AirlinePage() {
           <nav className="flex-1 px-4 space-y-2">
             {[
               { id: 'incidents', label: '발생현황', icon: BarChart3, color: 'primary' },
+              { id: 'analysis', label: '세부오류분석', icon: PieChart, color: 'warning', hideWhen: 'actions' },
               { id: 'actions', label: '조치이력', icon: ClipboardList, color: 'info' },
               { id: 'statistics', label: '통계', icon: TrendingUp, color: 'success' },
               { id: 'announcements', label: '공지사항', icon: Megaphone, color: 'orange' },
-            ].map((item) => {
+            ]
+              .filter((item) => !item.hideWhen || activeTab !== item.hideWhen)
+              .map((item) => {
               const isActive = activeTab === item.id;
               return (
                 <button
@@ -1293,6 +1297,114 @@ export default function AirlinePage() {
               </>
             )}
 
+            {/* 세부오류분석 탭 */}
+            {activeTab === 'analysis' && (
+              <div className="space-y-8">
+                {/* 헤더 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-black text-gray-900 tracking-tight">세부오류분석</h2>
+                      <p className="text-sm text-gray-500 mt-1">오류 유형별 상세 분석 및 인사이트</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-gray-500">필터:</span>
+                      <select
+                        value={errorTypeFilter}
+                        onChange={(e) => setErrorTypeFilter(e.target.value as any)}
+                        className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-none text-sm font-bold focus:outline-none focus:ring-2 focus:ring-rose-700/20"
+                      >
+                        <option value="all">전체</option>
+                        <option value="관제사 오류">관제사 오류</option>
+                        <option value="조종사 오류">조종사 오류</option>
+                        <option value="오류 미발생">오류 미발생</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 세부 오류 유형별 바 차트 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
+                  <h3 className="text-lg font-black text-gray-900 mb-6 tracking-tight">세부 오류 유형별 분포</h3>
+                  <div className="space-y-4">
+                    {subTypeStats.map((stat) => (
+                      <div key={stat.key} className="flex items-center gap-4">
+                        <div className="w-32 text-sm font-bold text-gray-700 truncate">{stat.label}</div>
+                        <div className="flex-1 h-10 bg-gray-100 rounded-none overflow-hidden relative">
+                          <div
+                            className="h-full transition-all duration-500 ease-out"
+                            style={{
+                              width: `${maxSubCount > 0 ? (stat.count / maxSubCount) * 100 : 0}%`,
+                              backgroundColor: stat.color,
+                            }}
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-black text-gray-600">
+                            {stat.count}건
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 분석 인사이트 */}
+                <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
+                  <h3 className="text-lg font-black text-gray-900 mb-4 tracking-tight">분석 인사이트</h3>
+                  <div className="space-y-4">
+                    {subTypeStats.filter(s => s.count > 0).length === 0 ? (
+                      <p className="text-gray-500">현재 필터 조건에 해당하는 오류 데이터가 없습니다.</p>
+                    ) : (
+                      <>
+                        {(() => {
+                          const topError = subTypeStats.reduce((max, curr) => curr.count > max.count ? curr : max, subTypeStats[0]);
+                          const totalErrors = subTypeStats.reduce((sum, s) => sum + s.count, 0);
+                          const topPercentage = totalErrors > 0 ? Math.round((topError.count / totalErrors) * 100) : 0;
+
+                          return (
+                            <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-none border border-blue-100">
+                              <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 bg-blue-100 rounded-none flex items-center justify-center text-2xl">
+                                  💡
+                                </div>
+                                <div>
+                                  <h4 className="font-black text-gray-900 mb-2">주요 발견사항</h4>
+                                  <p className="text-sm text-gray-700 leading-relaxed">
+                                    현재 <span className="font-black text-blue-700">{selectedErrorLabel}</span> 필터 기준,
+                                    가장 빈번한 세부 오류 유형은 <span className="font-black" style={{ color: topError.color }}>{topError.label}</span>이며
+                                    전체의 <span className="font-black text-blue-700">{topPercentage}%</span>를 차지합니다.
+                                    {topError.key === '복창오류' && ' 복창 절차 준수에 대한 교육 강화가 권장됩니다.'}
+                                    {topError.key === '무응답/재호출' && ' 통신 품질 및 주파수 관리 점검이 필요합니다.'}
+                                    {topError.key === '고도이탈' && ' 고도 유지 절차에 대한 추가 교육이 권장됩니다.'}
+                                    {topError.key === '비행경로이탈' && ' 항로 이탈 방지를 위한 모니터링 강화가 필요합니다.'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* 오류 유형별 요약 카드 */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                          {errorTypeStats.map((stat) => (
+                            <div
+                              key={stat.type}
+                              className={`p-6 rounded-none border ${stat.bgColor} border-opacity-50`}
+                            >
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                                {stat.label}
+                              </p>
+                              <p className={`text-3xl font-black ${stat.textColor}`}>{stat.count}건</p>
+                              <p className="text-xs text-gray-500 mt-2">{stat.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* 통계 탭 */}
             {activeTab === 'statistics' && (
               <AirlineStatisticsTab
@@ -1662,8 +1774,6 @@ export default function AirlinePage() {
           </div>
         </div>
       </footer>
-
-
-    </>
+    </div>
   );
 }

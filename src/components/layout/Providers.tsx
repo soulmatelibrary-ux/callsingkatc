@@ -47,28 +47,20 @@ function AuthInitializer({ children }: ProvidersProps) {
     };
 
     async function initializeAuth() {
-      const hasRefreshToken =
-        typeof document !== 'undefined' && document.cookie.includes('refreshToken=');
-
-      console.log('[AuthInitializer] refreshToken exists:', hasRefreshToken);
-
-      if (!hasRefreshToken) {
-        console.log('[AuthInitializer] No refreshToken, initialization complete (not logged in)');
-        redirectToHomeIfUnauthenticated();
-        setInitialized(true);
-        return;
-      }
+      // httpOnly 쿠키는 JavaScript에서 읽을 수 없으므로, 직접 refresh API를 호출해서 확인
+      console.log('[AuthInitializer] 페이지 로드: refreshToken 자동 갱신 시도...');
 
       try {
-        console.log('[AuthInitializer] Attempting to refresh token...');
+        console.log('[AuthInitializer] /api/auth/refresh 호출 중...');
         const controller = typeof AbortController !== 'undefined' ? new AbortController() : undefined;
         const timeoutId = typeof window !== 'undefined'
           ? window.setTimeout(() => controller?.abort(), 5000)
           : undefined;
+
         // refreshToken 쿠키로부터 새로운 accessToken 생성
         const response = await fetch('/api/auth/refresh', {
           method: 'POST',
-          credentials: 'include', // 중요: refreshToken 쿠키 자동 포함
+          credentials: 'include', // 중요: refreshToken httpOnly 쿠키 자동 포함
           signal: controller?.signal,
         });
 
@@ -78,22 +70,21 @@ function AuthInitializer({ children }: ProvidersProps) {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('[AuthInitializer] Token refresh successful, user:', data.user.email);
+          console.log('[AuthInitializer] ✅ 토큰 갱신 성공:', data.user.email);
           // accessToken과 user 정보 동시에 저장
           setAuth(data.user, data.accessToken);
         } else {
-          console.warn('[AuthInitializer] Token refresh failed:', response.status);
-          // httpOnly 쿠키는 클라이언트에서 삭제 불가 → logout API로 서버에서 삭제
-          // 미들웨어와 클라이언트 인증 상태 불일치로 인한 무한 리다이렉트 방지
+          console.warn('[AuthInitializer] ⚠️ 토큰 갱신 실패:', response.status);
+          // refreshToken이 유효하지 않으면 logout API로 서버에서 쿠키 삭제
           try {
             await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
           } catch (e) {
-            console.error('[AuthInitializer] Failed to clear stale cookies:', e);
+            console.error('[AuthInitializer] 쿠키 정리 실패:', e);
           }
           redirectToHomeIfUnauthenticated();
         }
       } catch (error) {
-        console.error('[AuthInitializer] Session restoration error:', error);
+        console.error('[AuthInitializer] 세션 복원 오류:', error);
         // 네트워크 오류 등으로 세션 복원 실패 시에도 쿠키 정리
         try {
           await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
@@ -109,25 +100,8 @@ function AuthInitializer({ children }: ProvidersProps) {
     initializeAuth();
   }, [setAuth, setInitialized, router]); // ✅ Zustand 액션은 안정적인 참조
 
-  useEffect(() => {
-    if (!isInitialized) {
-      return;
-    }
-
-    const hasRefreshToken =
-      typeof document !== 'undefined' && document.cookie.includes('refreshToken=');
-
-    if (!hasRefreshToken && typeof window !== 'undefined') {
-      const pathname = window.location.pathname;
-      const isProtectedRoute = PROTECTED_ROUTES.some(
-        (route) => pathname === route || pathname.startsWith(`${route}/`)
-      );
-
-      if (isProtectedRoute) {
-        router.replace(ROUTES.HOME);
-      }
-    }
-  }, [isInitialized, router]);
+  // httpOnly 쿠키는 client에서 읽을 수 없으므로 이 체크는 불필요
+  // (첫 번째 useEffect의 initializeAuth에서 이미 모든 검증을 함)
 
   // 초기화 완료 전 로딩 표시 → 미인증 사용자가 보호 페이지를 볼 수 없도록 차단
   if (!isInitialized) {

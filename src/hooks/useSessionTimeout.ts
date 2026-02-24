@@ -28,9 +28,9 @@ export function useSessionTimeout() {
     }
 
     // 새 타이머 설정
-    timeoutRef.current = setTimeout(() => {
+    timeoutRef.current = setTimeout(async () => {
       console.log('⏱️ 세션 타임아웃: 30분 비활동으로 자동 로그아웃');
-      logout();
+      await logout();
       router.push('/');
     }, SESSION_TIMEOUT_MS);
   };

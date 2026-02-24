@@ -10,10 +10,24 @@ import { Action } from '@/types/action';
 import * as XLSX from 'xlsx';
 
 export function ActionsTab() {
+  // 기본값: 이달 1월 1일부터 현재까지
+  const getDefaultDateFrom = () => {
+    const today = new Date();
+    return `${today.getFullYear()}-01-01`;
+  };
+
+  const getDefaultDateTo = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [selectedAirlineId, setSelectedAirlineId] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<'pending' | 'in_progress' | 'completed' | ''>('');
-  const [dateFrom, setDateFrom] = useState<string>('');
-  const [dateTo, setDateTo] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<string>(getDefaultDateFrom());
+  const [dateTo, setDateTo] = useState<string>(getDefaultDateTo());
   const [page, setPage] = useState(1);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);

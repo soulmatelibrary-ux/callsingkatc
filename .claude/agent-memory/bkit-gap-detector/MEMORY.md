@@ -5,7 +5,7 @@
 - **Auth**: JWT (1h access, 7d refresh httpOnly cookie) + bcryptjs
 - **State**: Zustand (client), pg.Pool (server)
 - **DB Init**: `scripts/init.sql` (11 tables: airlines, users, password_history, audit_logs, file_uploads, callsigns, callsign_occurrences, actions, action_history, announcements, announcement_views)
-- **Airlines**: Design says 11, DB has 9 (ESR->EOK, ARK/APZ missing)
+- **Airlines**: DB now has 11 (includes both EOK and ESR for Eastar Jet, plus APZ)
 
 ## Key Findings (2026-02-20 v5.0 Extended Scope Analysis)
 - Extended Match Rate: 65% (expanded scope: routing + flows + filtering + admin)
@@ -25,9 +25,9 @@
 - Architecture: 78% (+8) (upload flow still bypasses hook layer)
 - Convention: 82% (+2) (naming excellent, error format simplified)
 
-## Phase 4 v2.0 Bugs (4 found)
+## Phase 4 v2.0 Bugs (4 found, 1 resolved in v3.0)
 1. HIGH: PATCH response hardcodes status:'completed' at api/actions/[id]/route.ts:287
-2. MEDIUM: Upload history client-side only (in-memory useState, lost on refresh)
+2. RESOLVED (v3.0): Upload history now server-persisted via useFileUploads hook + /api/admin/file-uploads
 3. MEDIUM: PATCH with status:'in_progress' deletes action row entirely (unconventional)
 4. LOW: Airline actions query returns 'in_progress' for NULL action rows (should be 'pending')
 
@@ -37,11 +37,11 @@
 3. RESOLVED: ActionDetailModal + ActionModal properly used
 4. RESOLVED: Constants updated, EOK correct
 
-## Phase 4 v2.0 Missing Features (6 remaining, down from 12)
+## Phase 4 v2.0->v3.0 Missing Features (4 remaining, down from 6)
 - Upload status polling API (design: async 202 + polling)
-- Upload history API (server-side persistence)
+- ~~Upload history API~~ RESOLVED v3.0: /api/admin/file-uploads + useFileUploads hook
 - Server-side Excel export API
-- Global admin statistics API (per-airline exists)
+- ~~Global admin statistics API~~ RESOLVED v3.0: /api/callsigns/stats
 - TimelineGraph chart component
 - FilePreview before upload
 
@@ -59,7 +59,7 @@
 - Data Model: 80% (pending removed, airline_id added, approved_at/by missing)
 
 ## Critical Gaps (P0)
-1. Airlines DB mismatch: init.sql has 9 (EOK), design/frontend has 11 (ESR/ARK/APZ)
+1. RESOLVED: Airlines DB now has 11 (EOK+ESR+APZ all present in init.sql)
 2. / page login doesn't use Zustand setAuth -> state lost on navigation
 3. /login (LoginForm) has no admin role redirect -> admin goes to /airline
 
@@ -113,77 +113,78 @@
 - `src/app/announcements/page.tsx` - User history page
 - `src/app/admin/announcements/page.tsx` - Admin management page
 
-## Phase 6 Gap Analysis (2026-02-22) - callsign-management-v1
-- **v1.0 Match Rate: 79%** -> **v2.0 Match Rate: 83%** (+4%)
-- Layout & Structure: 72% (horizontal tabs -> vertical left menu, sidebar -> 4th tab)
-- Tab 1 Overview: 82% (missing 5th KPI card, status column, status filter, search)
-- Tab 2 Actions: 75% (REFACTORED: individual records instead of airline aggregate)
-- Tab 3 Statistics: 78% (progress bars instead of Recharts, right chart changed)
-- Tab 4 Upload: 92% (FIXED: API URL + response format corrected)
+## Phase 6 Gap Analysis (2026-02-24) - callsign-management-v1
+- **v1.0: 79%** -> **v2.0: 83%** -> **v3.0: 87%** (+4%)
+- Layout & Structure: 75% (horizontal tabs -> vertical left menu, sidebar -> 4th tab)
+- Tab 1 Overview: 85% (missing 5th KPI card, status filter, search; has server stats)
+- Tab 2 Actions: 78% (individual records + airline stats hybrid, Excel export works)
+- Tab 3 Statistics: 80% (progress bars instead of Recharts, server stats via /api/callsigns/stats)
+- Tab 4 Upload: 96% (upload + server-persisted history via useFileUploads)
 - Styling: 88% (rounded-none consistent, select inputs use rounded-lg)
-- Data Flow: 78% (upload pipeline fixed, 5/7 design hooks still missing)
-- Architecture: 80% (route restructured, force-dynamic added)
+- Data Flow: 87% (upload history persisted, callsign stats API, 4/7 design hooks remain missing)
+- DB Schema: 95% (all tables match, 11 airlines now correct)
+- API Endpoints: 88% (9 endpoints, missing: upload status polling, server Excel export)
+- Architecture: 85% (dual route public+admin, middleware protection, force-dynamic)
 - Convention: 98% (naming, imports, folder structure all correct)
 
-## Phase 6 Critical Bugs - ALL RESOLVED (v2.0)
-1. RESOLVED: FileUploadZone now calls `/api/admin/upload-callsigns` correctly
-2. RESOLVED: UploadResultData uses `{inserted, updated, failed}` matching API
+## Phase 6 Bugs
+- v2.0 bugs (FileUploadZone URL, UploadResultData format): ALL RESOLVED
+- v3.0 remaining bugs (3, inherited from Phase 4):
+  1. HIGH: PATCH response hardcodes status:'completed' at api/actions/[id]/route.ts:287
+  2. MEDIUM: PATCH with status:'in_progress' deletes action row entirely
+  3. LOW: Airline actions query returns 'in_progress' for NULL action rows
 
-## Phase 6 Key Changes (v2.0)
-- Route moved: `/admin/callsign-mgmt-v1` -> `/callsign-mgmt-v1` (public with auth)
-- Admin path redirects to public path
-- ActionsTab refactored: airline aggregate view -> individual action records
+## Phase 6 Key Changes (v3.0)
+- Folder renamed: `callsign-mgmt-v1` -> `callsign-management` (components + routes)
+- Dual routes: `/callsign-management` (public, useSearchParams) + `/admin/callsign-management` (admin, useState)
+- Legacy redirects: `/callsign-mgmt-v1` -> `/callsign-management`
+- New APIs: `/api/callsigns/stats`, `/api/admin/file-uploads`, `/api/admin/file-uploads/[id]`
+- New hook: `useFileUploads` (src/hooks/useFileUploads.ts) for server-persisted upload history
+- ROUTES.CALLSIGN_MANAGEMENT = '/callsign-management'
 - Both pages export `force-dynamic` for prerendering stability
-- ROUTES.CALLSIGN_MGT_V1 = '/callsign-mgmt-v1' (was admin path)
 
-## Phase 6 Remaining Gaps (v2.0)
-- Statistics API (`/api/admin/statistics`) - not implemented
-- Upload history API (`/api/admin/uploads/history`) - not implemented
-- 5 dedicated hooks (useStatistics, useAirlineStats, useChartData, useUploadFile, useUploadHistory)
-- Overview: status filter, search input, status table column, 5th KPI card
-- Statistics: Recharts charts (replaced with progress bars)
-- ActionsTab: design intent mismatch (individual records vs airline aggregate)
-- Tabs.tsx still unused
+## Phase 6 Remaining Gaps (v3.0) - 15 items
+- HIGH (3): Layout architecture deviation (design: horizontal tabs), ActionsTab design divergence, Tabs.tsx unused
+- MEDIUM (8): 5th KPI card missing, Overview status/search filters, Recharts not used, consolidated stats API, useUploadFile hook, airline progress bars, upload status polling API, server-side Excel export API
+- LOW (4): Header nav admin-only, airline detail table uses code not name, Tabs.tsx cleanup, select rounded-lg inconsistency
+- Resolved since v2.0: Statistics API (now /api/callsigns/stats), Upload history API (now /api/admin/file-uploads), useFileUploads hook added
 
-## Phase 6 File Map (v2.0)
-- `src/app/callsign-mgmt-v1/page.tsx` - Main page (left menu layout, PUBLIC route)
-- `src/app/callsign-mgmt-v1/layout.tsx` - AppShell layout wrapper
-- `src/app/admin/callsign-mgmt-v1/page.tsx` - Redirect to public route
-- `src/components/callsign-mgmt-v1/OverviewTab.tsx` - Tab 1: callsigns + KPI
-- `src/components/callsign-mgmt-v1/ActionsTab.tsx` - Tab 2: individual action records (REFACTORED)
-- `src/components/callsign-mgmt-v1/StatisticsTab.tsx` - Tab 3: statistics + charts
-- `src/components/callsign-mgmt-v1/Sidebar.tsx` - Tab 4: upload container
-- `src/components/callsign-mgmt-v1/StatCard.tsx` - Reusable KPI card
-- `src/components/callsign-mgmt-v1/Tabs.tsx` - UNUSED horizontal tabs (matches design)
-- `src/components/callsign-mgmt-v1/uploads/FileUploadZone.tsx` - Drag & drop upload (FIXED)
-- `src/components/callsign-mgmt-v1/uploads/UploadResult.tsx` - Upload result display (FIXED)
-- `src/components/callsign-mgmt-v1/uploads/UploadHistory.tsx` - Upload history list
+## Phase 6 File Map (v3.0) - renamed callsign-mgmt-v1 -> callsign-management
+- `src/app/callsign-management/page.tsx` - Public page (left menu, useSearchParams tabs)
+- `src/app/callsign-management/layout.tsx` - AppShell layout wrapper
+- `src/app/admin/callsign-management/page.tsx` - Admin page (useState tabs, isAdmin check)
+- `src/app/callsign-mgmt-v1/page.tsx` - Legacy redirect to /callsign-management
+- `src/app/admin/callsign-mgmt-v1/page.tsx` - Legacy redirect to /admin/callsign-management
+- `src/components/callsign-management/OverviewTab.tsx` - Tab 1: callsigns + 4 KPI + server stats
+- `src/components/callsign-management/ActionsTab.tsx` - Tab 2: actions + airline stats + Excel export
+- `src/components/callsign-management/StatisticsTab.tsx` - Tab 3: stats + progress bars + airline table
+- `src/components/callsign-management/Sidebar.tsx` - Tab 4: upload + server-persisted history
+- `src/components/callsign-management/StatCard.tsx` - Reusable KPI card
+- `src/components/callsign-management/Tabs.tsx` - UNUSED horizontal tabs (matches design)
+- `src/components/callsign-management/uploads/FileUploadZone.tsx` - Drag & drop upload
+- `src/components/callsign-management/uploads/UploadResult.tsx` - Upload result display
+- `src/components/callsign-management/uploads/UploadHistory.tsx` - Server-persisted history list
+- `src/hooks/useFileUploads.ts` - useFileUploads + useDeleteFileUpload (NEW v3.0)
+- `src/app/api/callsigns/stats/route.ts` - GET risk-level statistics (NEW v3.0)
+- `src/app/api/admin/file-uploads/route.ts` - GET upload history (NEW v3.0)
+- `src/app/api/admin/file-uploads/[id]/route.ts` - DELETE upload record (NEW v3.0)
 - `src/app/api/admin/upload-callsigns/route.ts` - POST Excel upload API
-- Header.tsx:132 - Link to callsign-mgmt-v1 page
+- Header.tsx - Link to /callsign-management (admin-only)
 
 ## Analysis Reports
 - `docs/03-analysis/features/katc1-auth-gap.md` - v4.0 auth-focused (92%)
 - `docs/03-analysis/features/katc1-full-gap-v5.md` - v5.0 full system (65%)
 - `docs/03-analysis/features/airline-data-action-management.analysis.md` - Phase 4 v2.0 (75%, was 63%)
 - `docs/03-analysis/features/announcement-system.analysis.md` - Phase 5 (94%)
-- `docs/03-analysis/features/callsign-management-v1.analysis.md` - Phase 6 v2.0 (83%, was 79%)
+- `docs/03-analysis/features/callsign-management-v1.analysis.md` - Phase 6 v3.0 (87%, was 83%, was 79%)
 
-## Implementation File Map
-- `src/app/page.tsx` - Portal login (airline/admin toggle)
-- `src/app/(auth)/login/page.tsx` - Dedicated login page (uses LoginForm)
-- `src/app/(main)/airline/page.tsx` - Callsign warnings (HARDCODED data + mock modal)
-- `src/app/admin/actions/page.tsx` - Admin action management (API-connected)
-- `src/components/actions/ActionModal.tsx` - Real ActionModal (create+edit)
-- `src/hooks/useActions.ts` - 10 hooks (actions + callsigns CRUD + stats)
-- `src/types/action.ts` - 12 interfaces (dual naming)
-- `src/app/api/actions/route.ts` - GET actions list (admin)
-- `src/app/api/actions/[id]/route.ts` - GET/PATCH/DELETE single action
-- `src/app/api/callsigns/route.ts` - GET callsigns list
-- `src/app/api/airlines/[airlineId]/actions/route.ts` - POST create action
-- `src/app/api/airlines/[airlineId]/callsigns/route.ts` - GET airline callsigns
+## Core Infrastructure Files
 - `src/middleware.ts` - Route protection (refreshToken + user cookie)
 - `src/store/authStore.ts` - Zustand auth state
 - `src/lib/api/client.ts` - apiFetch with 401 interceptor
 - `src/lib/jwt.ts` - JWT generation/verification
 - `src/lib/db.ts` - pg.Pool query + transaction
-- `scripts/init.sql` - DB schema (9 airlines, 8 tables, sample data)
+- `scripts/init.sql` - DB schema (11 airlines, 11 tables, sample data)
+- `src/hooks/useActions.ts` - 11 hooks (actions + callsigns CRUD + stats)
+- `src/hooks/useFileUploads.ts` - useFileUploads + useDeleteFileUpload
+- `src/types/action.ts` - 12 interfaces (dual naming)

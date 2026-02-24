@@ -20,8 +20,9 @@ interface AuthStore {
   setUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
   setInitialized: (value: boolean) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   fetchUserInfo: () => Promise<User | null>;
+  initializeAuth: () => Promise<void>;
 
   // 파생 상태
   isAuthenticated: () => boolean;
@@ -55,6 +56,46 @@ export const authStore = create<AuthStore>((set, get) => ({
   setInitialized: (value) =>
     set({ isInitialized: value }),
 
+  // 페이지 로드 시 초기화: refreshToken이 있으면 accessToken 자동 갱신
+  initializeAuth: async () => {
+    try {
+      const state = get();
+
+      // 이미 초기화되었으면 스킵
+      if (state.isInitialized) {
+        return;
+      }
+
+      set({ isLoading: true });
+
+      // refreshToken 쿠키가 있는지 확인 (refresh API 호출로 확인)
+      const refreshResponse = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include', // 쿠키 포함
+      });
+
+      if (refreshResponse.ok) {
+        const data = await refreshResponse.json();
+        set({
+          user: data.user,
+          accessToken: data.accessToken,
+          isInitialized: true,
+          isLoading: false,
+        });
+        console.log('[AuthStore] 초기화 완료: refreshToken으로 토큰 갱신됨');
+      } else {
+        // refreshToken이 유효하지 않으면 로그아웃
+        await get().logout();
+        set({ isInitialized: true, isLoading: false });
+        console.log('[AuthStore] 초기화 완료: refreshToken 유효하지 않음');
+      }
+    } catch (error) {
+      console.error('[AuthStore] 초기화 오류:', error);
+      await get().logout();
+      set({ isInitialized: true, isLoading: false });
+    }
+  },
+
   // 서버에서 현재 사용자 정보 가져오기
   fetchUserInfo: async () => {
     try {
@@ -70,24 +111,28 @@ export const authStore = create<AuthStore>((set, get) => ({
           return data.user;
         }
       }
-      
+
       // 서버에서 사용자 정보를 가져올 수 없으면 로그아웃
-      get().logout();
+      await get().logout();
       return null;
     } catch (error) {
       console.error('사용자 정보 가져오기 실패:', error);
-      get().logout();
+      await get().logout();
       return null;
     }
   },
 
-  logout: () => {
-    // 쿠키 정리를 위한 API 호출
-    fetch('/api/auth/logout', { 
-      method: 'POST',
-      credentials: 'include'
-    }).catch(console.error);
-    
+  logout: async () => {
+    // 쿠키 정리를 위한 API 호출 (완료 대기)
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.error('로그아웃 API 호출 실패:', error);
+    }
+
     // 메모리 상태만 초기화
     set({ user: null, accessToken: null, isLoading: false });
   },
