@@ -15,17 +15,19 @@ import {
     AreaChart,
     Area,
 } from 'recharts';
+import { Incident, DateRangeType } from '@/types/airline';
+import { ActionStatisticsResponse } from '@/types/action';
 
 interface AirlineStatisticsTabProps {
     statsStartDate: string;
     statsEndDate: string;
     onStatsStartDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onStatsEndDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    statsActiveRange: 'today' | '1w' | '2w' | '1m' | 'custom';
+    statsActiveRange: DateRangeType;
     onApplyStatsQuickRange: (range: 'today' | '1w' | '2w' | '1m') => void;
     actionStatsLoading: boolean;
-    actionStats: any;
-    incidents: any[];
+    actionStats: ActionStatisticsResponse | undefined;
+    incidents: Incident[];
 }
 
 const COLORS = {
@@ -63,6 +65,7 @@ export function AirlineStatisticsTab({
 
         return incidents.filter(inc => {
             if (!start || !end) return true;
+            if (!inc.lastDate) return true;
             const d = new Date(inc.lastDate);
             if (Number.isNaN(d.getTime())) return true;
             return d >= start && d <= end;
@@ -134,8 +137,8 @@ export function AirlineStatisticsTab({
         { name: '완료', value: statusCounts.completed, color: COLORS.emerald },
     ].filter(item => item.value > 0);
 
-    const formatDonutLabel = ({ name, percent }: any) => {
-        if (percent === 0) return '';
+    const formatDonutLabel = ({ percent }: { percent?: number }) => {
+        if (!percent || percent === 0) return '';
         return `${(percent * 100).toFixed(0)}%`;
     };
 

@@ -1,143 +1,185 @@
 #!/bin/bash
 
-# KATC1 유사호출부호 경고시스템 - 로컬 데이터베이스 시작 스크립트
-# 사용법: ./start-local.sh
+# 🚀 KATC1 로컬 개발 시작 스크립트
+# PostgreSQL 또는 SQLite 중 선택 가능
 
 set -e
 
-echo "🚀 KATC1 시스템 시작 (로컬 PostgreSQL)"
-echo "=================================="
+# 색상 정의
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# 1. 로컬 PostgreSQL 상태 확인
-echo ""
-echo "📍 PostgreSQL 상태 확인..."
+# 함수: 헤더 출력
+print_header() {
+  echo -e "\n${BLUE}════════════════════════════════════════${NC}"
+  echo -e "${BLUE}🛫 KATC1 유사호출부호 경고시스템${NC}"
+  echo -e "${BLUE}════════════════════════════════════════${NC}\n"
+}
 
-# PostgreSQL 서비스 상태 확인
-if ! pgrep -x "postgres" > /dev/null; then
-    echo "❌ PostgreSQL이 실행 중이 아닙니다."
-    echo ""
-    echo "다음 명령어로 PostgreSQL을 시작하세요:"
-    echo "  # Homebrew를 사용하는 경우:"
-    echo "  brew services start postgresql@15"
-    echo ""
-    echo "  # 또는 수동으로:"
-    echo "  postgres -D /usr/local/var/postgres"
-    echo ""
-    exit 1
-fi
+# 함수: 데이터베이스 선택
+select_database() {
+  echo -e "${YELLOW}📦 데이터베이스 선택:${NC}"
+  echo "  1) PostgreSQL (Docker) - 프로덕션 방식"
+  echo "  2) SQLite - 가벼운 로컬 개발 (Docker 없음)"
+  echo ""
+  read -p "선택 (1 or 2): " db_choice
 
-echo "✅ PostgreSQL 실행 중"
+  case $db_choice in
+    1)
+      echo -e "\n${GREEN}✓ PostgreSQL 선택${NC}"
+      start_postgres_mode
+      ;;
+    2)
+      echo -e "\n${GREEN}✓ SQLite 선택${NC}"
+      start_sqlite_mode
+      ;;
+    *)
+      echo -e "${RED}✗ 잘못된 선택입니다.${NC}"
+      exit 1
+      ;;
+  esac
+}
 
-# 2. .env.local 파일 확인
-echo ""
-echo "📍 환경 설정 확인..."
+# 함수: PostgreSQL 모드 시작
+start_postgres_mode() {
+  echo -e "\n${BLUE}📝 PostgreSQL 환경 설정 중...${NC}"
 
-if [ ! -f ".env.local" ]; then
-    echo "❌ .env.local 파일이 없습니다."
-    echo ""
-    echo "다음과 같이 .env.local 파일을 생성하세요:"
-    echo "---"
-    cat << 'ENV'
-# Database Configuration (Local PostgreSQL)
+  # .env.local 확인
+  if [ ! -f .env.local ]; then
+    echo -e "${YELLOW}⚠️  .env.local 파일이 없습니다. 생성 중...${NC}"
+    cat > .env.local << 'EOF'
+# PostgreSQL Database
+DB_TYPE=postgres
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=katc1_dev
+DB_USER=katc1
+DB_PASSWORD=katc1_password
+DB_NAME=katc1_auth
 
-# JWT Configuration
-JWT_SECRET=katc_jwt_secret_key_2024_super_secure_key_do_not_share
+# API
+NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_BKEND_PROJECT_ID=
 
-# bkend.ai Configuration
-NEXT_PUBLIC_BKEND_PROJECT_ID=your_project_id_here
+# JWT
+JWT_SECRET=your-secret-key-change-in-production
 
-# Gmail SMTP Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=soulmatelibrary@gmail.com
-SMTP_PASSWORD=jtzbikhuzmgcxxgh
-SMTP_FROM_EMAIL=soulmatelibrary@gmail.com
-ENV
-    echo "---"
+# Session
+SESSION_SECRET=your-session-secret-change-in-production
+EOF
+    echo -e "${GREEN}✓ .env.local 생성 완료${NC}"
+  fi
+
+  # Docker 상태 확인
+  if ! command -v docker &> /dev/null; then
+    echo -e "${RED}✗ Docker가 설치되어 있지 않습니다.${NC}"
+    echo "Docker를 설치해주세요: https://docs.docker.com/get-docker/"
     exit 1
-fi
+  fi
 
-echo "✅ .env.local 파일 확인됨"
+  echo -e "\n${BLUE}🐳 Docker Compose 시작 중...${NC}"
+  docker-compose down 2>/dev/null || true
+  docker-compose up -d
 
-# 3. 데이터베이스 연결 테스트
-echo ""
-echo "📍 데이터베이스 연결 테스트..."
+  # PostgreSQL 준비 대기
+  echo -e "${YELLOW}⏳ PostgreSQL 준비 중 (최대 30초)...${NC}"
+  for i in {1..30}; do
+    if docker-compose exec -T postgres pg_isready -U katc1 > /dev/null 2>&1; then
+      echo -e "${GREEN}✓ PostgreSQL 준비 완료${NC}"
+      break
+    fi
+    echo -n "."
+    sleep 1
+  done
 
-DB_HOST=$(grep "DB_HOST" .env.local | cut -d'=' -f2)
-DB_PORT=$(grep "DB_PORT" .env.local | cut -d'=' -f2)
-DB_USER=$(grep "DB_USER" .env.local | cut -d'=' -f2)
-DB_NAME=$(grep "DB_NAME" .env.local | cut -d'=' -f2)
+  # Next.js 시작
+  start_next_dev
+}
 
-if PGPASSWORD=postgres psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "SELECT 1" > /dev/null 2>&1; then
-    echo "✅ PostgreSQL 연결 성공"
-else
-    echo "❌ PostgreSQL 연결 실패"
-    echo ""
-    echo "다음을 확인하세요:"
-    echo "  1. PostgreSQL이 실행 중인지 확인"
-    echo "  2. 로컬 PostgreSQL 기본 설정:"
-    echo "     - Host: localhost"
-    echo "     - Port: 5432"
-    echo "     - User: postgres"
-    echo "     - Password: postgres"
-    exit 1
-fi
+# 함수: SQLite 모드 시작
+start_sqlite_mode() {
+  echo -e "\n${BLUE}📝 SQLite 환경 설정 중...${NC}"
 
-# 4. 데이터베이스 생성
-echo ""
-echo "📍 데이터베이스 생성/초기화..."
+  # .env.local 설정
+  cat > .env.local << 'EOF'
+# SQLite Database (로컬 개발용)
+DB_TYPE=sqlite
+DB_PATH=./data/katc1.db
 
-PGPASSWORD=postgres psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres << SQL
--- 기존 데이터베이스 삭제 및 재생성
-DROP DATABASE IF EXISTS $DB_NAME;
-CREATE DATABASE $DB_NAME;
-SQL
+# API
+NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_BKEND_PROJECT_ID=
 
-echo "✅ 데이터베이스 생성 완료: $DB_NAME"
+# JWT
+JWT_SECRET=dev-secret-key-for-local-only
 
-# 5. 데이터베이스 스키마 초기화
-echo ""
-echo "📍 데이터베이스 스키마 초기화..."
+# Session
+SESSION_SECRET=dev-session-secret-for-local-only
+EOF
 
-PGPASSWORD=postgres psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f scripts/init.sql > /dev/null 2>&1
+  echo -e "${GREEN}✓ .env.local 설정 완료 (SQLite)${NC}"
 
-echo "✅ 데이터베이스 스키마 초기화 완료"
+  # data 디렉토리 생성
+  mkdir -p ./data
 
-# 6. Next.js 의존성 확인
-echo ""
-echo "📍 Node.js 의존성 확인..."
+  echo -e "\n${YELLOW}📌 SQLite 모드 실행 준비 완료${NC}"
+  echo "   DB 파일: ./data/katc1.db"
+  echo ""
 
-if [ ! -d "node_modules" ]; then
-    echo "npm install 설치 중..."
+  # Next.js 시작
+  start_next_dev
+}
+
+# 함수: Next.js 개발 서버 시작
+start_next_dev() {
+  echo -e "\n${BLUE}📦 의존성 설치 확인 중...${NC}"
+
+  if [ ! -d node_modules ]; then
+    echo -e "${YELLOW}⏳ npm install 중...${NC}"
     npm install
-    echo "✅ npm 의존성 설치 완료"
-else
-    echo "✅ npm 의존성 이미 설치됨"
-fi
+  fi
 
-# 7. Next.js 개발 서버 시작
-echo ""
-echo "🚀 Next.js 개발 서버 시작 중..."
-echo "=================================="
-echo ""
-echo "✅ 시스템 준비 완료!"
-echo ""
-echo "🌐 접속 정보:"
-echo "  Local:   http://localhost:3000"
-echo "  Network: http://$(hostname -I | awk '{print $1}'):3000"
-echo ""
-echo "📝 로그인 계정:"
-echo "  관리자: admin@katc.com / Admin1234"
-echo "  사용자: kal@katc.com / 1234 (등)"
-echo ""
-echo "데이터베이스: PostgreSQL (Local)"
-echo "=================================="
-echo ""
+  echo -e "\n${GREEN}════════════════════════════════════════${NC}"
+  echo -e "${GREEN}✓ 개발 서버 시작!${NC}"
+  echo -e "${GREEN}════════════════════════════════════════${NC}"
+  echo -e "\n${BLUE}📍 로컬 애플리케이션:${NC}"
+  echo -e "   ${BLUE}http://localhost:3000${NC}"
+  echo ""
+  echo -e "${YELLOW}테스트 계정:${NC}"
+  echo -e "   관리자: admin@katc.com / Admin1234"
+  echo -e "   사용자: kal-user@katc.com / User1234"
+  echo ""
+  echo -e "${YELLOW}중지하려면 Ctrl+C를 누르세요${NC}\n"
 
-# Next.js 개발 서버 실행
-npm run dev
+  # Next.js dev 서버 시작
+  npm run dev
+}
+
+# 함수: 종료 핸들러
+cleanup() {
+  echo -e "\n\n${YELLOW}🛑 개발 서버를 종료합니다...${NC}"
+
+  # PostgreSQL 컨테이너 중지
+  if [ "$db_choice" = "1" ]; then
+    echo -e "${YELLOW}🐳 Docker Compose 중지 중...${NC}"
+    docker-compose down 2>/dev/null || true
+  fi
+
+  echo -e "${GREEN}✓ 종료 완료${NC}"
+  exit 0
+}
+
+# 메인 실행
+main() {
+  print_header
+
+  # Ctrl+C 트래핑
+  trap cleanup SIGINT SIGTERM
+
+  select_database
+}
+
+# 스크립트 실행
+main

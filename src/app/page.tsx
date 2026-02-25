@@ -3,9 +3,29 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Plane, Building2, ShieldCheck, Mail, Lock } from 'lucide-react';
+import { Building2, ShieldCheck, Mail, Lock } from 'lucide-react';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/store/authStore';
+
+// KAC 로고 SVG 컴포넌트
+function KACLogo() {
+  return (
+    <svg viewBox="0 0 100 100" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+      {/* 배경 원 */}
+      <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
+
+      {/* KAC 텍스트 */}
+      <g fill="white" fontSize="42" fontWeight="bold" fontFamily="Arial, sans-serif" textAnchor="middle" dominantBaseline="middle">
+        <text x="50" y="45">KAC</text>
+      </g>
+
+      {/* 하단 한글 텍스트 */}
+      <g fill="white" fontSize="8" fontWeight="bold" fontFamily="Arial, sans-serif" textAnchor="middle">
+        <text x="50" y="70">한국공항공사</text>
+      </g>
+    </svg>
+  );
+}
 
 // 고퀄리티 이미지와 태스크 중심 슬로건을 활용한 신규 레이아웃
 export default function Home() {
@@ -134,8 +154,8 @@ export default function Home() {
       {/* 헤더 로고 */}
       <header className="absolute top-10 left-10 z-20 animate-in fade-in slide-in-from-top-4 duration-1000">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-none bg-blue-600/20 border border-blue-500/20 flex items-center justify-center backdrop-blur-md shadow-2xl">
-            <Plane className="w-7 h-7 text-blue-400" />
+          <div className="w-12 h-12 flex items-center justify-center">
+            <KACLogo />
           </div>
           <div>
             <h1 className="text-xl font-black tracking-tight text-white leading-none mb-1.5 uppercase flex items-center gap-2">

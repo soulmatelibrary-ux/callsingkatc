@@ -37,33 +37,15 @@ export async function GET(
       );
     }
 
-    // 항공사 존재 여부 확인
-    const airlineCheck = await query(
-      'SELECT id FROM airlines WHERE id = $1',
-      [airlineId]
-    );
-
-    if (airlineCheck.rows.length === 0) {
-      return NextResponse.json(
-        { error: '항공사를 찾을 수 없습니다.' },
-        { status: 404 }
-      );
-    }
-
     // 필터 파라미터
     const riskLevel = request.nextUrl.searchParams.get('riskLevel');
     const page = Math.max(1, parseInt(request.nextUrl.searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 쿼리 구성
-    // status = 'in_progress'인 호출부호만 조회 (항공사가 아직 조치 중)
-    // callsign_occurrences와 JOIN하여 발생 건수 및 최근 발생일 집계
-    const sqlParams: any[] = [airlineId];
-
-    // 항공사 코드 조회 (airlineId → code)
+    // 항공사 코드 조회 (존재 여부 확인 통합)
     const airlineCodeResult = await query(
-      'SELECT code FROM airlines WHERE id = $1',
+      'SELECT id, code FROM airlines WHERE id = $1',
       [airlineId]
     );
 
@@ -76,10 +58,29 @@ export async function GET(
 
     const airlineCode = airlineCodeResult.rows[0].code;
 
+    // 유효한 riskLevel 값 검증
+    const validRiskLevels = ['매우높음', '높음', '낮음'];
+    const filteredRiskLevel = riskLevel && validRiskLevels.includes(riskLevel) ? riskLevel : null;
+
     // 📌 진행 중인 호출부호만 조회 (status = 'in_progress')
     // callsigns.status는 actions 상태와 동기화됨:
     // - 초기값: 'in_progress'
     // - 조치 완료: 'completed'로 자동 업데이트
+
+    // 동적 쿼리 파라미터 구성
+    const queryParams: (string | number)[] = [airlineCode];
+    let riskLevelCondition = '';
+
+    if (filteredRiskLevel) {
+      queryParams.push(filteredRiskLevel);
+      riskLevelCondition = `AND risk_level = $${queryParams.length}`;
+    }
+
+    // LIMIT과 OFFSET 추가
+    queryParams.push(limit, offset);
+    const limitIdx = queryParams.length - 1;
+    const offsetIdx = queryParams.length;
+
     const simpleResult = await query(
       `SELECT id, airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
               other_airline_code, error_type, sub_error, risk_level, similarity,
@@ -91,6 +92,7 @@ export async function GET(
          AND NOT EXISTS (
            SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
          )
+         ${riskLevelCondition}
        ORDER BY
          CASE
            WHEN risk_level = '매우높음' THEN 3
@@ -100,19 +102,27 @@ export async function GET(
          END DESC,
          occurrence_count DESC NULLS LAST,
          last_occurred_at DESC NULLS LAST
-       LIMIT $2 OFFSET $3`,
-      [airlineCode, limit, offset]
+       LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+      queryParams
     );
 
     const result = simpleResult;
 
     // 디버그 로그
-    console.log('🔍 callsigns API 쿼리 (단순화):', {
+    console.log('🔍 callsigns API 쿼리:', {
       airlineCode,
+      riskLevel: filteredRiskLevel,
       resultCount: result.rows.length
     });
 
-    // 전체 개수 조회 (진행 중인 호출부호만 카운트)
+    // 전체 개수 조회 (진행 중인 호출부호만 카운트, riskLevel 필터 적용)
+    const countParams: (string | number)[] = [airlineCode];
+    let countRiskCondition = '';
+    if (filteredRiskLevel) {
+      countParams.push(filteredRiskLevel);
+      countRiskCondition = `AND risk_level = $${countParams.length}`;
+    }
+
     const countResult = await query(
       `SELECT COUNT(*) as total
        FROM callsigns
@@ -120,8 +130,9 @@ export async function GET(
          AND status = 'in_progress'
          AND NOT EXISTS (
            SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
-         )`,
-      [airlineCode]
+         )
+         ${countRiskCondition}`,
+      countParams
     );
     const total = parseInt(countResult.rows[0].total, 10);
 
