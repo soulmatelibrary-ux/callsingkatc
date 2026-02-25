@@ -352,7 +352,7 @@ export default function AirlinePage() {
 
         {/* 오른쪽 콘텐츠 영역 */}
         <div className="flex-1 overflow-y-auto h-full bg-gray-50">
-          <div className="w-full max-w-6xl mx-auto px-8 py-10 space-y-8 animate-fade-in flex flex-col">
+          <div className="w-full max-w-6xl mx-auto px-4 py-10 space-y-8 animate-fade-in flex flex-col">
             {activeTab === 'incidents' && (
               <IncidentsTab
                 incidents={incidents}
