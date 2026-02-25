@@ -2,16 +2,22 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/store/authStore';
 import {
   AnnouncementSummaryCard,
   ANNOUNCEMENT_LEVEL_META,
   ANNOUNCEMENT_STATUS_META,
 } from '@/types/airline';
 import { formatAnnouncementPeriod, truncateText } from '@/hooks/useDateRangeFilter';
+import { announcementQueryKeys } from '@/hooks/useAnnouncements';
 import { Announcement } from '@/types/announcement';
 
-// 공지사항 히스토리는 status 필드가 포함됨
-type AnnouncementWithStatus = Announcement & { status?: 'active' | 'expired' };
+// 공지사항 히스토리는 status, isViewed 필드가 포함됨
+type AnnouncementWithStatus = Announcement & {
+  status?: 'active' | 'expired';
+  isViewed?: boolean;
+};
 
 interface AnnouncementsTabProps {
   activeAnnouncements: Announcement[];
@@ -29,14 +35,49 @@ export function AnnouncementsTab({
   totalActiveAnnouncements,
 }: AnnouncementsTabProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { accessToken } = useAuthStore();
+  const [markingAsRead, setMarkingAsRead] = useState<string | null>(null);
+
+  // 공지사항을 읽음으로 표시
+  const handleMarkAsRead = async (announcementId: string) => {
+    if (!accessToken) return;
+
+    setMarkingAsRead(announcementId);
+    try {
+      const response = await fetch(`/api/announcements/${announcementId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // 캐시 무효화하여 목록 업데이트
+        queryClient.invalidateQueries({
+          queryKey: announcementQueryKeys.history({}),
+        });
+      }
+    } catch (error) {
+      console.error('Failed to mark announcement as read:', error);
+    } finally {
+      setMarkingAsRead(null);
+    }
+  };
+
+  // 읽지 않은 공지만 필터링
+  const unreadAnnouncements = latestAnnouncements.filter(
+    (announcement) => !announcement.isViewed
+  );
 
   // 페이징 설정
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  const totalPages = Math.ceil(latestAnnouncements.length / itemsPerPage);
+  const totalPages = Math.ceil(unreadAnnouncements.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedAnnouncements = latestAnnouncements.slice(startIndex, endIndex);
+  const paginatedAnnouncements = unreadAnnouncements.slice(startIndex, endIndex);
 
   const warningActiveCount = activeAnnouncements.filter(
     (item) => item.level === 'warning'
@@ -112,10 +153,10 @@ export function AnnouncementsTab({
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <div>
             <h3 className="text-lg font-black text-gray-900 mb-1 tracking-tight">
-              공지사항 이력
+              확인할 공지사항
             </h3>
             <p className="text-sm text-gray-500">
-              최근 등록된 공지 {latestAnnouncements.length}건
+              확인하지 않은 공지 {unreadAnnouncements.length}건
             </p>
           </div>
           <button
@@ -131,9 +172,11 @@ export function AnnouncementsTab({
           <div className="py-12 text-center text-gray-400 font-semibold">
             공지사항을 불러오는 중입니다...
           </div>
-        ) : latestAnnouncements.length === 0 ? (
+        ) : unreadAnnouncements.length === 0 ? (
           <div className="py-12 text-center text-gray-400 font-semibold">
-            표시할 공지사항이 없습니다.
+            {latestAnnouncements.length === 0
+              ? '공지사항이 없습니다.'
+              : '모든 공지를 확인하셨습니다! ✅'}
           </div>
         ) : (
           <div className="space-y-4">
@@ -174,10 +217,11 @@ export function AnnouncementsTab({
                     </span>
                     <button
                       type="button"
-                      onClick={() => router.push('/airline/announcements')}
-                      className="text-rose-600 font-semibold hover:underline"
+                      onClick={() => handleMarkAsRead(item.id)}
+                      disabled={markingAsRead === item.id}
+                      className="px-3 py-1 bg-emerald-500 text-white text-xs font-semibold rounded hover:bg-emerald-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
                     >
-                      상세보기
+                      {markingAsRead === item.id ? '처리 중...' : '✓ 확인했음'}
                     </button>
                   </div>
                 </div>
@@ -187,7 +231,7 @@ export function AnnouncementsTab({
         )}
 
         {/* 페이지네이션 */}
-        {latestAnnouncements.length > 0 && totalPages > 1 && (
+        {unreadAnnouncements.length > 0 && totalPages > 1 && (
           <div className="mt-6 flex items-center justify-center gap-2">
             <button
               type="button"
@@ -227,9 +271,9 @@ export function AnnouncementsTab({
         )}
 
         {/* 페이지 정보 */}
-        {latestAnnouncements.length > 0 && (
+        {unreadAnnouncements.length > 0 && (
           <div className="mt-4 text-center text-xs text-gray-400">
-            페이지 {currentPage} / {totalPages} (총 {latestAnnouncements.length}건)
+            페이지 {currentPage} / {totalPages} (확인 대기 {unreadAnnouncements.length}건)
           </div>
         )}
       </div>
