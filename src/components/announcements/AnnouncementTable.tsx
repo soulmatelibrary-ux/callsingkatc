@@ -51,16 +51,16 @@ export function AnnouncementTable({ isAdmin = false, initialFilters = {}, onSele
   });
 
   // 데이터 조회 (역할별로 필요한 훅만 호출)
-  // TanStack Query v5는 enabled 옵션을 직접 지원하지 않으므로,
-  // 역할에 맞는 훅만 호출하도록 로직 분리
-  const adminData = useAdminAnnouncements(
-    filters as AdminAnnouncementFilters
-  );
+  // 관리자와 일반 사용자가 다른 API를 사용하므로 조건부로 분기
+  // 이를 통해 403 Forbidden 에러 방지
   const userData = useAnnouncementHistory(
     filters as AnnouncementHistoryFilters
   );
+  const adminData = useAdminAnnouncements(
+    filters as AdminAnnouncementFilters
+  );
 
-  // 사용하지 않는 훅의 데이터는 로드되지 않음 (enabled=false와 같은 효과)
+  // isAdmin 값에 따라 적절한 데이터와 로딩 상태 사용
   const { data, isLoading } = isAdmin ? adminData : userData;
 
   const announcements = data?.announcements || [];
