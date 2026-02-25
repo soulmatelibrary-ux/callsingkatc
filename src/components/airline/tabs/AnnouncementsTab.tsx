@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AnnouncementSummaryCard,
@@ -29,6 +29,14 @@ export function AnnouncementsTab({
   totalActiveAnnouncements,
 }: AnnouncementsTabProps) {
   const router = useRouter();
+
+  // 페이징 설정
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const totalPages = Math.ceil(latestAnnouncements.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAnnouncements = latestAnnouncements.slice(startIndex, endIndex);
 
   const warningActiveCount = activeAnnouncements.filter(
     (item) => item.level === 'warning'
@@ -129,7 +137,7 @@ export function AnnouncementsTab({
           </div>
         ) : (
           <div className="space-y-4">
-            {latestAnnouncements.map((item) => {
+            {paginatedAnnouncements.map((item) => {
               const levelMeta =
                 ANNOUNCEMENT_LEVEL_META[
                   item.level as keyof typeof ANNOUNCEMENT_LEVEL_META
@@ -175,6 +183,53 @@ export function AnnouncementsTab({
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* 페이지네이션 */}
+        {latestAnnouncements.length > 0 && totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 border border-gray-200 rounded text-sm font-semibold text-gray-600 disabled:text-gray-300 disabled:cursor-not-allowed hover:bg-gray-50 transition"
+            >
+              이전
+            </button>
+
+            <div className="flex gap-1">
+              {Array.from({ length: totalPages }).map((_, idx) => (
+                <button
+                  key={idx + 1}
+                  type="button"
+                  onClick={() => setCurrentPage(idx + 1)}
+                  className={`px-3 py-2 text-sm font-semibold rounded transition ${
+                    currentPage === idx + 1
+                      ? 'bg-primary text-white'
+                      : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 border border-gray-200 rounded text-sm font-semibold text-gray-600 disabled:text-gray-300 disabled:cursor-not-allowed hover:bg-gray-50 transition"
+            >
+              다음
+            </button>
+          </div>
+        )}
+
+        {/* 페이지 정보 */}
+        {latestAnnouncements.length > 0 && (
+          <div className="mt-4 text-center text-xs text-gray-400">
+            페이지 {currentPage} / {totalPages} (총 {latestAnnouncements.length}건)
           </div>
         )}
       </div>
