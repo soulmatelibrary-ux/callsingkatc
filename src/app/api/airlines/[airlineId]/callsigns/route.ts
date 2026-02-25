@@ -40,7 +40,7 @@ export async function GET(
     // 필터 파라미터
     const riskLevel = request.nextUrl.searchParams.get('riskLevel');
     const page = Math.max(1, parseInt(request.nextUrl.searchParams.get('page') || '1', 10));
-    const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
+    const limit = Math.min(1000, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
     // 항공사 코드 조회 (존재 여부 확인 통합)
