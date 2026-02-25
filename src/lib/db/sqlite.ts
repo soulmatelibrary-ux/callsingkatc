@@ -112,6 +112,18 @@ function convertPostgresToSQLite(sql: string): string {
   // UUID 함수
   converted = converted.replace(/gen_random_uuid\(\)/g, 'lower(hex(randomblob(16)))');
 
+  // NOW() 함수
+  converted = converted.replace(/NOW\(\)/gi, 'CURRENT_TIMESTAMP');
+
+  // ANY() 연산자 - PostgreSQL ANY는 IN으로 변환
+  // 예: col = ANY(ARRAY[?]) → col = ?
+  converted = converted.replace(/(\w+)\s*=\s*ANY\s*\(\s*ARRAY\s*\[\s*([^\]]+)\s*\]\s*\)/gi, '$1 IN ($2)');
+
+  // string_to_array 함수 - SQLite는 직접 지원하지 않으므로 제거
+  // 예: string_to_array(target_airlines, ',') → target_airlines (배열 필터링은 애플리케이션에서 처리)
+  converted = converted.replace(/string_to_array\s*\(\s*([^,]+)\s*,\s*'[^']*'\s*\)\s*&&\s*ARRAY\s*\[\s*\?\s*\]/gi, '$1 LIKE \'%\' || ? || \'%\'');
+  converted = converted.replace(/string_to_array\s*\(\s*([^,]+)\s*,\s*'[^']*'\s*\)/gi, '$1');
+
   // CAST 문법
   converted = converted.replace(/CAST\s*\(\s*([^\s]+)\s+AS\s+([^\)]+)\)\s*/gi, 'CAST($1 AS $2)');
 
