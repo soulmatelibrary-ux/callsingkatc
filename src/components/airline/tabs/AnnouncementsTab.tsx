@@ -112,7 +112,7 @@ export function AnnouncementsTab({
           </div>
           <button
             type="button"
-            onClick={() => router.push('/announcements')}
+            onClick={() => router.push('/airline/announcements')}
             className="px-4 py-2 border border-gray-200 rounded-none text-sm font-bold text-gray-600 hover:bg-gray-50 transition"
           >
             전체 보기
@@ -166,7 +166,7 @@ export function AnnouncementsTab({
                     </span>
                     <button
                       type="button"
-                      onClick={() => router.push('/announcements')}
+                      onClick={() => router.push('/airline/announcements')}
                       className="text-rose-600 font-semibold hover:underline"
                     >
                       상세보기
