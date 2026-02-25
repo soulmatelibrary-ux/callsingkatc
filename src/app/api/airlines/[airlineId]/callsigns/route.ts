@@ -77,14 +77,14 @@ export async function GET(
     }
 
     // LIMIT과 OFFSET 추가
+    const limitIdx = queryParams.length + 1;
+    const offsetIdx = queryParams.length + 2;
     queryParams.push(limit, offset);
-    const limitIdx = queryParams.length - 1;
-    const offsetIdx = queryParams.length;
 
     const simpleResult = await query(
       `SELECT id, airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
               other_airline_code, error_type, sub_error, risk_level, similarity,
-              file_upload_id, uploaded_at, occurrence_count, first_occurred_at, last_occurred_at,
+              file_upload_id, uploaded_at, occurrence_count, last_occurred_at,
               status, created_at, updated_at
        FROM callsigns
        WHERE (airline_code = $1 OR other_airline_code = $1)
@@ -151,7 +151,6 @@ export async function GET(
         similarity: callsign.similarity,
         status: callsign.status,
         occurrence_count: callsign.occurrence_count,
-        first_occurred_at: callsign.first_occurred_at,
         last_occurred_at: callsign.last_occurred_at,
         file_upload_id: callsign.file_upload_id,
         uploaded_at: callsign.uploaded_at,
@@ -168,7 +167,6 @@ export async function GET(
         subError: callsign.sub_error,
         riskLevel: callsign.risk_level,
         occurrenceCount: callsign.occurrence_count,
-        firstOccurredAt: callsign.first_occurred_at,
         lastOccurredAt: callsign.last_occurred_at,
         fileUploadId: callsign.file_upload_id,
         uploadedAt: callsign.uploaded_at,
