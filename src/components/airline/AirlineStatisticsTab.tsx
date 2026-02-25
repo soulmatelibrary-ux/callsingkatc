@@ -15,7 +15,7 @@ import {
     AreaChart,
     Area,
 } from 'recharts';
-import { Incident, DateRangeType } from '@/types/airline';
+import { Incident, DateRangeType, RISK_LEVEL_ORDER } from '@/types/airline';
 import { ActionStatisticsResponse } from '@/types/action';
 
 interface AirlineStatisticsTabProps {
@@ -91,16 +91,32 @@ export function AirlineStatisticsTab({
         ].filter(item => item.value > 0);
     }, [visibleIncidents]);
 
-    // 3. Top 5 Frequent Callsigns/Routes
+    // 3. Top 5 Frequent Callsigns/Routes (위험도 1순위, 발생 건수 2순위)
     const topCallsigns = useMemo(() => {
         const counts: Record<string, number> = {};
+        const riskMap: Record<string, string> = {};
+
         visibleIncidents.forEach(inc => {
             const pair = inc.pair || 'Unknown';
             counts[pair] = (counts[pair] || 0) + 1;
+            // 동일 쌍에 여러 위험도가 존재할 수 있으므로 가장 높은 위험도를 유지
+            const prev = RISK_LEVEL_ORDER[riskMap[pair] as keyof typeof RISK_LEVEL_ORDER] ?? 0;
+            const curr = RISK_LEVEL_ORDER[inc.risk as keyof typeof RISK_LEVEL_ORDER] ?? 0;
+            if (curr >= prev) {
+                riskMap[pair] = inc.risk || '낮음';
+            }
         });
+
         return Object.entries(counts)
-            .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => b.count - a.count)
+            .map(([name, count]) => ({ name, count, risk: riskMap[name] }))
+            .sort((a, b) => {
+                // 1차: 위험도 내림차순 (매우높음 > 높음 > 낮음)
+                const riskA = RISK_LEVEL_ORDER[a.risk as keyof typeof RISK_LEVEL_ORDER] ?? 0;
+                const riskB = RISK_LEVEL_ORDER[b.risk as keyof typeof RISK_LEVEL_ORDER] ?? 0;
+                if (riskB !== riskA) return riskB - riskA;
+                // 2차: 발생 건수 내림차순
+                return b.count - a.count;
+            })
             .slice(0, 5);
     }, [visibleIncidents]);
 

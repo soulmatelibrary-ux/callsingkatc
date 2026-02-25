@@ -178,7 +178,7 @@ export default function AirlinePage() {
       risk: cs.risk_level || '낮음',
       similarity: cs.similarity || '낮음',
       count: cs.occurrence_count || 0,
-      firstDate: cs.created_at ? new Date(cs.created_at).toISOString().split('T')[0] : null,
+      firstDate: cs.first_occurred_at ? new Date(cs.first_occurred_at).toISOString().split('T')[0] : null,
       lastDate: cs.last_occurred_at ? new Date(cs.last_occurred_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       dates: [],
     }));
@@ -199,7 +199,7 @@ export default function AirlinePage() {
     if (!selectedCallsignForDetail) return null;
     return {
       occurrenceCount: selectedCallsignForDetail.occurrence_count ?? 0,
-      firstOccurredAt: selectedCallsignForDetail.created_at ?? null,
+      firstOccurredAt: selectedCallsignForDetail.first_occurred_at ?? null,
       lastOccurredAt: selectedCallsignForDetail.last_occurred_at ?? null,
       similarity: selectedCallsignForDetail.similarity ?? '-',
       riskLevel: selectedCallsignForDetail.risk_level ?? '-',
