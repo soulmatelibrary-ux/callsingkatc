@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
+import { ADMIN_LINKS } from '@/lib/admin-navigation';
 
 // KAC 로고 SVG 컴포넌트
 function KACLogo() {
@@ -192,7 +193,7 @@ export function Header() {
 
             {isAdmin && (
               <Link
-                href="/admin/users?tab=users"
+                href={ADMIN_LINKS.USERS_TAB}
                 className="text-white/60 hover:text-white text-[11px] font-black uppercase tracking-widest transition-all"
               >
                 관리자 페이지

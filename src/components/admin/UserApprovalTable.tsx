@@ -8,14 +8,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useUsers, useUserMutations } from '@/hooks/useUsers';
 import { useAirlines } from '@/hooks/useAirlines';
 import { User } from '@/types/user';
-import { useAuthStore } from '@/store/authStore';
 import { CreateUserModal } from './CreateUserModal';
 
 type FilterStatus = 'all' | 'active' | 'suspended';
@@ -52,28 +51,14 @@ export function UserApprovalTable() {
   } = useUsers(filter === 'all' ? undefined : (filter as 'active' | 'suspended'));
 
   const { data: airlines = [], isLoading: airlinesLoading } = useAirlines();
-  const { approve, reject, suspend, activate, deleteUser } = useUserMutations();
-
-  // 항공사 변경 함수
-  const token = useAuthStore((s) => s.accessToken);
+  const { approve, reject, suspend, activate, updateAirline, deleteUser } = useUserMutations();
 
   async function handleAirlineChange(userId: string, newAirlineCode: string) {
     if (updatingAirline || !newAirlineCode) return;
 
     setUpdatingAirline({ userId, airlineId: newAirlineCode });
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ airlineCode: newAirlineCode }),
-      });
-
-      if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'users'], exact: false });
-      }
+      await updateAirline.mutateAsync({ userId, airlineCode: newAirlineCode });
     } catch (error) {
       console.error('항공사 변경 실패:', error);
     } finally {

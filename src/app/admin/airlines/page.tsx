@@ -1,13 +1,9 @@
-"use client";
+import AdminUsersPageClient from '../users/client';
 
-import { AirlinesAdminSection } from "@/components/admin/AirlinesAdminSection";
-
+/**
+ * /admin/airlines 라우트는 사용자 관리 탭 화면을 재사용하여
+ * 단일 UI 소스에서 항공사 관리 기능을 제공한다.
+ */
 export default function AirlinesAdminPage() {
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <main className="flex-1 w-full px-4 sm:px-6 pb-10">
-        <AirlinesAdminSection />
-      </main>
-    </div>
-  );
+  return <AdminUsersPageClient initialTab="airlines" />;
 }

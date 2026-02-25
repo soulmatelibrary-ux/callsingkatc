@@ -4,12 +4,7 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { NanoIcon } from '@/components/ui/NanoIcon';
-import {
-    Users,
-    Plane,
-    Megaphone,
-    LockKeyhole
-} from 'lucide-react';
+import { ADMIN_SIDEBAR_ITEMS } from '@/lib/admin-navigation';
 
 export function AdminSidebar() {
     const pathname = usePathname();
@@ -33,13 +28,6 @@ export function AdminSidebar() {
         }
     }, [pathname, searchParams]);
 
-    const menuItems = [
-        { id: 'users', label: '사용자 관리', href: '/admin/users?tab=users', icon: Users, color: 'info' },
-        { id: 'airlines', label: '항공사 관리', href: '/admin/users?tab=airlines', icon: Plane, color: 'purple' },
-        { id: 'announcements', label: '공지사항 관리', href: '/admin/announcements', icon: Megaphone, color: 'orange' },
-        { id: 'password', label: '비밀번호 초기화', href: '/admin/users?tab=password', icon: LockKeyhole, color: 'danger' },
-    ];
-
     return (
         <aside className="w-72 bg-white border-r border-gray-200 flex flex-col pt-0 shrink-0 h-full overflow-y-auto">
             <div className="px-6 py-4 mb-0">
@@ -48,7 +36,7 @@ export function AdminSidebar() {
                 </h2>
             </div>
             <nav className="flex-1 px-4 space-y-2">
-                {menuItems.map((item) => {
+                {ADMIN_SIDEBAR_ITEMS.map((item) => {
                     const isActive = activeMenu === item.id;
                     return (
                         <Link

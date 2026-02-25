@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { redirect } from 'next/navigation';
 import { AnnouncementTable } from '@/components/announcements/AnnouncementTable';
 import { AnnouncementFormModal } from '@/components/announcements/AnnouncementFormModal';
 import { AnnouncementDetailModal } from '@/components/announcements/AnnouncementDetailModal';
@@ -16,9 +15,11 @@ import { AdminAnnouncementResponse, Announcement } from '@/types/announcement';
  * - 전체 공지사항 조회
  * - 필터: 긴급도, 상태, 기간
  * - 읽음 통계 (viewCount)
+ *
+ * 인증 및 관리자 권한 체크는 admin 레이아웃/미들웨어에서 처리합니다.
  */
 export default function AdminAnnouncementsPage() {
-  const { user, accessToken } = useAuthStore();
+  const { user } = useAuthStore();
   const [showFormModal, setShowFormModal] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<
     AdminAnnouncementResponse | Announcement | null
@@ -26,16 +27,6 @@ export default function AdminAnnouncementsPage() {
   const [editAnnouncement, setEditAnnouncement] = useState<
     AdminAnnouncementResponse | Announcement | null
   >(null);
-
-  // 미인증 사용자 리다이렉트
-  if (!accessToken || !user) {
-    redirect('/');
-  }
-
-  // 관리자 아닌 사용자 리다이렉트
-  if (user.role !== 'admin') {
-    redirect('/announcements');
-  }
 
   // 상세 모달에서 수정 버튼 클릭 시
   const handleEditFromDetail = (announcement: AdminAnnouncementResponse | Announcement) => {

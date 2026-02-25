@@ -56,6 +56,15 @@ async function activateUserAPI(userId: string) {
   return response.json();
 }
 
+async function updateUserAirlineAPI(userId: string, airlineCode: string) {
+  const response = await apiFetch(`/api/admin/users/${userId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ airlineCode }),
+  });
+  if (!response.ok) throw new Error('Failed to update user airline');
+  return response.json();
+}
+
 async function deleteUserAPI(userId: string) {
   const response = await apiFetch(`/api/admin/users/${userId}`, {
     method: 'DELETE',
@@ -102,10 +111,16 @@ export function useUserMutations() {
     onSuccess: invalidate,
   });
 
+  const updateAirline = useMutation({
+    mutationFn: ({ userId, airlineCode }: { userId: string; airlineCode: string }) =>
+      updateUserAirlineAPI(userId, airlineCode),
+    onSuccess: invalidate,
+  });
+
   const deleteUser = useMutation({
     mutationFn: deleteUserAPI,
     onSuccess: invalidate,
   });
 
-  return { approve, reject, suspend, activate, deleteUser };
+  return { approve, reject, suspend, activate, updateAirline, deleteUser };
 }

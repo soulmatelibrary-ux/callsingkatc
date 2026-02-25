@@ -1,40 +1,9 @@
+import AdminUsersPageClient from '../users/client';
+
 /**
- * 관리자 비밀번호 초기화 페이지
- * GET /admin/password-reset
- *
- * 기능:
- * 1. 이메일로 사용자 검색
- * 2. 선택한 사용자의 비밀번호를 임시 비밀번호로 초기화
- * 3. 생성된 임시 비밀번호를 화면에 표시 (관리자가 사용자에게 전달)
+ * /admin/password-reset 라우트는 사용자 관리 탭 UI를 재사용한다.
  */
-"use client";
-
-import Link from "next/link";
-import { PasswordResetSection } from "@/components/admin/PasswordResetSection";
-
 export default function AdminPasswordResetPage() {
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <main className="flex-1 w-full px-4 sm:px-6 pb-10 space-y-6">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <Link
-              href="/admin"
-              className="text-sm text-gray-500 hover:text-gray-900 hover:underline"
-            >
-              대시보드
-            </Link>
-            <span className="text-gray-300">/</span>
-            <h1 className="text-2xl font-bold text-gray-900">비밀번호 초기화</h1>
-          </div>
-          <p className="text-gray-600">
-            사용자 계정의 비밀번호를 초기화하고 임시 비밀번호를 생성합니다.
-          </p>
-        </div>
-
-        <PasswordResetSection />
-      </main>
-    </div>
-  );
+  return <AdminUsersPageClient initialTab="password" />;
 }
 
