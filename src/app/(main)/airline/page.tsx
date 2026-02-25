@@ -462,7 +462,6 @@ export default function AirlinePage() {
             callsignId: String(selectedAction.callsign_id),
             callsign_id: String(selectedAction.callsign_id),
             actionType: selectedAction.action_type,
-            managerName: selectedAction.manager_name,
             description: selectedAction.description,
             plannedDueDate: toInputDate(selectedAction.planned_due_date) || undefined,
             completedDate: toInputDate(selectedAction.completed_at) || toInputDate(selectedAction.registered_at) || undefined,

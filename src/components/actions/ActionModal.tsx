@@ -16,8 +16,6 @@ interface ActionModalProps {
     callsign_pair?: string;
     actionType?: string;
     action_type?: string;
-    managerName?: string;
-    manager_name?: string;
     description?: string;
     plannedDueDate?: string;
     processedDate?: string;
@@ -46,7 +44,6 @@ export function ActionModal({
     ''
   );
   const [actionType, setActionType] = useState(initialData?.actionType || '');
-  const [managerName, setManagerName] = useState(''); // 항상 공백 (UI에서 숨김)
   const [description, setDescription] = useState(initialData?.description || '');
   const [processedDate, setProcessedDate] = useState<string>(
     initialData?.processedDate ||
@@ -78,13 +75,14 @@ export function ActionModal({
     }
 
     try {
+      // manager_name: 담당자 필드는 비즈니스 요구사항에 따라 제거됨
+      // (관리자가 시스템에서 자동으로 할당하도록 변경)
       if (actionId) {
         // 수정 모드
         await updateMutation.mutateAsync({
           id: actionId,
           action_type: actionType,
           description: description || undefined,
-          manager_name: managerName || undefined,
           status: status,
           completed_at: processedDate,
         });
@@ -95,7 +93,6 @@ export function ActionModal({
           callsign_id: callsignId,
           action_type: actionType,
           description: description || undefined,
-          manager_name: managerName || undefined,
           status: 'completed', // 신규 등록은 항상 완료 상태
           completed_at: processedDate,
         });
@@ -251,36 +248,6 @@ export function ActionModal({
               <option value="시스템 개선">시스템 개선</option>
               <option value="기타">기타</option>
             </select>
-          </div>
-
-          {/* 담당자 - 숨김 (UI에만 표시 안 함, DB/API는 유지) */}
-          <div style={{ display: 'none' }}>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '13px',
-                fontWeight: 600,
-                color: '#4b5563',
-                marginBottom: '6px',
-              }}
-            >
-              담당자 <span style={{ color: '#9ca3af', fontSize: '12px' }}>(선택)</span>
-            </label>
-            <input
-              type="text"
-              placeholder="담당자 이름"
-              value={managerName}
-              onChange={(e) => setManagerName(e.target.value)}
-              disabled={isLoading}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb',
-                fontSize: '14px',
-                opacity: isLoading ? 0.6 : 1,
-              }}
-            />
           </div>
 
           {/* 처리일자 */}
