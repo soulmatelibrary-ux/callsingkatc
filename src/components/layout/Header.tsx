@@ -168,6 +168,16 @@ export function Header() {
 
             <div className="w-px h-3 bg-white/10" />
 
+            {/* 공지사항 (모든 로그인 사용자) */}
+            <Link
+              href={ROUTES.ANNOUNCEMENTS}
+              className="text-white/60 hover:text-white text-[11px] font-black uppercase tracking-widest transition-all"
+            >
+              공지사항
+            </Link>
+
+            <span className="text-white/10 text-[10px]">|</span>
+
             {/* 유사호출부호 관리 (관리자만) */}
             {isAdmin && (
               <Link

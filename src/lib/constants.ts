@@ -57,7 +57,7 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/forgot-password',
   CHANGE_PASSWORD: '/change-password',
   AIRLINE: '/airline',
-  ANNOUNCEMENTS: '/announcements',
+  ANNOUNCEMENTS: '/airline/announcements',
   ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',
   ADMIN_PASSWORD_RESET: '/admin/password-reset',

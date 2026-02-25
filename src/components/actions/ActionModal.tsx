@@ -46,7 +46,7 @@ export function ActionModal({
     ''
   );
   const [actionType, setActionType] = useState(initialData?.actionType || '');
-  const [managerName, setManagerName] = useState(initialData?.managerName || '');
+  const [managerName, setManagerName] = useState(''); // 항상 공백 (UI에서 숨김)
   const [description, setDescription] = useState(initialData?.description || '');
   const [processedDate, setProcessedDate] = useState<string>(
     initialData?.processedDate ||
@@ -253,8 +253,8 @@ export function ActionModal({
             </select>
           </div>
 
-          {/* 담당자 */}
-          <div>
+          {/* 담당자 - 숨김 (UI에만 표시 안 함, DB/API는 유지) */}
+          <div style={{ display: 'none' }}>
             <label
               style={{
                 display: 'block',
