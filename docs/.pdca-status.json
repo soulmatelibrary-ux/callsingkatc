@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-25T12:53:51.163Z",
+  "lastUpdated": "2026-02-25T13:41:26.335Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -39,7 +39,8 @@
     "uploads",
     "callsign-management",
     "tmp",
-    "file-uploads"
+    "file-uploads",
+    "tabs"
   ],
   "primaryFeature": "katc1",
   "features": {
@@ -351,7 +352,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T02:01:15.039Z",
-        "lastUpdated": "2026-02-24T13:36:32.980Z"
+        "lastUpdated": "2026-02-25T13:36:54.658Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/(main)/airline/page.tsx"
     },
@@ -553,6 +554,19 @@
         "lastUpdated": "2026-02-24T13:33:32.524Z"
       },
       "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/file-uploads/route.ts"
+    },
+    "tabs": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-25T13:33:05.332Z",
+        "lastUpdated": "2026-02-25T13:41:26.335Z"
+      },
+      "lastFile": "/Users/sein/Desktop/katc1/src/components/airline/tabs/IncidentsTab.tsx"
     }
   },
   "pipeline": {
@@ -563,7 +577,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-25T12:53:51.163Z"
+    "lastActivity": "2026-02-25T13:41:26.335Z"
   },
   "history": [
     {
@@ -6371,6 +6385,72 @@
     {
       "timestamp": "2026-02-25T12:53:51.163Z",
       "feature": "katc1",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:33:05.332Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:34:44.226Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:35:15.704Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:35:34.840Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:35:49.743Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:36:12.904Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:36:31.087Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:36:43.583Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:36:54.658Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:38:08.909Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-25T13:41:26.335Z",
+      "feature": "tabs",
       "phase": "do",
       "action": "updated"
     }

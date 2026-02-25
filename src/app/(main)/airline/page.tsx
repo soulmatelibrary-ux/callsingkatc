@@ -54,6 +54,12 @@ export default function AirlinePage() {
   const [errorTypeFilter, setErrorTypeFilter] = useState<'all' | ErrorType>('all');
   const [isExporting, setIsExporting] = useState(false);
 
+  // 발생현황 탭 상태
+  const [incidentsPage, setIncidentsPage] = useState(1);
+  const [incidentsLimit, setIncidentsLimit] = useState(10);
+  const [incidentsSearch, setIncidentsSearch] = useState('');
+  const [incidentsSearchInput, setIncidentsSearchInput] = useState('');
+
   // 조치이력 탭 상태
   const [actionPage, setActionPage] = useState(1);
   const [actionLimit, setActionLimit] = useState(10);
@@ -265,6 +271,16 @@ export default function AirlinePage() {
     queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
   }, [queryClient]);
 
+  const handleIncidentsSearchSubmit = useCallback(() => {
+    setIncidentsSearch(incidentsSearchInput);
+    setIncidentsPage(1);
+  }, [incidentsSearchInput]);
+
+  const handleIncidentsLimitChange = useCallback((limit: number) => {
+    setIncidentsLimit(limit);
+    setIncidentsPage(1);
+  }, []);
+
   const handleSearchSubmit = useCallback(() => {
     setActionSearch(actionSearchInput);
     setActionPage(1);
@@ -346,6 +362,14 @@ export default function AirlinePage() {
                 activeRange={incidentsDateFilter.activeRange}
                 errorTypeFilter={errorTypeFilter}
                 isExporting={isExporting}
+                incidentsPage={incidentsPage}
+                incidentsLimit={incidentsLimit}
+                incidentsSearch={incidentsSearch}
+                incidentsSearchInput={incidentsSearchInput}
+                onPageChange={setIncidentsPage}
+                onLimitChange={handleIncidentsLimitChange}
+                onSearchInputChange={setIncidentsSearchInput}
+                onSearchSubmit={handleIncidentsSearchSubmit}
                 onStartDateChange={incidentsDateFilter.handleStartDateChange}
                 onEndDateChange={incidentsDateFilter.handleEndDateChange}
                 onApplyQuickRange={incidentsDateFilter.applyQuickRange}

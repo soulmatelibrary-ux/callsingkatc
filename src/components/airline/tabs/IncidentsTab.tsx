@@ -21,6 +21,16 @@ interface IncidentsTabProps {
   activeRange: DateRangeType;
   errorTypeFilter: 'all' | ErrorType;
   isExporting: boolean;
+  // 페이징 / 검색
+  incidentsPage: number;
+  incidentsLimit: number;
+  incidentsSearch: string;
+  incidentsSearchInput: string;
+  onPageChange: (page: number) => void;
+  onLimitChange: (limit: number) => void;
+  onSearchInputChange: (value: string) => void;
+  onSearchSubmit: () => void;
+  // 기존 핸들러
   onStartDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onEndDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onApplyQuickRange: (type: 'today' | '1w' | '2w' | '1m') => void;
@@ -82,6 +92,14 @@ export function IncidentsTab({
   activeRange,
   errorTypeFilter,
   isExporting,
+  incidentsPage,
+  incidentsLimit,
+  incidentsSearch,
+  incidentsSearchInput,
+  onPageChange,
+  onLimitChange,
+  onSearchInputChange,
+  onSearchSubmit,
   onStartDateChange,
   onEndDateChange,
   onApplyQuickRange,
@@ -132,12 +150,18 @@ export function IncidentsTab({
     });
   }, [filteredByDate, visibleIncidentCount]);
 
-  // 에러 타입 + 정렬 적용된 최종 목록
+  // 에러 타입 + 검색어 + 정렬 적용된 최종 목록
   const allFilteredIncidents = useMemo(() => {
-    const filtered =
+    let filtered =
       errorTypeFilter === 'all'
         ? filteredByDate
         : filteredByDate.filter((i) => i.errorType === errorTypeFilter);
+
+    // 호출부호 쌍 검색
+    if (incidentsSearch.trim()) {
+      const q = incidentsSearch.trim().toLowerCase();
+      filtered = filtered.filter((i) => i.pair.toLowerCase().includes(q));
+    }
 
     return filtered.sort((a, b) => {
       const riskA = RISK_LEVEL_ORDER[a.risk as keyof typeof RISK_LEVEL_ORDER] || 0;
@@ -151,7 +175,14 @@ export function IncidentsTab({
       const countB = b.count || 0;
       return countB - countA;
     });
-  }, [filteredByDate, errorTypeFilter]);
+  }, [filteredByDate, errorTypeFilter, incidentsSearch]);
+
+  // 페이징
+  const totalPages = Math.max(1, Math.ceil(allFilteredIncidents.length / incidentsLimit));
+  const pagedIncidents = useMemo(() => {
+    const start = (incidentsPage - 1) * incidentsLimit;
+    return allFilteredIncidents.slice(start, start + incidentsLimit);
+  }, [allFilteredIncidents, incidentsPage, incidentsLimit]);
 
   // 호출부호 렌더링 컴포넌트
   const CallsignPairDisplay = useCallback(
@@ -264,78 +295,13 @@ export function IncidentsTab({
         </div>
       )}
 
-      {/* 조회 기간 필터 */}
-      <div className="bg-white shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row items-center justify-between gap-6 rounded-none">
-        <div className="flex flex-col md:flex-row items-center gap-6 w-full md:w-auto">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-rose-50 text-rose-700 rounded-none flex items-center justify-center">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
-                조회 기간
-              </p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={onStartDateChange}
-                  className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
-                />
-                <span className="text-gray-300">~</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={onEndDateChange}
-                  className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex bg-gray-50/50 p-1 rounded-none border border-gray-100">
-            {(['today', '1w', '2w', '1m'] as const).map((range) => (
-              <button
-                key={range}
-                type="button"
-                onClick={() => onApplyQuickRange(range)}
-                className={`px-4 py-2 rounded-none text-xs font-black tracking-tight transition-all ${
-                  activeRange === range
-                    ? 'bg-white text-rose-700 shadow-sm'
-                    : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                {range === 'today' ? '오늘' : range === '1w' ? '1주' : range === '2w' ? '2주' : '1개월'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-3 w-full md:w-auto">
-          <button
-            type="button"
-            onClick={onExport}
-            disabled={isExporting || allFilteredIncidents.length === 0}
-            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-none font-bold shadow-sm transition-all text-sm border ${
-              isExporting || allFilteredIncidents.length === 0
-                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-            }`}
-          >
+      {/* 필터 통합 한 줄: 검색 바 + Limit + 날짜 범위 + Quick Range + Excel */}
+      <div className="flex flex-col md:flex-row items-center gap-3">
+        {/* 검색 바 (flex-1) */}
+        <div className="flex-1 relative group w-full md:w-auto">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
             <svg
-              className="w-4 h-4"
+              className="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -344,19 +310,122 @@ export function IncidentsTab({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
-            <span>{isExporting ? '내보내는 중...' : 'Excel 내보내기'}</span>
+          </div>
+          <input
+            type="text"
+            placeholder="호출부호 쌍을 검색하세요 (예: KAL123)"
+            value={incidentsSearchInput}
+            onChange={(e) => onSearchInputChange(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') onSearchSubmit(); }}
+            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-none text-sm font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-700/20 focus:border-rose-700 transition-all placeholder:text-gray-300"
+          />
+          <button
+            onClick={onSearchSubmit}
+            className="absolute right-2 top-1.5 bottom-1.5 px-5 bg-[#00205b] text-white text-[11px] font-black rounded-none shadow-none hover:bg-[#001540] transition-all uppercase tracking-widest"
+          >
+            Search
           </button>
         </div>
+
+        {/* Limit 선택 */}
+        <div className="bg-white/50 backdrop-blur-sm rounded-none px-3 py-2 shadow-sm border border-gray-100 flex items-center gap-1.5 flex-shrink-0">
+          <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+            Limit
+          </span>
+          <select
+            value={incidentsLimit}
+            onChange={(e) => onLimitChange(parseInt(e.target.value, 10))}
+            className="bg-transparent text-sm font-black text-gray-700 focus:outline-none cursor-pointer"
+          >
+            <option value="10">10</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+
+        {/* 날짜 범위 */}
+        <div className="bg-white border border-gray-100 shadow-sm rounded-none px-3 py-2 flex items-center gap-2 flex-shrink-0">
+          <input
+            type="date"
+            value={startDate}
+            onChange={onStartDateChange}
+            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
+          />
+          <span className="text-gray-300 font-bold">~</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={onEndDateChange}
+            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
+          />
+        </div>
+
+        {/* Quick Range 버튼 */}
+        <div className="flex rounded-none border border-gray-200 overflow-hidden flex-shrink-0">
+          {(['today', '1w', '2w', '1m'] as const).map((range) => (
+            <button
+              key={range}
+              type="button"
+              onClick={() => onApplyQuickRange(range)}
+              className={`px-3 py-2 text-xs font-black tracking-tight transition-all border-r border-gray-200 last:border-r-0 ${
+                activeRange === range
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-500 hover:bg-gray-900 hover:text-white'
+              }`}
+            >
+              {range === 'today' ? '오늘' : range === '1w' ? '1주' : range === '2w' ? '2주' : '1개월'}
+            </button>
+          ))}
+        </div>
+
+        {/* Excel 내보내기 */}
+        <button
+          type="button"
+          onClick={onExport}
+          disabled={isExporting || allFilteredIncidents.length === 0}
+          className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-none font-bold shadow-sm transition-all text-sm border ${
+            isExporting || allFilteredIncidents.length === 0
+              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+            />
+          </svg>
+          <span className="whitespace-nowrap">{isExporting ? '내보내는 중...' : 'Excel 내보내기'}</span>
+        </button>
       </div>
 
       {/* 발생현황 테이블 */}
       <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+        {/* 총 개수 표시 */}
+        <div className="px-8 py-4 border-b border-gray-50 flex items-center justify-between">
+          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            Total {allFilteredIncidents.length} Cases
+          </span>
+          {incidentsSearch && (
+            <span className="text-[10px] font-bold text-rose-600">
+              &quot;{incidentsSearch}&quot; 검색 결과
+            </span>
+          )}
+        </div>
         <div className="overflow-x-auto flex-1">
           <div className="divide-y divide-gray-50">
-            {allFilteredIncidents.map((incident) => (
+            {pagedIncidents.map((incident) => (
               <div
                 key={incident.id}
                 className={`border-b-2 border-gray-100 last:border-b-0 border-l-4 ${
@@ -505,6 +574,51 @@ export function IncidentsTab({
             ))}
           </div>
         </div>
+
+        {/* 페이지네이션 */}
+        {totalPages > 1 && (
+          <div className="px-8 py-6 border-t border-gray-50 flex justify-center items-center gap-2">
+            <button
+              onClick={() => onPageChange(Math.max(1, incidentsPage - 1))}
+              disabled={incidentsPage === 1}
+              className="p-2 rounded-none border border-gray-200 text-gray-400 hover:text-rose-700 hover:border-rose-700 disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
+            >
+              PREV
+            </button>
+
+            <div className="flex gap-1 mx-4">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const startPage = Math.max(
+                  1,
+                  Math.min(incidentsPage - 2, totalPages - 4)
+                );
+                const pageNum = startPage + i;
+                if (pageNum > totalPages) return null;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => onPageChange(pageNum)}
+                    className={`w-10 h-10 rounded-none text-xs font-black transition-all border border-transparent ${
+                      pageNum === incidentsPage
+                        ? 'bg-rose-700 text-white shadow-none'
+                        : 'text-gray-400 hover:text-gray-900 border-gray-200 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => onPageChange(Math.min(totalPages, incidentsPage + 1))}
+              disabled={incidentsPage === totalPages}
+              className="p-2 rounded-none border border-gray-200 text-gray-400 hover:text-rose-700 hover:border-rose-700 disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
+            >
+              NEXT
+            </button>
+          </div>
+        )}
       </div>
 
       {allFilteredIncidents.length === 0 && (
