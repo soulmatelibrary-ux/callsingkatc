@@ -1,115 +1,124 @@
 #!/bin/bash
 
-# ===============================
-# Mac Production Server Startup (Docker Desktop)
-# - Docker Desktop에서 PostgreSQL 컨테이너 실행
-# - Next.js를 빌드 후 프로덕션 서버로 포트 3000에서 실행
-# ===============================
+# 🚀 KATC1 로컬 개발 시작 스크립트
+# SQLite + 3000 포트 자동 설정
 
 set -e
 
-PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$PROJECT_DIR"
+# 색상 정의
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# ===============================
-# Docker Desktop 확인
-# ===============================
-echo "Docker Desktop 확인 중..."
-if ! docker info > /dev/null 2>&1; then
-  echo "❌ Docker Desktop이 실행되지 않았습니다."
-  echo "   Docker Desktop을 먼저 실행해주세요."
-  exit 1
-fi
-echo "✅ Docker Desktop 실행 중"
+PORT=3000
 
-# ===============================
-# 포트 3000 정리
-# ===============================
-echo ""
-echo "포트 3000 정리 중..."
-lsof -i :3000 | grep LISTEN | awk '{print $2}' | xargs kill -9 2>/dev/null || true
-sleep 1
-echo "✅ 포트 3000 정리 완료"
+# 함수: 헤더 출력
+print_header() {
+  echo -e "\n${BLUE}════════════════════════════════════════${NC}"
+  echo -e "${BLUE}🛫 KATC1 유사호출부호 경고시스템${NC}"
+  echo -e "${BLUE}════════════════════════════════════════${NC}\n"
+}
 
-# ===============================
-# PostgreSQL 컨테이너 시작 (Docker Desktop)
-# ===============================
-echo ""
-echo "PostgreSQL 컨테이너 시작 중 (Docker Desktop)..."
+# 함수: 포트 킬 (기존 프로세스 종료)
+kill_port() {
+  echo -e "\n${YELLOW}🔍 포트 $PORT 확인 중...${NC}"
 
-if docker ps -a --filter "name=katc1-postgres" --format "{{.Names}}" | grep -q katc1-postgres; then
-  echo "  기존 컨테이너 시작 중... (데이터 유지)"
-  docker start katc1-postgres > /dev/null 2>&1
-  echo "✅ PostgreSQL 컨테이너 시작 완료"
-else
-  echo "  새 컨테이너 생성 중 (docker-compose)..."
-  docker compose up -d postgres
-  echo "✅ PostgreSQL 컨테이너 생성 완료"
-  sleep 3
-fi
+  # macOS/Linux에서 포트 사용 중인 프로세스 찾기
+  if lsof -i :$PORT > /dev/null 2>&1; then
+    echo -e "${YELLOW}⚠️  포트 $PORT이(가) 이미 사용 중입니다. 프로세스 종료 중...${NC}"
 
-# PostgreSQL 준비 대기
-echo "PostgreSQL 준비 대기 중..."
-for i in $(seq 1 15); do
-  if docker exec katc1-postgres pg_isready -U postgres > /dev/null 2>&1; then
-    echo "✅ PostgreSQL 준비 완료"
-    break
-  fi
-  if [ "$i" -eq 15 ]; then
-    echo "❌ PostgreSQL 시작 실패"
-    exit 1
-  fi
-  sleep 1
-done
-
-# ===============================
-# 데이터베이스 확인
-# ===============================
-echo ""
-echo "데이터베이스 확인 중..."
-
-USER_COUNT=$(docker exec katc1-postgres psql -U postgres -d katc1_dev -t -c "SELECT COUNT(*) FROM users;" 2>/dev/null | tr -d ' ' || echo "0")
-
-if [ "$USER_COUNT" -gt 0 ] 2>/dev/null; then
-  echo "✅ 데이터베이스에 데이터 있음 (users: ${USER_COUNT}명) - init.sql 건너뜀"
-else
-  echo "ℹ️  데이터베이스 비어있음 - init.sql 실행 중..."
-  if [ -f "scripts/init.sql" ]; then
-    docker cp scripts/init.sql katc1-postgres:/tmp/init.sql
-    docker exec katc1-postgres psql -U postgres -d katc1_dev -f /tmp/init.sql > /dev/null 2>&1
-    echo "✅ 데이터베이스 초기화 완료"
-    echo "   - Admin: lsi117@airport.co.kr / 1234"
-    echo "   - Korean Air: kal@naver.com / 1234"
-    echo "   - Asiana: aar@naver.com / 1234"
+    # PID 찾아서 종료
+    pid=$(lsof -ti :$PORT)
+    if [ ! -z "$pid" ]; then
+      kill -9 $pid 2>/dev/null || true
+      echo -e "${GREEN}✓ 포트 $PORT의 프로세스 종료 완료 (PID: $pid)${NC}"
+      sleep 1
+    fi
   else
-    echo "⚠️  init.sql 파일 없음 - 건너뜀"
+    echo -e "${GREEN}✓ 포트 $PORT 사용 가능${NC}"
   fi
-fi
+}
 
-# ===============================
-# 의존성 확인
-# ===============================
-echo ""
-if [ ! -d "node_modules" ]; then
-  echo "의존성 설치 중..."
-  npm install
-else
-  echo "✅ 의존성 설치됨"
-fi
+# 함수: SQLite 환경 설정
+setup_sqlite() {
+  echo -e "\n${BLUE}📝 SQLite 환경 설정 중...${NC}"
 
-# ===============================
-# Next.js 빌드 및 실행
-# ===============================
-echo ""
-echo "Next.js 프로덕션 빌드 시작..."
-npm run build
+  # .env.local 생성
+  cat > .env.local << 'EOF'
+# SQLite Database (로컬 개발용)
+DB_PATH=./data/katc1.db
 
-echo ""
-echo "================================================"
-echo "  Next.js 프로덕션 서버 실행"
-echo "  http://localhost:3000"
-echo "  종료: Ctrl+C"
-echo "================================================"
-echo ""
+# API
+NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_BKEND_PROJECT_ID=
 
-PORT=3000 npm start
+# JWT
+JWT_SECRET=dev-secret-key-for-local-only
+
+# Session
+SESSION_SECRET=dev-session-secret-for-local-only
+EOF
+
+  echo -e "${GREEN}✓ .env.local 설정 완료 (SQLite)${NC}"
+
+  # data 디렉토리 생성
+  mkdir -p ./data
+  echo -e "${GREEN}✓ 데이터 디렉토리 준비 완료${NC}"
+}
+
+# 함수: Next.js 개발 서버 시작
+start_next_dev() {
+  echo -e "\n${BLUE}📦 의존성 설치 확인 중...${NC}"
+
+  if [ ! -d node_modules ]; then
+    echo -e "${YELLOW}⏳ npm install 중...${NC}"
+    npm install
+  fi
+
+  echo -e "\n${GREEN}════════════════════════════════════════${NC}"
+  echo -e "${GREEN}✓ 개발 서버 시작!${NC}"
+  echo -e "${GREEN}════════════════════════════════════════${NC}"
+  echo -e "\n${BLUE}📍 로컬 애플리케이션:${NC}"
+  echo -e "   ${BLUE}http://localhost:3000${NC}"
+  echo ""
+  echo -e "${YELLOW}테스트 계정:${NC}"
+  echo -e "   관리자: admin@katc.com / Admin1234"
+  echo -e "   사용자: kal-user@katc.com / User1234"
+  echo ""
+  echo -e "${YELLOW}데이터베이스:${NC}"
+  echo -e "   SQLite: ./data/katc1.db"
+  echo ""
+  echo -e "${YELLOW}중지하려면 Ctrl+C를 누르세요${NC}\n"
+
+  # Next.js dev 서버 시작
+  npm run dev
+}
+
+# 함수: 종료 핸들러
+cleanup() {
+  echo -e "\n\n${YELLOW}🛑 개발 서버를 종료합니다...${NC}"
+  echo -e "${GREEN}✓ 종료 완료${NC}"
+  exit 0
+}
+
+# 메인 실행
+main() {
+  print_header
+
+  # Ctrl+C 트래핑
+  trap cleanup SIGINT SIGTERM
+
+  # 포트 체크 및 킬
+  kill_port
+
+  # SQLite 설정
+  setup_sqlite
+
+  # Next.js 시작
+  start_next_dev
+}
+
+# 스크립트 실행
+main
