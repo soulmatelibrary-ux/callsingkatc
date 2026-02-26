@@ -305,20 +305,26 @@ function insertSampleData(database: Database.Database) {
     insertAirlineStmt.run(airline.code, airline.name_ko, airline.name_en, airline.display_order);
   });
 
+  // 비밀번호 "1234"의 bcrypt 해시
+  const hash1234 = '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm';
+
   // 사용자 데이터
   const users = [
-    { email: 'admin@katc.com', password_hash: '$2b$10$Lt/H/23KNwU4ctxRXoGr1OjUddKuCxpxVJ2M3NZrgxc37WWrGGzoa', airline_code: 'KAL', role: 'admin' },
-    { email: 'kal-user@katc.com', password_hash: '$2b$10$KS7NfrdP5mnQ9bGZUUDmXeGJurpANIGX3g6Z6du/5pVn4KjVwvvh2', airline_code: 'KAL', role: 'user' },
-    { email: 'aar-user@katc.com', password_hash: '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm', airline_code: 'AAR', role: 'user' },
-    { email: 'jja-user@katc.com', password_hash: '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm', airline_code: 'JJA', role: 'user' },
-    { email: 'jna@katc.com', password_hash: '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm', airline_code: 'JNA', role: 'user' },
-    { email: 'twb@katc.com', password_hash: '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm', airline_code: 'TWB', role: 'user' },
-    { email: 'abl@katc.com', password_hash: '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm', airline_code: 'ABL', role: 'user' },
-    { email: 'asv@katc.com', password_hash: '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm', airline_code: 'ASV', role: 'user' },
-    { email: 'eok@katc.com', password_hash: '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm', airline_code: 'EOK', role: 'user' },
-    { email: 'fgw@katc.com', password_hash: '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm', airline_code: 'FGW', role: 'user' },
-    { email: 'starred1@naver.com', password_hash: '$2b$10$mG7zNrmB0kuIJtilAK6MEeu6S5ckJJyEjzmZoV9kOU1wTnZSFAlVS', airline_code: 'KAL', role: 'user' },
-    { email: 'parkeungi21@korea.kr', password_hash: '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm', airline_code: 'KAL', role: 'admin' },
+    // 관리자 계정 (2명)
+    { email: 'lsi117@airport.co.kr', password_hash: hash1234, airline_code: 'KAL', role: 'admin' },
+    { email: 'parkeungi21@korea.kr', password_hash: hash1234, airline_code: 'KAL', role: 'admin' },
+    // 항공사별 계정 (11개 항공사)
+    { email: 'kal@test.com', password_hash: hash1234, airline_code: 'KAL', role: 'user' },
+    { email: 'aar@test.com', password_hash: hash1234, airline_code: 'AAR', role: 'user' },
+    { email: 'jja@test.com', password_hash: hash1234, airline_code: 'JJA', role: 'user' },
+    { email: 'jna@test.com', password_hash: hash1234, airline_code: 'JNA', role: 'user' },
+    { email: 'twb@test.com', password_hash: hash1234, airline_code: 'TWB', role: 'user' },
+    { email: 'abl@test.com', password_hash: hash1234, airline_code: 'ABL', role: 'user' },
+    { email: 'asv@test.com', password_hash: hash1234, airline_code: 'ASV', role: 'user' },
+    { email: 'eok@test.com', password_hash: hash1234, airline_code: 'EOK', role: 'user' },
+    { email: 'fgw@test.com', password_hash: hash1234, airline_code: 'FGW', role: 'user' },
+    { email: 'apz@test.com', password_hash: hash1234, airline_code: 'APZ', role: 'user' },
+    { email: 'esr@test.com', password_hash: hash1234, airline_code: 'ESR', role: 'user' },
   ];
 
   const insertUserStmt = database.prepare(`

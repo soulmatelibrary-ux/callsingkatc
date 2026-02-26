@@ -80,175 +80,99 @@ INSERT INTO airlines (code, name_ko, name_en, display_order) VALUES
 ON CONFLICT (code) DO NOTHING;
 
 -- ================================================================
--- 기본 사용자 계정
+-- 기본 사용자 계정 (모든 비밀번호: 1234)
+-- bcrypt hash for '1234': $2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm
 -- ================================================================
 
--- 1. 관리자 계정: admin@katc.com (비밀번호: Admin1234)
+-- 관리자 계정 1: lsi117@airport.co.kr
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'admin@katc.com',
-  '$2b$10$Lt/H/23KNwU4ctxRXoGr1OjUddKuCxpxVJ2M3NZrgxc37WWrGGzoa',
-  airlines.id,
-  'active',
-  'admin',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'KAL'
+SELECT 'lsi117@airport.co.kr', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'admin', false, false
+FROM airlines WHERE airlines.code = 'KAL'
 ON CONFLICT (email) DO NOTHING;
 
--- 2. 대한항공 사용자: kal-user@katc.com (비밀번호: User1234)
+-- 관리자 계정 2: parkeungi21@korea.kr
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'kal-user@katc.com',
-  '$2b$10$KS7NfrdP5mnQ9bGZUUDmXeGJurpANIGX3g6Z6du/5pVn4KjVwvvh2',
-  airlines.id,
-  'active',
-  'user',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'KAL'
+SELECT 'parkeungi21@korea.kr', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'admin', false, false
+FROM airlines WHERE airlines.code = 'KAL'
 ON CONFLICT (email) DO NOTHING;
 
--- 3. 아시아나항공 사용자: aar-user@katc.com (비밀번호: 1234)
+-- 항공사 계정: 대한항공 (KAL)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'aar-user@katc.com',
-  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
-  airlines.id,
-  'active',
-  'user',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'AAR'
+SELECT 'kal@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'KAL'
 ON CONFLICT (email) DO NOTHING;
 
--- 4. 제주항공 사용자: jja-user@katc.com (비밀번호: 1234)
+-- 항공사 계정: 아시아나항공 (AAR)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'jja-user@katc.com',
-  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
-  airlines.id,
-  'active',
-  'user',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'JJA'
+SELECT 'aar@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'AAR'
 ON CONFLICT (email) DO NOTHING;
 
--- 4. 진에어 사용자: jna@katc.com (비밀번호: 1234)
+-- 항공사 계정: 제주항공 (JJA)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'jna@katc.com',
-  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
-  airlines.id,
-  'active',
-  'user',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'JNA'
+SELECT 'jja@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'JJA'
 ON CONFLICT (email) DO NOTHING;
 
--- 5. 티웨이항공 사용자: twb@katc.com (비밀번호: 1234)
+-- 항공사 계정: 진에어 (JNA)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'twb@katc.com',
-  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
-  airlines.id,
-  'active',
-  'user',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'TWB'
+SELECT 'jna@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'JNA'
 ON CONFLICT (email) DO NOTHING;
 
--- 6. 에어부산 사용자: abl@katc.com (비밀번호: 1234)
+-- 항공사 계정: 티웨이항공 (TWB)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'abl@katc.com',
-  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
-  airlines.id,
-  'active',
-  'user',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'ABL'
+SELECT 'twb@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'TWB'
 ON CONFLICT (email) DO NOTHING;
 
--- 7. 에어서울 사용자: asv@katc.com (비밀번호: 1234)
+-- 항공사 계정: 에어부산 (ABL)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'asv@katc.com',
-  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
-  airlines.id,
-  'active',
-  'user',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'ASV'
+SELECT 'abl@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'ABL'
 ON CONFLICT (email) DO NOTHING;
 
--- 8. 이스타항공 사용자: eok@katc.com (비밀번호: 1234)
+-- 항공사 계정: 에어서울 (ASV)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'eok@katc.com',
-  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
-  airlines.id,
-  'active',
-  'user',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'EOK'
+SELECT 'asv@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'ASV'
 ON CONFLICT (email) DO NOTHING;
 
--- 9. 플라이강원 사용자: fgw@katc.com (비밀번호: 1234)
+-- 항공사 계정: 이스타항공 (EOK)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'fgw@katc.com',
-  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
-  airlines.id,
-  'active',
-  'user',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'FGW'
+SELECT 'eok@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'EOK'
 ON CONFLICT (email) DO NOTHING;
 
--- 10. 테스트 사용자: starred1@naver.com (비밀번호: Starred1!)
+-- 항공사 계정: 플라이강원 (FGW)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'starred1@naver.com',
-  '$2b$10$mG7zNrmB0kuIJtilAK6MEeu6S5ckJJyEjzmZoV9kOU1wTnZSFAlVS',
-  airlines.id,
-  'active',
-  'user',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'KAL'
+SELECT 'fgw@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'FGW'
 ON CONFLICT (email) DO NOTHING;
 
--- 11. 관리자 사용자: parkeungi21@korea.kr (비밀번호: 1234)
+-- 항공사 계정: 에어프레미아 (APZ)
 INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
-SELECT
-  'parkeungi21@korea.kr',
-  '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
-  airlines.id,
-  'active',
-  'admin',
-  false,
-  false
-FROM airlines
-WHERE airlines.code = 'KAL'
+SELECT 'apz@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'APZ'
+ON CONFLICT (email) DO NOTHING;
+
+-- 항공사 계정: 이스타항공 (ESR)
+INSERT INTO users (email, password_hash, airline_id, status, role, is_default_password, password_change_required)
+SELECT 'esr@test.com', '$2b$10$8u0KODIbldb.4gvwdHYPzeDWrlbj9bSjH4CTzUN23kywMi3z/dDUm',
+  airlines.id, 'active', 'user', false, false
+FROM airlines WHERE airlines.code = 'ESR'
 ON CONFLICT (email) DO NOTHING;
 
 -- ================================================================
