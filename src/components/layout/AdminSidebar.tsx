@@ -23,6 +23,10 @@ export function AdminSidebar() {
             } else {
                 setActiveMenu('users');
             }
+        } else if (pathname.startsWith('/admin/airlines')) {
+            setActiveMenu('airlines');
+        } else if (pathname.startsWith('/admin/password-reset')) {
+            setActiveMenu('password');
         } else if (pathname.startsWith('/admin/announcements')) {
             setActiveMenu('announcements');
         }

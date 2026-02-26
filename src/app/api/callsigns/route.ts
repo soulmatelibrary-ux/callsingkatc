@@ -15,6 +15,8 @@ import { query } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+const isSQLite = (process.env.DB_TYPE || 'postgres') === 'sqlite';
+
 export async function GET(request: NextRequest) {
   try {
     // 인증 확인
@@ -42,57 +44,95 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 기본 쿼리
-    let sql = `
-      SELECT
-        c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
-        c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
-        c.sector, c.atc_recommendation,
-        c.occurrence_count, c.last_occurred_at, c.file_upload_id, c.uploaded_at,
-        c.created_at, c.updated_at,
-        latest_action.id AS latest_action_id,
-        latest_action.status AS latest_action_status,
-        latest_action.manager_name AS latest_action_manager_name,
-        latest_action.updated_at AS latest_action_updated_at
-      FROM callsigns c
-      LEFT JOIN LATERAL (
-        SELECT
-          a.id,
-          a.status,
-          a.manager_name,
-          a.updated_at
-        FROM actions a
-        WHERE a.callsign_id = c.id
-        ORDER BY a.updated_at DESC NULLS LAST, a.registered_at DESC
-        LIMIT 1
-      ) latest_action ON true
-      WHERE 1=1
-    `;
+    // 동적 where 절 구성
+    let whereClause = '';
     const params: any[] = [];
 
-    // 필터 조건
     if (airlineId) {
-      sql += ` AND airline_id = $${params.length + 1}`;
+      whereClause += ` AND airline_id = ${isSQLite ? '?' : '$' + (params.length + 1)}`;
       params.push(airlineId);
     }
 
     if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
-      sql += ` AND risk_level = $${params.length + 1}`;
+      whereClause += ` AND risk_level = ${isSQLite ? '?' : '$' + (params.length + 1)}`;
       params.push(riskLevel);
     }
 
-    // 정렬 및 페이지네이션
-    // 1순위: 위험도 (높음 > 중간 > 낮음), 2순위: 발생회수 (많은 순)
-    sql += ` ORDER BY
-      CASE
-        WHEN c.risk_level = '매우높음' THEN 3
-        WHEN c.risk_level = '높음' THEN 2
-        WHEN c.risk_level = '낮음' THEN 1
-        ELSE 0
-      END DESC,
-      c.occurrence_count DESC
-      LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-    params.push(limit, offset);
+    // DB별 SQL 구성
+    let sql: string;
+
+    if (isSQLite) {
+      sql = `
+        SELECT
+          c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
+          c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
+          c.sector, c.atc_recommendation,
+          c.occurrence_count, c.last_occurred_at, c.file_upload_id, c.uploaded_at,
+          c.created_at, c.updated_at,
+          latest_action.id AS latest_action_id,
+          latest_action.status AS latest_action_status,
+          latest_action.manager_name AS latest_action_manager_name,
+          latest_action.updated_at AS latest_action_updated_at
+        FROM callsigns c
+        LEFT JOIN (
+          SELECT
+            a.id,
+            a.callsign_id,
+            a.status,
+            a.manager_name,
+            a.updated_at,
+            ROW_NUMBER() OVER (PARTITION BY a.callsign_id ORDER BY a.updated_at DESC, a.registered_at DESC) as rn
+          FROM actions a
+        ) latest_action ON c.id = latest_action.callsign_id AND latest_action.rn = 1
+        WHERE 1=1 ${whereClause}
+        ORDER BY
+          CASE
+            WHEN c.risk_level = '매우높음' THEN 3
+            WHEN c.risk_level = '높음' THEN 2
+            WHEN c.risk_level = '낮음' THEN 1
+            ELSE 0
+          END DESC,
+          c.occurrence_count DESC
+        LIMIT ? OFFSET ?
+      `;
+      params.push(limit, offset);
+    } else {
+      sql = `
+        SELECT
+          c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
+          c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
+          c.sector, c.atc_recommendation,
+          c.occurrence_count, c.last_occurred_at, c.file_upload_id, c.uploaded_at,
+          c.created_at, c.updated_at,
+          latest_action.id AS latest_action_id,
+          latest_action.status AS latest_action_status,
+          latest_action.manager_name AS latest_action_manager_name,
+          latest_action.updated_at AS latest_action_updated_at
+        FROM callsigns c
+        LEFT JOIN LATERAL (
+          SELECT
+            a.id,
+            a.status,
+            a.manager_name,
+            a.updated_at
+          FROM actions a
+          WHERE a.callsign_id = c.id
+          ORDER BY a.updated_at DESC NULLS LAST, a.registered_at DESC
+          LIMIT 1
+        ) latest_action ON true
+        WHERE 1=1 ${whereClause}
+        ORDER BY
+          CASE
+            WHEN c.risk_level = '매우높음' THEN 3
+            WHEN c.risk_level = '높음' THEN 2
+            WHEN c.risk_level = '낮음' THEN 1
+            ELSE 0
+          END DESC,
+          c.occurrence_count DESC
+        LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+      `;
+      params.push(limit, offset);
+    }
 
     const result = await query(sql, params);
 
@@ -101,11 +141,11 @@ export async function GET(request: NextRequest) {
     const countParams: any[] = [];
 
     if (airlineId) {
-      countSql += ` AND airline_id = $${countParams.length + 1}`;
+      countSql += ` AND airline_id = ${isSQLite ? '?' : '$' + (countParams.length + 1)}`;
       countParams.push(airlineId);
     }
     if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
-      countSql += ` AND risk_level = $${countParams.length + 1}`;
+      countSql += ` AND risk_level = ${isSQLite ? '?' : '$' + (countParams.length + 1)}`;
       countParams.push(riskLevel);
     }
 

@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-02-22T11:13:22.326Z",
+  "timestamp": "2026-02-25T21:33:46.091Z",
   "reason": "compaction",
   "status": {
     "version": "2.0",
-    "lastUpdated": "2026-02-22T11:12:42.822Z",
+    "lastUpdated": "2026-02-25T21:29:32.910Z",
     "activeFeatures": [
       "katc1",
       "api",
@@ -42,7 +42,9 @@
       "uploads",
       "callsign-management",
       "tmp",
-      "file-uploads"
+      "file-uploads",
+      "tabs",
+      "db"
     ],
     "primaryFeature": "katc1",
     "features": {
@@ -55,9 +57,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-19T05:37:49.180Z",
-          "lastUpdated": "2026-02-22T11:12:42.822Z"
+          "lastUpdated": "2026-02-25T13:53:53.833Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/middleware.ts"
+        "lastFile": "/Users/sein/Desktop/katc1/src/lib/constants.ts"
       },
       "api": {
         "phase": "do",
@@ -81,7 +83,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-19T05:40:24.311Z",
-          "lastUpdated": "2026-02-19T10:52:51.162Z"
+          "lastUpdated": "2026-02-24T12:52:43.429Z"
         },
         "lastFile": "/Users/sein/Desktop/katc1/src/store/authStore.ts"
       },
@@ -107,7 +109,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-19T05:41:18.945Z",
-          "lastUpdated": "2026-02-22T09:19:22.579Z"
+          "lastUpdated": "2026-02-25T13:54:19.525Z"
         },
         "lastFile": "/Users/sein/Desktop/katc1/src/components/layout/Header.tsx"
       },
@@ -120,7 +122,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-19T05:41:49.609Z",
-          "lastUpdated": "2026-02-20T10:51:35.562Z"
+          "lastUpdated": "2026-02-24T11:17:23.380Z"
         },
         "lastFile": "/Users/sein/Desktop/katc1/src/components/forms/LoginForm.tsx"
       },
@@ -133,9 +135,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-19T05:43:18.371Z",
-          "lastUpdated": "2026-02-22T10:41:29.027Z"
+          "lastUpdated": "2026-02-24T12:21:49.654Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/page.tsx"
+        "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/layout.tsx"
       },
       "(auth)": {
         "phase": "do",
@@ -237,9 +239,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-19T05:44:52.743Z",
-          "lastUpdated": "2026-02-22T04:16:48.408Z"
+          "lastUpdated": "2026-02-22T13:17:29.362Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/app/dashboard/page.tsx"
+        "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/dashboard/route.ts"
       },
       "users": {
         "phase": "do",
@@ -250,7 +252,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-19T05:45:02.496Z",
-          "lastUpdated": "2026-02-20T05:32:48.033Z"
+          "lastUpdated": "2026-02-22T13:34:40.404Z"
         },
         "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/users/client.tsx"
       },
@@ -302,9 +304,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-19T09:28:20.107Z",
-          "lastUpdated": "2026-02-22T03:25:45.946Z"
+          "lastUpdated": "2026-02-22T11:28:24.324Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/app/api/announcements/[id]/route.ts"
+        "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/file-uploads/[id]/route.ts"
       },
       "katc1-backend": {
         "phase": "do",
@@ -328,9 +330,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-19T11:17:32.652Z",
-          "lastUpdated": "2026-02-19T11:19:50.010Z"
+          "lastUpdated": "2026-02-22T12:47:31.644Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/stats/route.ts"
+        "lastFile": "/Users/sein/Desktop/katc1/src/app/api/callsigns/stats/route.ts"
       },
       "password-reset": {
         "phase": "do",
@@ -341,7 +343,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-19T11:18:22.152Z",
-          "lastUpdated": "2026-02-22T10:42:16.204Z"
+          "lastUpdated": "2026-02-22T05:27:06.288Z"
         },
         "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/password-reset/page.tsx"
       },
@@ -354,9 +356,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-20T02:01:15.039Z",
-          "lastUpdated": "2026-02-22T02:24:45.249Z"
+          "lastUpdated": "2026-02-25T14:09:29.357Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/app/(main)/airline/page.tsx"
+        "lastFile": "/Users/sein/Desktop/katc1/src/components/airline/AirlineStatisticsTab.tsx"
       },
       "airlines": {
         "phase": "do",
@@ -367,9 +369,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-20T02:15:21.252Z",
-          "lastUpdated": "2026-02-22T10:42:13.826Z"
+          "lastUpdated": "2026-02-22T03:34:05.470Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/airlines/page.tsx"
+        "lastFile": "/Users/sein/Desktop/katc1/src/app/api/airlines/route.ts"
       },
       "actions": {
         "phase": "do",
@@ -380,9 +382,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-20T04:18:32.683Z",
-          "lastUpdated": "2026-02-22T10:42:37.689Z"
+          "lastUpdated": "2026-02-25T14:01:18.958Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/actions/page.tsx"
+        "lastFile": "/Users/sein/Desktop/katc1/src/components/actions/ActionModal.tsx"
       },
       "callsigns": {
         "phase": "do",
@@ -393,9 +395,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-20T04:18:58.733Z",
-          "lastUpdated": "2026-02-22T10:59:46.023Z"
+          "lastUpdated": "2026-02-24T13:44:19.063Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/app/api/callsigns/route.ts"
+        "lastFile": "/Users/sein/Desktop/katc1/src/app/api/airlines/[airlineId]/callsigns/route.ts"
       },
       "upload-callsigns": {
         "phase": "do",
@@ -406,7 +408,7 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-20T09:06:56.111Z",
-          "lastUpdated": "2026-02-21T15:09:30.783Z"
+          "lastUpdated": "2026-02-22T12:40:36.830Z"
         },
         "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/upload-callsigns/route.ts"
       },
@@ -461,9 +463,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-21T14:57:06.344Z",
-          "lastUpdated": "2026-02-22T10:42:14.377Z"
+          "lastUpdated": "2026-02-25T13:51:27.894Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/announcements/page.tsx"
+        "lastFile": "/Users/sein/Desktop/katc1/src/components/announcements/AnnouncementTable.tsx"
       },
       "history": {
         "phase": "do",
@@ -514,9 +516,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-22T02:52:30.653Z",
-          "lastUpdated": "2026-02-22T10:58:40.944Z"
+          "lastUpdated": "2026-02-24T13:33:57.689Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/components/callsign-management/uploads/UploadHistory.tsx"
+        "lastFile": "/Users/sein/Desktop/katc1/src/components/callsign-management/uploads/UploadHistoryManagement.tsx"
       },
       "callsign-management": {
         "phase": "do",
@@ -527,9 +529,9 @@
         "documents": {},
         "timestamps": {
           "started": "2026-02-22T04:14:02.865Z",
-          "lastUpdated": "2026-02-22T10:58:00.837Z"
+          "lastUpdated": "2026-02-24T13:17:44.295Z"
         },
-        "lastFile": "/Users/sein/Desktop/katc1/src/components/callsign-management/Sidebar.tsx"
+        "lastFile": "/Users/sein/Desktop/katc1/src/components/callsign-management/OverviewTab.tsx"
       },
       "tmp": {
         "phase": "do",
@@ -552,10 +554,36 @@
         "requirements": [],
         "documents": {},
         "timestamps": {
-          "started": "2026-02-22T10:57:33.736Z",
-          "lastUpdated": "2026-02-22T10:57:33.736Z"
+          "started": "2026-02-22T11:29:21.212Z",
+          "lastUpdated": "2026-02-24T13:33:32.524Z"
         },
         "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/file-uploads/route.ts"
+      },
+      "tabs": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-25T13:33:05.332Z",
+          "lastUpdated": "2026-02-25T21:29:32.910Z"
+        },
+        "lastFile": "/Users/sein/Desktop/katc1/src/components/airline/tabs/AnnouncementsTab.tsx"
+      },
+      "db": {
+        "phase": "do",
+        "phaseNumber": 3,
+        "matchRate": null,
+        "iterationCount": 0,
+        "requirements": [],
+        "documents": {},
+        "timestamps": {
+          "started": "2026-02-25T14:03:29.895Z",
+          "lastUpdated": "2026-02-25T14:03:29.895Z"
+        },
+        "lastFile": "/Users/sein/Desktop/katc1/src/lib/db/index.ts"
       }
     },
     "pipeline": {
@@ -566,7 +594,7 @@
     "session": {
       "startedAt": "2026-02-19T05:22:47.564Z",
       "onboardingCompleted": false,
-      "lastActivity": "2026-02-22T11:12:42.822Z"
+      "lastActivity": "2026-02-25T21:29:32.910Z"
     },
     "history": [
       {
@@ -5664,188 +5692,968 @@
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T10:32:08.025Z",
+        "timestamp": "2026-02-22T11:20:39.164Z",
         "feature": "katc1",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T10:33:27.676Z",
+        "timestamp": "2026-02-22T11:28:24.324Z",
+        "feature": "[id]",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T11:28:55.669Z",
         "feature": "katc1",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T10:33:46.696Z",
+        "timestamp": "2026-02-22T11:29:00.733Z",
         "feature": "katc1",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T10:34:48.862Z",
-        "feature": "admin",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:41:29.027Z",
-        "feature": "admin",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:42:01.757Z",
-        "feature": "airlines",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:42:02.331Z",
-        "feature": "announcements",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:42:03.746Z",
-        "feature": "password-reset",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:42:13.826Z",
-        "feature": "airlines",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:42:14.377Z",
-        "feature": "announcements",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:42:16.204Z",
-        "feature": "password-reset",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:42:37.689Z",
-        "feature": "actions",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:42:38.245Z",
-        "feature": "callsign-management",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:42:47.791Z",
-        "feature": "callsign-management",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:45:45.420Z",
-        "feature": "katc1",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:47:18.371Z",
-        "feature": "katc1",
-        "phase": "do",
-        "action": "updated"
-      },
-      {
-        "timestamp": "2026-02-22T10:57:33.736Z",
+        "timestamp": "2026-02-22T11:29:21.212Z",
         "feature": "file-uploads",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T10:57:47.675Z",
+        "timestamp": "2026-02-22T11:30:01.872Z",
+        "feature": "file-uploads",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T11:30:07.300Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T11:35:50.307Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T11:35:56.351Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T11:36:07.852Z",
         "feature": "katc1",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T10:58:00.837Z",
+        "timestamp": "2026-02-22T11:43:39.206Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T11:43:44.569Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T11:52:49.451Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T11:52:52.431Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:00:59.126Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:10:18.615Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:21:35.432Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:33:34.129Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:33:36.300Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:40:36.830Z",
+        "feature": "upload-callsigns",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:42:58.825Z",
+        "feature": "callsigns",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:43:03.943Z",
+        "feature": "callsigns",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:43:09.809Z",
+        "feature": "callsigns",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:47:31.644Z",
+        "feature": "stats",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:47:39.246Z",
         "feature": "callsign-management",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T10:58:27.235Z",
+        "timestamp": "2026-02-22T12:51:39.498Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:51:41.201Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T12:53:59.449Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:06:18.537Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:06:54.094Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:07:21.671Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:08:46.755Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:11:17.283Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:11:18.029Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:11:18.505Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:12:09.651Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:12:10.279Z",
+        "feature": "forms",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:12:10.691Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:15:19.392Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:15:43.352Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:15:58.405Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:16:10.345Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:16:42.773Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:16:48.224Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:17:19.180Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:17:23.611Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:17:29.362Z",
+        "feature": "dashboard",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:22:25.359Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:22:57.996Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:23:04.813Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:23:07.795Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:24:35.407Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:24:48.494Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:26:46.446Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:26:50.073Z",
+        "feature": "forms",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:28:30.745Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:30:45.061Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:30:55.885Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:31:37.089Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:31:39.871Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:33:22.074Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:33:43.100Z",
+        "feature": "announcements",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:33:47.664Z",
+        "feature": "announcements",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:34:40.404Z",
+        "feature": "users",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-22T13:34:44.620Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T11:12:04.925Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T11:17:23.380Z",
+        "feature": "forms",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T11:17:37.459Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:12:20.841Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:14:37.835Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:17:14.069Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:17:23.722Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:19:48.538Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:21:49.654Z",
+        "feature": "admin",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:30:50.046Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:52:36.715Z",
+        "feature": "store",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:52:43.429Z",
+        "feature": "store",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:53:11.828Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:53:16.077Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T12:58:14.741Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:00:46.449Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:01:17.768Z",
         "feature": "uploads",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T10:58:40.944Z",
+        "timestamp": "2026-02-24T13:01:23.269Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:01:33.000Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:01:55.184Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:02:28.727Z",
+        "feature": "file-uploads",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:04:55.578Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:05:40.509Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:05:46.000Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:17:13.120Z",
+        "feature": "callsigns",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:17:28.881Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:17:44.295Z",
+        "feature": "callsign-management",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:18:08.224Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:18:22.229Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:25:28.670Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:29:28.806Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:29:41.818Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:29:42.005Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:29:50.026Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:29:53.947Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:30:28.703Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:33:26.991Z",
+        "feature": "file-uploads",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:33:32.524Z",
+        "feature": "file-uploads",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:33:43.276Z",
+        "feature": "katc1",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:33:52.684Z",
         "feature": "uploads",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T10:59:38.457Z",
+        "timestamp": "2026-02-24T13:33:57.689Z",
+        "feature": "uploads",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:34:03.597Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:36:32.980Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:37:55.026Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:39:20.905Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:43:55.425Z",
         "feature": "callsigns",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T10:59:46.023Z",
+        "timestamp": "2026-02-24T13:44:19.063Z",
         "feature": "callsigns",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T11:03:02.205Z",
+        "timestamp": "2026-02-24T13:44:37.803Z",
         "feature": "katc1",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T11:03:10.170Z",
+        "timestamp": "2026-02-24T13:45:20.603Z",
         "feature": "katc1",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T11:05:43.333Z",
+        "timestamp": "2026-02-24T13:45:58.889Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:46:03.482Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-24T13:46:48.656Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T12:53:47.001Z",
         "feature": "katc1",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T11:05:53.116Z",
+        "timestamp": "2026-02-25T12:53:51.163Z",
         "feature": "katc1",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T11:07:13.106Z",
+        "timestamp": "2026-02-25T13:33:05.332Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:34:44.226Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:35:15.704Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:35:34.840Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:35:49.743Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:36:12.904Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:36:31.087Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:36:43.583Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:36:54.658Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:38:08.909Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:41:26.335Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:46:59.989Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:51:27.894Z",
+        "feature": "announcements",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:53:53.833Z",
         "feature": "katc1",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T11:07:33.066Z",
-        "feature": "katc1",
+        "timestamp": "2026-02-25T13:54:08.236Z",
+        "feature": "actions",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T11:12:31.817Z",
-        "feature": "katc1",
+        "timestamp": "2026-02-25T13:54:16.169Z",
+        "feature": "actions",
         "phase": "do",
         "action": "updated"
       },
       {
-        "timestamp": "2026-02-22T11:12:42.822Z",
-        "feature": "katc1",
+        "timestamp": "2026-02-25T13:54:19.525Z",
+        "feature": "layout",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T13:59:52.023Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:00:40.708Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:01:01.490Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:01:18.958Z",
+        "feature": "actions",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:02:08.304Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:03:29.895Z",
+        "feature": "db",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:06:46.059Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:06:49.237Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:09:16.668Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:09:29.357Z",
+        "feature": "airline",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:14:47.222Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:14:59.190Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:15:58.599Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:16:13.810Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:16:18.967Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:16:25.823Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:19:28.463Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:19:39.782Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:19:54.623Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:20:06.227Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:22:01.886Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:23:15.673Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T14:23:38.737Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T21:28:56.293Z",
+        "feature": "tabs",
+        "phase": "do",
+        "action": "updated"
+      },
+      {
+        "timestamp": "2026-02-25T21:29:32.910Z",
+        "feature": "tabs",
         "phase": "do",
         "action": "updated"
       }
