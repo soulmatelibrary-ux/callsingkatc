@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import { generateAccessToken, generateRefreshToken } from '@/lib/jwt';
+import * as authQueries from '@/lib/db/queries/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,16 +25,7 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = email.trim();
 
     // 사용자 조회 (항공사 정보, 비밀번호 정책 추적 필드 포함)
-    const result = await query(
-      `SELECT
-         u.id, u.password_hash, u.status, u.role, u.email,
-         u.airline_id, u.is_default_password, u.password_change_required,
-         a.code as airline_code, a.name_ko as airline_name_ko, a.name_en as airline_name_en
-       FROM users u
-       LEFT JOIN airlines a ON u.airline_id = a.id
-       WHERE LOWER(u.email) = LOWER($1)`,
-      [normalizedEmail]
-    );
+    const result = await query(authQueries.getUserByEmail, [normalizedEmail]);
 
     if (result.rows.length === 0) {
       // 열거 공격 방어: 존재하지 않는 사용자도 같은 메시지 반환
@@ -69,10 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 마지막 로그인 시간 업데이트
-    await query(
-      'UPDATE users SET last_login_at = NOW() WHERE id = $1',
-      [user.id]
-    );
+    await query(authQueries.updateLastLogin, [user.id]);
 
     // 토큰 생성 (airline_id 포함)
     const accessToken = generateAccessToken({

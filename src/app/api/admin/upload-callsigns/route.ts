@@ -269,70 +269,115 @@ export async function POST(request: NextRequest) {
 
           const airlineId = airlineResult.rows[0].id;
 
-          // Step 1: callsigns 테이블에 호출부호 쌍 저장 (없으면 생성, 있으면 업데이트)
-          const callsignResult = await query(
-            `INSERT INTO callsigns
-              (airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
-               other_airline_code, sector, departure_airport1, arrival_airport1,
-               departure_airport2, arrival_airport2, same_airline_code, same_callsign_length,
-               same_number_position, same_number_count, same_number_ratio, similarity,
-               max_concurrent_traffic, coexistence_minutes, error_probability, atc_recommendation,
-               error_type, sub_error, risk_level, file_upload_id, uploaded_at, status)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), 'in_progress')
-             ON CONFLICT (airline_code, callsign_pair)
-             DO UPDATE SET
-               sector = EXCLUDED.sector,
-               departure_airport1 = EXCLUDED.departure_airport1,
-               arrival_airport1 = EXCLUDED.arrival_airport1,
-               departure_airport2 = EXCLUDED.departure_airport2,
-               arrival_airport2 = EXCLUDED.arrival_airport2,
-               same_airline_code = EXCLUDED.same_airline_code,
-               same_callsign_length = EXCLUDED.same_callsign_length,
-               same_number_position = EXCLUDED.same_number_position,
-               same_number_count = EXCLUDED.same_number_count,
-               same_number_ratio = EXCLUDED.same_number_ratio,
-               similarity = EXCLUDED.similarity,
-               max_concurrent_traffic = EXCLUDED.max_concurrent_traffic,
-               coexistence_minutes = EXCLUDED.coexistence_minutes,
-               error_probability = EXCLUDED.error_probability,
-               atc_recommendation = EXCLUDED.atc_recommendation,
-               error_type = EXCLUDED.error_type,
-               sub_error = EXCLUDED.sub_error,
-               risk_level = EXCLUDED.risk_level,
-               updated_at = NOW(),
-               status = 'in_progress'
-             RETURNING id, (xmax = 0) AS inserted`,
-            [
-              airlineId,
-              rowData.airline_code,
-              rowData.callsign_pair,
-              rowData.my_callsign,
-              rowData.other_callsign,
-              rowData.other_airline_code,
-              rowData.sector,
-              rowData.departure_airport1,
-              rowData.arrival_airport1,
-              rowData.departure_airport2,
-              rowData.arrival_airport2,
-              rowData.same_airline_code,
-              rowData.same_callsign_length,
-              rowData.same_number_position,
-              rowData.same_number_count,
-              rowData.same_number_ratio,
-              rowData.similarity,
-              rowData.max_concurrent_traffic,
-              rowData.coexistence_minutes,
-              rowData.error_probability,
-              rowData.atc_recommendation,
-              rowData.error_type,
-              rowData.sub_error,
-              rowData.risk_level,
-              uploadId,
-            ]
+          // Step 1: 기존 레코드 확인
+          const existingResult = await query(
+            `SELECT id FROM callsigns WHERE airline_code = $1 AND callsign_pair = $2`,
+            [rowData.airline_code, rowData.callsign_pair]
           );
 
-          const callsignId = callsignResult.rows[0].id;
-          const isNewCallsign = callsignResult.rows[0].inserted;
+          let callsignId: string;
+          let isNewCallsign: boolean;
+
+          if (existingResult.rows.length > 0) {
+            // 업데이트
+            callsignId = existingResult.rows[0].id;
+            isNewCallsign = false;
+
+            await query(
+              `UPDATE callsigns SET
+                sector = $1,
+                departure_airport1 = $2,
+                arrival_airport1 = $3,
+                departure_airport2 = $4,
+                arrival_airport2 = $5,
+                same_airline_code = $6,
+                same_callsign_length = $7,
+                same_number_position = $8,
+                same_number_count = $9,
+                same_number_ratio = $10,
+                similarity = $11,
+                max_concurrent_traffic = $12,
+                coexistence_minutes = $13,
+                error_probability = $14,
+                atc_recommendation = $15,
+                error_type = $16,
+                sub_error = $17,
+                risk_level = $18,
+                updated_at = CURRENT_TIMESTAMP,
+                status = 'in_progress'
+               WHERE id = $19`,
+              [
+                rowData.sector,
+                rowData.departure_airport1,
+                rowData.arrival_airport1,
+                rowData.departure_airport2,
+                rowData.arrival_airport2,
+                rowData.same_airline_code,
+                rowData.same_callsign_length,
+                rowData.same_number_position,
+                rowData.same_number_count,
+                rowData.same_number_ratio,
+                rowData.similarity,
+                rowData.max_concurrent_traffic,
+                rowData.coexistence_minutes,
+                rowData.error_probability,
+                rowData.atc_recommendation,
+                rowData.error_type,
+                rowData.sub_error,
+                rowData.risk_level,
+                callsignId,
+              ]
+            );
+          } else {
+            // 삽입
+            isNewCallsign = true;
+
+            const insertResult = await query(
+              `INSERT INTO callsigns
+                (airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
+                 other_airline_code, sector, departure_airport1, arrival_airport1,
+                 departure_airport2, arrival_airport2, same_airline_code, same_callsign_length,
+                 same_number_position, same_number_count, same_number_ratio, similarity,
+                 max_concurrent_traffic, coexistence_minutes, error_probability, atc_recommendation,
+                 error_type, sub_error, risk_level, file_upload_id, uploaded_at, status)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, CURRENT_TIMESTAMP, 'in_progress')`,
+              [
+                airlineId,
+                rowData.airline_code,
+                rowData.callsign_pair,
+                rowData.my_callsign,
+                rowData.other_callsign,
+                rowData.other_airline_code,
+                rowData.sector,
+                rowData.departure_airport1,
+                rowData.arrival_airport1,
+                rowData.departure_airport2,
+                rowData.arrival_airport2,
+                rowData.same_airline_code,
+                rowData.same_callsign_length,
+                rowData.same_number_position,
+                rowData.same_number_count,
+                rowData.same_number_ratio,
+                rowData.similarity,
+                rowData.max_concurrent_traffic,
+                rowData.coexistence_minutes,
+                rowData.error_probability,
+                rowData.atc_recommendation,
+                rowData.error_type,
+                rowData.sub_error,
+                rowData.risk_level,
+                uploadId,
+              ]
+            );
+
+            // 새로 삽입된 ID 가져오기
+            const idResult = await query(
+              `SELECT id FROM callsigns WHERE airline_code = $1 AND callsign_pair = $2 ORDER BY uploaded_at DESC LIMIT 1`,
+              [rowData.airline_code, rowData.callsign_pair]
+            );
+
+            callsignId = idResult.rows[0].id;
+          }
 
           // Step 2: 발생 날짜 추출 (시작일시 row[1] 사용, 없으면 오늘)
           let occurredDate: string;
@@ -404,19 +449,31 @@ export async function POST(request: NextRequest) {
       }
 
       // Step 4: 각 callsign의 occurrence_count와 last_occurred_at 업데이트
-      await query(
-        `UPDATE callsigns c
-         SET occurrence_count = (
-           SELECT COUNT(*) FROM callsign_occurrences
-           WHERE callsign_id = c.id
-         ),
-         last_occurred_at = (
-           SELECT MAX(occurred_date) FROM callsign_occurrences
-           WHERE callsign_id = c.id
-         )
-         WHERE file_upload_id = $1`,
+      // SQLite 호환 UPDATE 문법 사용
+      const callsignIds = await query(
+        `SELECT id FROM callsigns WHERE file_upload_id = $1`,
         [uploadId]
       );
+
+      for (const callsign of callsignIds.rows) {
+        const countResult = await query(
+          `SELECT COUNT(*) as count FROM callsign_occurrences WHERE callsign_id = $1`,
+          [callsign.id]
+        );
+
+        const dateResult = await query(
+          `SELECT MAX(occurred_date) as max_date FROM callsign_occurrences WHERE callsign_id = $1`,
+          [callsign.id]
+        );
+
+        const count = parseInt(countResult.rows[0].count, 10) || 0;
+        const maxDate = dateResult.rows[0].max_date;
+
+        await query(
+          `UPDATE callsigns SET occurrence_count = $1, last_occurred_at = $2 WHERE id = $3`,
+          [count, maxDate || null, callsign.id]
+        );
+      }
 
       // 업로드 기록 업데이트
       await query(
