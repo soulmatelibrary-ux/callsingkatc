@@ -10,15 +10,15 @@
 ### 프로젝트 개요
 - **프로젝트명**: KATC1 - 항공사 유사호출부호 경고시스템
 - **설명**: 항공사 운항 중 발생하는 유사 호출부호 상황을 감지하고 관리하는 시스템
-- **레벨**: Dynamic (Next.js + PostgreSQL + TanStack Query)
+- **레벨**: Dynamic (Next.js + SQLite + TanStack Query)
 - **배포**: Vercel (예정)
 
 ### 기술 스택
 ```
 Frontend: Next.js 14, TypeScript, Tailwind CSS, Zustand, TanStack Query v5
-Backend: Node.js (API Routes), PostgreSQL 15
+Backend: Node.js (API Routes), SQLite 3
 Auth: JWT (AccessToken + RefreshToken)
-Tools: Docker, bash scripts
+Tools: better-sqlite3, bash scripts
 ```
 
 ### 주요 데이터베이스
