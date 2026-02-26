@@ -96,45 +96,17 @@ export function closePool(): Promise<void> {
 
 /**
  * PostgreSQL SQL을 SQLite SQL로 변환
+ * 최소한의 변환만 수행 ($→?)
+ * 복잡한 쿼리는 API에서 DB_TYPE에 따라 직접 관리
  */
 function convertPostgresToSQLite(sql: string): string {
   let converted = sql;
 
-  // $1, $2, ... → ?, ?, ...
+  // $1, $2, ... → ?, ?, ... (간단한 치환만 수행)
   converted = converted.replace(/\$(\d+)/g, '?');
 
   // RETURNING 절 제거 (SQLite에서 미지원)
   converted = converted.replace(/\s+RETURNING\s+.*/gi, '');
-
-  // ON CONFLICT 처리
-  converted = converted.replace(/ON\s+CONFLICT\s+\([^)]+\)\s+DO\s+NOTHING/gi, '');
-
-  // UUID 함수
-  converted = converted.replace(/gen_random_uuid\(\)/g, 'lower(hex(randomblob(16)))');
-
-  // NOW() 함수
-  converted = converted.replace(/NOW\(\)/gi, 'CURRENT_TIMESTAMP');
-
-  // ANY() 연산자 - PostgreSQL ANY는 IN으로 변환
-  // 예: col = ANY(ARRAY[?]) → col = ?
-  converted = converted.replace(/(\w+)\s*=\s*ANY\s*\(\s*ARRAY\s*\[\s*([^\]]+)\s*\]\s*\)/gi, '$1 IN ($2)');
-
-  // string_to_array 함수 - SQLite는 직접 지원하지 않으므로 제거
-  // 예: string_to_array(target_airlines, ',') → target_airlines (배열 필터링은 애플리케이션에서 처리)
-  converted = converted.replace(/string_to_array\s*\(\s*([^,]+)\s*,\s*'[^']*'\s*\)\s*&&\s*ARRAY\s*\[\s*\?\s*\]/gi, '$1 LIKE \'%\' || ? || \'%\'');
-  converted = converted.replace(/string_to_array\s*\(\s*([^,]+)\s*,\s*'[^']*'\s*\)/gi, '$1');
-
-  // CAST 문법
-  converted = converted.replace(/CAST\s*\(\s*([^\s]+)\s+AS\s+([^\)]+)\)\s*/gi, 'CAST($1 AS $2)');
-
-  // 데이터 타입 변환
-  converted = converted.replace(/\bUUID\b/gi, 'TEXT');
-  converted = converted.replace(/\bTIMESTAMP\b/gi, 'DATETIME');
-  converted = converted.replace(/\bJSON\b/gi, 'TEXT');
-  converted = converted.replace(/\bJSONB\b/gi, 'TEXT');
-
-  // CHECK 제약 조건 간소화
-  converted = converted.replace(/CHECK\s*\([^)]+\)/gi, '');
 
   return converted;
 }

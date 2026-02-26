@@ -6,18 +6,6 @@
 const isSQLite = (process.env.DB_TYPE || 'postgres') === 'sqlite';
 
 /**
- * 조치 이력 목록 조회
- */
-export const getActions = isSQLite
-  ? `SELECT * FROM actions WHERE 1=1 {where_clause} ORDER BY updated_at DESC LIMIT ? OFFSET ?`
-  : `SELECT * FROM actions WHERE 1=1 {where_clause} ORDER BY updated_at DESC LIMIT $1 OFFSET $2`;
-
-/**
- * 조치 이력 전체 개수
- */
-export const getActionsCount = `SELECT COUNT(*) as total FROM actions WHERE 1=1 {where_clause}`;
-
-/**
  * 조치 이력 생성
  */
 export const createAction = isSQLite

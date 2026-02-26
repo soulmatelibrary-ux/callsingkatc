@@ -6,18 +6,6 @@
 const isSQLite = (process.env.DB_TYPE || 'postgres') === 'sqlite';
 
 /**
- * 공지사항 목록 조회
- */
-export const getAnnouncements = isSQLite
-  ? `SELECT * FROM announcements WHERE 1=1 {where_clause} ORDER BY created_at DESC LIMIT ? OFFSET ?`
-  : `SELECT * FROM announcements WHERE 1=1 {where_clause} ORDER BY created_at DESC LIMIT $1 OFFSET $2`;
-
-/**
- * 공지사항 전체 개수
- */
-export const getAnnouncementsCount = `SELECT COUNT(*) as total FROM announcements WHERE 1=1 {where_clause}`;
-
-/**
  * 공지사항 상세 조회
  */
 export const getAnnouncementById = isSQLite
@@ -28,8 +16,8 @@ export const getAnnouncementById = isSQLite
  * 공지사항 생성
  */
 export const createAnnouncement = isSQLite
-  ? `INSERT INTO announcements (title, content, created_by, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP) RETURNING *`
-  : `INSERT INTO announcements (title, content, created_by, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *`;
+  ? `INSERT INTO announcements (title, content, created_by, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)`
+  : `INSERT INTO announcements (title, content, created_by, created_at) VALUES ($1, $2, $3, NOW())`;
 
 /**
  * 공지사항 수정
@@ -77,24 +65,20 @@ export const getUnreadAnnouncements = isSQLite
      ORDER BY a.created_at DESC`;
 
 /**
- * 공지사항 이력 조회
+ * 공지사항 이력 조회 - 기본 쿼리
  */
-export const getAnnouncementHistory = isSQLite
+export const getAnnouncementHistoryBase = isSQLite
   ? `SELECT
        a.id, a.title, a.created_at, a.updated_at,
        COUNT(DISTINCT ar.user_id) as read_count
      FROM announcements a
      LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id
-     WHERE 1=1 {where_clause}
      GROUP BY a.id
-     ORDER BY a.created_at DESC
-     LIMIT ? OFFSET ?`
+     ORDER BY a.created_at DESC`
   : `SELECT
        a.id, a.title, a.created_at, a.updated_at,
        COUNT(DISTINCT ar.user_id) as read_count
      FROM announcements a
      LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id
-     WHERE 1=1 {where_clause}
      GROUP BY a.id
-     ORDER BY a.created_at DESC
-     LIMIT $1 OFFSET $2`;
+     ORDER BY a.created_at DESC`;

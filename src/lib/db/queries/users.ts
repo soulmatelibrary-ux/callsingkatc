@@ -6,32 +6,6 @@
 const isSQLite = (process.env.DB_TYPE || 'postgres') === 'sqlite';
 
 /**
- * 사용자 목록 조회
- */
-export const getUsers = isSQLite
-  ? `SELECT
-       u.id, u.email, u.role, u.status, u.airline_id, u.created_at, u.updated_at,
-       a.code as airline_code, a.name_ko as airline_name_ko, a.name_en as airline_name_en
-     FROM users u
-     LEFT JOIN airlines a ON u.airline_id = a.id
-     WHERE 1=1 {where_clause}
-     ORDER BY u.created_at DESC
-     LIMIT ? OFFSET ?`
-  : `SELECT
-       u.id, u.email, u.role, u.status, u.airline_id, u.created_at, u.updated_at,
-       a.code as airline_code, a.name_ko as airline_name_ko, a.name_en as airline_name_en
-     FROM users u
-     LEFT JOIN airlines a ON u.airline_id = a.id
-     WHERE 1=1 {where_clause}
-     ORDER BY u.created_at DESC
-     LIMIT $1 OFFSET $2`;
-
-/**
- * 사용자 전체 개수
- */
-export const getUsersCount = `SELECT COUNT(*) as total FROM users WHERE 1=1 {where_clause}`;
-
-/**
  * 사용자 생성
  */
 export const createUser = isSQLite
