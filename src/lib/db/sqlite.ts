@@ -43,29 +43,33 @@ export async function query(text: string, params?: any[]): Promise<any> {
   try {
     // PostgreSQL과의 호환성을 위해 SQL 변환
     let sql = convertPostgresToSQLite(text);
-    
+
     // 파라미터 처리
     const preparedParams = convertParams(sql, params);
     sql = preparedParams.sql;
     const newParams = preparedParams.params;
 
+    console.log('[SQLite] SQL 실행:', { sql: sql.substring(0, 100), params: newParams });
+
     const stmt = database.prepare(sql);
-    
+
     let result: any;
-    if (sql.trim().toUpperCase().startsWith('SELECT')) {
-      result = stmt.all(...(newParams || []));
-      result = { rows: result, rowCount: result.length };
+    const isSelect = sql.trim().toUpperCase().startsWith('SELECT');
+
+    if (isSelect) {
+      const rows = stmt.all(...(newParams || []));
+      result = { rows: rows || [], rowCount: (rows || []).length };
     } else {
       const info = stmt.run(...(newParams || []));
       result = { changes: info.changes, rowCount: info.changes };
     }
 
     const duration = Date.now() - start;
-    console.log('[SQLite] 쿼리 실행:', { duration, rows: result.rowCount || result.changes });
-    
+    console.log('[SQLite] 쿼리 완료:', { duration, isSelect, rowCount: result.rowCount });
+
     return result;
   } catch (error: any) {
-    console.error('[SQLite] 쿼리 오류:', { text: text.substring(0, 100), error: error.message });
+    console.error('[SQLite] 쿼리 오류:', { text: text.substring(0, 100), params, error: error.message });
     throw error;
   }
 }
@@ -107,6 +111,9 @@ function convertPostgresToSQLite(sql: string): string {
 
   // RETURNING 절 제거 (SQLite에서 미지원)
   converted = converted.replace(/\s+RETURNING\s+.*/gi, '');
+
+  // NOW() → CURRENT_TIMESTAMP (SQLite에서 사용)
+  converted = converted.replace(/NOW\(\)/gi, 'CURRENT_TIMESTAMP');
 
   return converted;
 }
