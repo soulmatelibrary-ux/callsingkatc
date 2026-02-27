@@ -68,17 +68,15 @@ export async function GET(
     // - 조치 완료: 'completed'로 자동 업데이트
 
     // 동적 쿼리 파라미터 구성
-    const queryParams: (string | number)[] = [airlineCode];
+    const queryParams: (string | number)[] = [airlineCode, airlineCode];
     let riskLevelCondition = '';
 
     if (filteredRiskLevel) {
       queryParams.push(filteredRiskLevel);
-      riskLevelCondition = `AND risk_level = $${queryParams.length}`;
+      riskLevelCondition = `AND risk_level = ?`;
     }
 
     // LIMIT과 OFFSET 추가
-    const limitIdx = queryParams.length + 1;
-    const offsetIdx = queryParams.length + 2;
     queryParams.push(limit, offset);
 
     const simpleResult = await query(
@@ -100,9 +98,9 @@ export async function GET(
            WHEN risk_level = '낮음' THEN 1
            ELSE 0
          END DESC,
-         occurrence_count DESC NULLS LAST,
-         last_occurred_at DESC NULLS LAST
-       LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+         occurrence_count DESC,
+         last_occurred_at DESC
+       LIMIT ? OFFSET ?`,
       queryParams
     );
 
@@ -116,11 +114,11 @@ export async function GET(
     });
 
     // 전체 개수 조회 (진행 중인 호출부호만 카운트, riskLevel 필터 적용)
-    const countParams: (string | number)[] = [airlineCode];
+    const countParams: (string | number)[] = [airlineCode, airlineCode];
     let countRiskCondition = '';
     if (filteredRiskLevel) {
       countParams.push(filteredRiskLevel);
-      countRiskCondition = `AND risk_level = $${countParams.length}`;
+      countRiskCondition = `AND risk_level = ?`;
     }
 
     const countResult = await query(

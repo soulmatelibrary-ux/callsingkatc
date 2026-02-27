@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     const countParams: any[] = [];
 
     if (status && ['pending', 'processing', 'completed', 'failed'].includes(status)) {
-      countSql += ` AND status = $${countParams.length + 1}`;
+      countSql += ` AND status = ?`;
       countParams.push(status);
     }
 

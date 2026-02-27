@@ -49,12 +49,12 @@ export async function GET(request: NextRequest) {
 
     // 필터 조건
     if (airlineId) {
-      sql += ` AND airline_id = $${params.length + 1}`;
+      sql += ` AND airline_id = ?`;
       params.push(airlineId);
     }
 
     if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
-      sql += ` AND risk_level = $${params.length + 1}`;
+      sql += ` AND risk_level = ?`;
       params.push(riskLevel);
     }
 

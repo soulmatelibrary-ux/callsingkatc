@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (level && ['warning', 'info', 'success'].includes(level)) {
-      whereClause += ` AND a.level = $${queryParams.length + 1}`;
+      whereClause += ` AND a.level = ?`;
       queryParams.push(level);
     }
 
@@ -98,24 +98,24 @@ export async function GET(request: NextRequest) {
     }
 
     if (dateFrom) {
-      whereClause += ` AND a.start_date >= $${queryParams.length + 1}`;
+      whereClause += ` AND a.start_date >= ?`;
       queryParams.push(dateFrom);
     }
 
     if (dateTo) {
-      whereClause += ` AND a.start_date <= $${queryParams.length + 1} + INTERVAL '1 day'`;
+      whereClause += ` AND DATE(a.start_date) <= DATE(?)`;
       queryParams.push(dateTo);
     }
 
     // 제목/내용 검색
     if (search) {
-      whereClause += ` AND (a.title LIKE $${queryParams.length + 1} OR a.content LIKE $${queryParams.length + 1})`;
-      queryParams.push(`%${search}%`);
+      whereClause += ` AND (a.title LIKE ? OR a.content LIKE ?)`;
+      queryParams.push(`%${search}%`, `%${search}%`);
     }
 
     // 5. COUNT 쿼리 실행 (subquery 안전함)
     const countResult = await query(
-      `SELECT COUNT(*)::int as count FROM announcements a ${whereClause}`,
+      `SELECT COUNT(*) as count FROM announcements a ${whereClause}`,
       queryParams
     );
     const total = parseInt(countResult.rows[0].count, 10);
@@ -133,13 +133,13 @@ export async function GET(request: NextRequest) {
           WHEN a.start_date <= CURRENT_TIMESTAMP AND a.end_date >= CURRENT_TIMESTAMP THEN 'active'
           ELSE 'expired'
         END as status,
-        (SELECT COUNT(*) FROM announcement_views WHERE announcement_id = a.id)::int as "viewCount"
+        (SELECT COUNT(*) FROM announcement_views WHERE announcement_id = a.id) as "viewCount"
       FROM announcements a
       LEFT JOIN users u ON a.created_by = u.id
       ${whereClause}
     `;
 
-    sql += ` ORDER BY a.start_date DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+    sql += ` ORDER BY a.start_date DESC LIMIT ? OFFSET ?`;
     queryParams.push(limit, offset);
 
     const result = await query(sql, queryParams);

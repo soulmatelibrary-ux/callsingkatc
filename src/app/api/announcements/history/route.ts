@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 
     // 6. 필터 적용
     if (level && ['warning', 'info', 'success'].includes(level)) {
-      whereClause += ` AND a.level = $${queryParams.length + 1}`;
+      whereClause += ` AND a.level = ?`;
       queryParams.push(level);
     }
 
@@ -118,25 +118,25 @@ export async function GET(request: NextRequest) {
 
     // 날짜 범위 필터
     if (dateFrom) {
-      whereClause += ` AND a.start_date >= $${queryParams.length + 1}`;
+      whereClause += ` AND a.start_date >= ?`;
       queryParams.push(dateFrom);
     }
 
     if (dateTo) {
-      whereClause += ` AND a.start_date <= $${queryParams.length + 1} + INTERVAL '1 day'`;
+      whereClause += ` AND DATE(a.start_date) <= DATE(?)`;
       queryParams.push(dateTo);
     }
 
     // 제목/내용 검색
     if (search) {
-      whereClause += ` AND (a.title LIKE $${queryParams.length + 1} OR a.content LIKE $${queryParams.length + 1})`;
-      queryParams.push(`%${search}%`);
+      whereClause += ` AND (a.title LIKE ? OR a.content LIKE ?)`;
+      queryParams.push(`%${search}%`, `%${search}%`);
     }
 
     // 7. COUNT 쿼리 실행 (subquery 안전함)
     const countResult = await query(
       `
-      SELECT COUNT(*)::int as count
+      SELECT COUNT(*) as count
       FROM announcements a
       LEFT JOIN announcement_views av
         ON a.id = av.announcement_id AND av.user_id = ?
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
       WHERE ${whereClause}
     `;
 
-    sql += ` ORDER BY a.start_date DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+    sql += ` ORDER BY a.start_date DESC LIMIT ? OFFSET ?`;
     queryParams.push(limit, offset);
 
     const result = await query(sql, queryParams);

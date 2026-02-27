@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-27T13:45:32.850Z",
+  "lastUpdated": "2026-02-27T13:50:56.381Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -328,9 +328,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T11:17:32.652Z",
-        "lastUpdated": "2026-02-22T12:47:31.644Z"
+        "lastUpdated": "2026-02-27T13:49:55.229Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/callsigns/stats/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/callsigns/stats/route.ts"
     },
     "password-reset": {
       "phase": "do",
@@ -393,9 +393,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:58.733Z",
-        "lastUpdated": "2026-02-27T13:44:05.287Z"
+        "lastUpdated": "2026-02-27T13:49:42.673Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/callsigns/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/callsigns/route.ts"
     },
     "upload-callsigns": {
       "phase": "do",
@@ -461,7 +461,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:06.344Z",
-        "lastUpdated": "2026-02-27T13:44:51.385Z"
+        "lastUpdated": "2026-02-27T13:50:27.739Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/announcements/route.ts"
     },
@@ -474,9 +474,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:17.641Z",
-        "lastUpdated": "2026-02-22T04:58:59.782Z"
+        "lastUpdated": "2026-02-27T13:50:46.654Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/announcements/history/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/announcements/history/route.ts"
     },
     "announcement-system - Gap analysis verification": {
       "phase": "act",
@@ -553,7 +553,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-22T11:29:21.212Z",
-        "lastUpdated": "2026-02-27T13:43:00.087Z"
+        "lastUpdated": "2026-02-27T13:50:56.381Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/file-uploads/route.ts"
     },
@@ -605,7 +605,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-27T13:45:32.850Z"
+    "lastActivity": "2026-02-27T13:50:56.381Z"
   },
   "history": [
     {
@@ -7211,6 +7211,54 @@
     {
       "timestamp": "2026-02-27T13:45:32.850Z",
       "feature": "login",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:49:36.702Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:49:42.673Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:49:55.229Z",
+      "feature": "stats",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:50:19.026Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:50:27.739Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:50:36.850Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:50:46.654Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:50:56.381Z",
+      "feature": "file-uploads",
       "phase": "do",
       "action": "updated"
     }
