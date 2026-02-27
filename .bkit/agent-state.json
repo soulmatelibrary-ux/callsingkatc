@@ -1,14 +1,35 @@
 {
   "version": "1.0",
-  "enabled": false,
+  "enabled": true,
   "teamName": "",
   "feature": "katc1",
   "pdcaPhase": "do",
   "orchestrationPattern": "leader",
   "ctoAgent": "opus",
-  "startedAt": "2026-02-27T12:58:05.533Z",
-  "lastUpdated": "2026-02-27T13:05:28.344Z",
-  "teammates": [],
+  "startedAt": "2026-02-27T13:07:49.609Z",
+  "lastUpdated": "2026-02-27T13:08:50.409Z",
+  "teammates": [
+    {
+      "name": "a381cacfe3a85f401",
+      "role": "bkit:gap-detector",
+      "model": "sonnet",
+      "status": "spawning",
+      "currentTask": null,
+      "taskId": null,
+      "startedAt": "2026-02-27T13:07:49.610Z",
+      "lastActivityAt": "2026-02-27T13:07:49.610Z"
+    },
+    {
+      "name": "a2734a8d60ff6ca3f",
+      "role": "Explore",
+      "model": "sonnet",
+      "status": "completed",
+      "currentTask": null,
+      "taskId": null,
+      "startedAt": "2026-02-27T13:08:15.875Z",
+      "lastActivityAt": "2026-02-27T13:08:50.408Z"
+    }
+  ],
   "progress": {
     "totalTasks": 0,
     "completedTasks": 0,

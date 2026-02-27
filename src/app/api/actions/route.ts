@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 기본 쿼리
+    // 기본 쿼리 (SQLite 호환)
     let sql = `
       SELECT
         a.id, a.airline_id, a.callsign_id, a.action_type, a.description,
@@ -68,84 +68,76 @@ export async function GET(request: NextRequest) {
 
     // 필터 조건
     if (airlineId) {
-      sql += ` AND a.airline_id = $${queryParams.length + 1}`;
+      sql += ` AND a.airline_id = ?`;
       queryParams.push(airlineId);
     }
 
     if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
-      sql += ` AND a.status = $${queryParams.length + 1}`;
+      sql += ` AND a.status = ?`;
       queryParams.push(status);
     }
 
-    // 검색 조건 (유사호출부호, 조치유형, 담당자)
+    // 검색 조건 (유사호출부호, 조치유형, 담당자) - SQLite LIKE 사용
     if (search && search.trim()) {
       const searchValue = `%${search.trim()}%`;
-      const callsignPlaceholder = `$${queryParams.length + 1}`;
-      const actionTypePlaceholder = `$${queryParams.length + 2}`;
-      const managerPlaceholder = `$${queryParams.length + 3}`;
-
       sql += ` AND (
-        cs.callsign_pair ILIKE ${callsignPlaceholder}
-        OR a.action_type ILIKE ${actionTypePlaceholder}
-        OR a.manager_name ILIKE ${managerPlaceholder}
+        cs.callsign_pair LIKE ?
+        OR a.action_type LIKE ?
+        OR a.manager_name LIKE ?
       )`;
       queryParams.push(searchValue, searchValue, searchValue);
     }
 
-    // 날짜 필터
+    // 날짜 필터 (SQLite 호환 - DATE 함수 사용)
     if (dateFrom) {
-      sql += ` AND a.registered_at::date >= $${queryParams.length + 1}::date`;
+      sql += ` AND DATE(a.registered_at) >= DATE(?)`;
       queryParams.push(dateFrom);
     }
 
     if (dateTo) {
-      sql += ` AND a.registered_at::date <= $${queryParams.length + 1}::date`;
+      sql += ` AND DATE(a.registered_at) <= DATE(?)`;
       queryParams.push(dateTo);
     }
 
     // 페이지네이션
-    sql += ` ORDER BY a.registered_at DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+    sql += ` ORDER BY a.registered_at DESC LIMIT ? OFFSET ?`;
     queryParams.push(limit);
     queryParams.push(offset);
 
     // 데이터 조회
     const result = await query(sql, queryParams);
 
-    // 전체 개수 조회
+    // 전체 개수 조회 (SQLite 호환)
     let countSql = `SELECT COUNT(*) as total FROM actions a LEFT JOIN callsigns cs ON a.callsign_id = cs.id WHERE 1=1`;
     const countParams: any[] = [];
 
     if (airlineId) {
-      countSql += ` AND a.airline_id = $${countParams.length + 1}`;
+      countSql += ` AND a.airline_id = ?`;
       countParams.push(airlineId);
     }
 
     if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
-      countSql += ` AND a.status = $${countParams.length + 1}`;
+      countSql += ` AND a.status = ?`;
       countParams.push(status);
     }
 
     if (search && search.trim()) {
       const searchValue = `%${search.trim()}%`;
-      const callsignPlaceholder = `$${countParams.length + 1}`;
-      const actionTypePlaceholder = `$${countParams.length + 2}`;
-      const managerPlaceholder = `$${countParams.length + 3}`;
-
       countSql += ` AND (
-        cs.callsign_pair ILIKE ${callsignPlaceholder}
-        OR a.action_type ILIKE ${actionTypePlaceholder}
-        OR a.manager_name ILIKE ${managerPlaceholder}
+        cs.callsign_pair LIKE ?
+        OR a.action_type LIKE ?
+        OR a.manager_name LIKE ?
       )`;
       countParams.push(searchValue, searchValue, searchValue);
     }
 
     if (dateFrom) {
-      countSql += ` AND a.registered_at::date >= $${countParams.length + 1}::date`;
+      countSql += ` AND DATE(a.registered_at) >= DATE(?)`;
       countParams.push(dateFrom);
     }
 
     if (dateTo) {
-      countSql += ` AND a.registered_at::date <= $${countParams.length + 1}::date`;
+      countSql += ` AND DATE(a.registered_at) <= DATE(?)`;
       countParams.push(dateTo);
     }
 
