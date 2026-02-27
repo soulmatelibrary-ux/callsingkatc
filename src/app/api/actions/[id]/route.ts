@@ -52,7 +52,7 @@ export async function GET(
       FROM actions a
       LEFT JOIN airlines al ON a.airline_id = al.id
       LEFT JOIN callsigns cs ON a.callsign_id = cs.id
-      WHERE a.id = $1`,
+      WHERE a.id = ?`,
       [id]
     );
 
@@ -156,7 +156,7 @@ export async function PATCH(
 
     // 기존 조치 확인
     const existingAction = await query(
-      'SELECT id, status, callsign_id FROM actions WHERE id = $1',
+      'SELECT id, status, callsign_id FROM actions WHERE id = ?',
       [id]
     );
 
@@ -171,7 +171,7 @@ export async function PATCH(
     if (status === 'in_progress') {
       // in_progress = 항공사 미조치 상태 = action row 삭제 + callsign 상태 복원
       const deletedAction = await query(
-        'SELECT id, callsign_id FROM actions WHERE id = $1',
+        'SELECT id, callsign_id FROM actions WHERE id = ?',
         [id]
       );
 
@@ -187,10 +187,10 @@ export async function PATCH(
       // 트랜잭션: action 삭제 + callsign 상태 복원
       await transaction(async (trx) => {
         // 1. action 행 삭제
-        await trx('DELETE FROM actions WHERE id = $1', [id]);
+        await trx('DELETE FROM actions WHERE id = ?', [id]);
 
         // 2. callsign 상태를 'in_progress'로 변경 (항공사가 다시 조치하도록)
-        await trx('UPDATE callsigns SET status = $1 WHERE id = $2', ['in_progress', callsignId]);
+        await trx('UPDATE callsigns SET status = ? WHERE id = ?', ['in_progress', callsignId]);
       });
 
       // 삭제된 action 데이터 반환 (mutation 성공 처리)
@@ -248,7 +248,7 @@ export async function PATCH(
     fields.push(`updated_at = $${paramIndex++}`);
     values.push(new Date().toISOString());
 
-    sql += fields.join(', ') + ` WHERE id = $${paramIndex} RETURNING *`;
+    sql += fields.join(', ') + ` WHERE id = $${paramIndex};
     values.push(id);
 
     // 트랜잭션: action 업데이트 + callsigns 상태 동기화
@@ -261,7 +261,7 @@ export async function PATCH(
       if (actionResult.rows.length > 0) {
         // 2. callsigns 상태 동기화: action의 status와 일치하게
         const newStatus = actionResult.rows[0].status;
-        await trx('UPDATE callsigns SET status = $1 WHERE id = $2', [newStatus, callsignId]);
+        await trx('UPDATE callsigns SET status = ? WHERE id = ?', [newStatus, callsignId]);
       }
 
       return actionResult;
@@ -343,7 +343,7 @@ export async function DELETE(
 
     // 조치 존재 확인
     const existingAction = await query(
-      'SELECT id FROM actions WHERE id = $1',
+      'SELECT id FROM actions WHERE id = ?',
       [id]
     );
 
@@ -356,7 +356,7 @@ export async function DELETE(
 
     // 삭제 (on_delete cascade는 자동으로 action_history도 삭제)
     await transaction(async (trx) => {
-      return trx('DELETE FROM actions WHERE id = $1', [id]);
+      return trx('DELETE FROM actions WHERE id = ?', [id]);
     });
 
     return NextResponse.json(

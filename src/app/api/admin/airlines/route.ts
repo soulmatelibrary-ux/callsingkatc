@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     // 코드 중복 확인
     const existing = await query(
-      'SELECT id FROM airlines WHERE code = $1',
+      'SELECT id FROM airlines WHERE code = ?',
       [code]
     );
     if (existing.rows.length > 0) {
@@ -115,10 +115,7 @@ export async function POST(request: NextRequest) {
     // 항공사 생성
     const result = await query(
       `INSERT INTO airlines (code, name_ko, name_en, display_order)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, code, name_ko, name_en, COALESCE(display_order, 0) as display_order`,
-      [code, name_ko, name_en || null, nextOrder]
-    );
+       VALUES (?, ?, ?, ?);
 
     return NextResponse.json(
       { airline: result.rows[0] },

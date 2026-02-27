@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     // 대상 사용자 존재 여부 확인
     const userResult = await query(
-      'SELECT id, email, status, role FROM users WHERE id = $1',
+      'SELECT id, email, status, role FROM users WHERE id = ?',
       [userId]
     );
 
@@ -104,11 +104,11 @@ export async function PUT(request: NextRequest, { params }: Params) {
     // DB 업데이트
     await query(
       `UPDATE users
-       SET password_hash = $1,
+       SET password_hash = ?,
            is_default_password = true,
            password_change_required = true,
-           updated_at = NOW()
-       WHERE id = $2`,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
       [passwordHash, userId]
     );
 

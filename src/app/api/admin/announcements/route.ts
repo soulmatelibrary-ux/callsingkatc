@@ -91,9 +91,9 @@ export async function GET(request: NextRequest) {
 
     if (status !== 'all') {
       if (status === 'active') {
-        whereClause += ` AND a.start_date <= NOW() AND a.end_date >= NOW()`;
+        whereClause += ` AND a.start_date <= CURRENT_TIMESTAMP AND a.end_date >= CURRENT_TIMESTAMP`;
       } else if (status === 'expired') {
-        whereClause += ` AND (a.start_date > NOW() OR a.end_date < NOW())`;
+        whereClause += ` AND (a.start_date > CURRENT_TIMESTAMP OR a.end_date < CURRENT_TIMESTAMP)`;
       }
     }
 
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
         a.created_by as "createdBy", a.created_at as "createdAt",
         u.email as "createdByEmail",
         CASE
-          WHEN a.start_date <= NOW() AND a.end_date >= NOW() THEN 'active'
+          WHEN a.start_date <= CURRENT_TIMESTAMP AND a.end_date >= CURRENT_TIMESTAMP THEN 'active'
           ELSE 'expired'
         END as status,
         (SELECT COUNT(*) FROM announcement_views WHERE announcement_id = a.id)::int as "viewCount"
@@ -252,15 +252,7 @@ export async function POST(request: NextRequest) {
       `
       INSERT INTO announcements
         (title, content, level, start_date, end_date, target_airlines, created_by)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING
-        id, title, content, level,
-        start_date as "startDate", end_date as "endDate",
-        target_airlines as "targetAirlines",
-        created_by as "createdBy", created_at as "createdAt"
-      `,
-      [title, content, validLevel, startDate, endDate, targetAirlinesStr, payload.userId]
-    );
+      VALUES (?, ?, ?, ?, ?, ?, ?);
 
     return NextResponse.json(result.rows[0], { status: 201 });
   } catch (error) {

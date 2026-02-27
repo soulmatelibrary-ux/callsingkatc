@@ -1,9 +1,9 @@
 {
-  "sessionCount": 84,
+  "sessionCount": 90,
   "lastSession": {
-    "startedAt": "2026-02-26T13:49:26.946Z",
+    "startedAt": "2026-02-27T12:54:26.410Z",
     "platform": "claude",
-    "level": "Enterprise"
+    "level": "Dynamic"
   },
   "currentFeature": "airline-data-action-management",
   "currentPhase": "plan",

@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     // 현재 비밀번호 검증
     const userResult = await query(
-      'SELECT id, password_hash FROM users WHERE id = $1',
+      'SELECT id, password_hash FROM users WHERE id = ?',
       [userId]
     );
 
@@ -89,19 +89,19 @@ export async function POST(request: NextRequest) {
       // 1. 비밀번호 이력에 새 비밀번호 기록
       await trx(
         `INSERT INTO password_history (user_id, password_hash, changed_at, changed_by)
-         VALUES ($1, $2, NOW(), $3)`,
+         VALUES (?, ?, CURRENT_TIMESTAMP, ?)`,
         [userId, newPasswordHash, 'user']
       );
 
       // 2. 사용자 비밀번호 업데이트 + 플래그 업데이트
       await trx(
         `UPDATE users
-         SET password_hash = $1,
+         SET password_hash = ?,
              is_default_password = false,
              password_change_required = false,
-             last_password_changed_at = NOW(),
-             updated_at = NOW()
-         WHERE id = $2`,
+             last_password_changed_at = CURRENT_TIMESTAMP,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
         [newPasswordHash, userId]
       );
     });

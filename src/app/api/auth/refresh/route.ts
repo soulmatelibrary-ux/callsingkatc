@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
          a.name_en as airline_name_en
        FROM users u
        LEFT JOIN airlines a ON u.airline_id = a.id
-       WHERE u.id = $1`,
+       WHERE u.id = ?`,
       [payload.userId]
     );
 

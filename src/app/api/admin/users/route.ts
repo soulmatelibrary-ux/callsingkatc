@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 기존 이메일 확인
-    const existingUser = await query('SELECT id FROM users WHERE email = $1', [email]);
+    const existingUser = await query('SELECT id FROM users WHERE email = ?', [email]);
     if (existingUser.rows.length > 0) {
       return NextResponse.json(
         { error: '이미 사용 중인 이메일입니다.' },
@@ -160,8 +160,8 @@ export async function POST(request: NextRequest) {
 
     // 항공사 존재 여부 확인 (code 또는 id로 조회)
     const airlineCheck = airlineCode
-      ? await query('SELECT id FROM airlines WHERE code = $1', [airlineCode])
-      : await query('SELECT id FROM airlines WHERE id = $1', [airlineId]);
+      ? await query('SELECT id FROM airlines WHERE code = ?', [airlineCode])
+      : await query('SELECT id FROM airlines WHERE id = ?', [airlineId]);
     if (airlineCheck.rows.length === 0) {
       return NextResponse.json(
         { error: '존재하지 않는 항공사입니다.' },
@@ -190,17 +190,14 @@ export async function POST(request: NextRequest) {
         `INSERT INTO users (
            email, password_hash, airline_id, status, role,
            is_default_password, password_change_required
-         ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING id, email, status, role, airline_id, is_default_password, password_change_required, created_at`,
-        [email, passwordHash, resolvedAirlineId, 'active', role, !password, true]
-      );
+         ) VALUES (?, ?, ?, ?, ?, ?, ?);
 
       return createResult.rows[0];
     });
 
     // 항공사 정보 조회
     const airlineResult = await query(
-      'SELECT code, name_ko, name_en FROM airlines WHERE id = $1',
+      'SELECT code, name_ko, name_en FROM airlines WHERE id = ?',
       [resolvedAirlineId]
     );
 

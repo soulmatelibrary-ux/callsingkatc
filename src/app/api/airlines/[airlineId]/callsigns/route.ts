@@ -45,7 +45,7 @@ export async function GET(
 
     // 항공사 코드 조회 (존재 여부 확인 통합)
     const airlineCodeResult = await query(
-      'SELECT id, code FROM airlines WHERE id = $1',
+      'SELECT id, code FROM airlines WHERE id = ?',
       [airlineId]
     );
 
@@ -87,7 +87,7 @@ export async function GET(
               file_upload_id, uploaded_at, occurrence_count, first_occurred_at, last_occurred_at,
               status, created_at, updated_at
        FROM callsigns
-       WHERE (airline_code = $1 OR other_airline_code = $1)
+       WHERE (airline_code = ? OR other_airline_code = ?)
          AND status = 'in_progress'
          AND NOT EXISTS (
            SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
@@ -126,7 +126,7 @@ export async function GET(
     const countResult = await query(
       `SELECT COUNT(*) as total
        FROM callsigns
-       WHERE (airline_code = $1 OR other_airline_code = $1)
+       WHERE (airline_code = ? OR other_airline_code = ?)
          AND status = 'in_progress'
          AND NOT EXISTS (
            SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id

@@ -42,7 +42,7 @@ export async function PATCH(
 
     // 항공사 존재 확인
     const existing = await query(
-      'SELECT id FROM airlines WHERE id = $1',
+      'SELECT id FROM airlines WHERE id = ?',
       [id]
     );
     if (existing.rows.length === 0) {
@@ -55,7 +55,7 @@ export async function PATCH(
     // 코드 중복 확인 (자신 제외)
     if (code) {
       const codeCheck = await query(
-        'SELECT id FROM airlines WHERE code = $1 AND id != $2',
+        'SELECT id FROM airlines WHERE code = ? AND id != ?',
         [code, id]
       );
       if (codeCheck.rows.length > 0) {
@@ -101,7 +101,7 @@ export async function PATCH(
 
     values.push(id);
 
-    let sql = `UPDATE airlines SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, code, name_ko, name_en`;
+    let sql = `UPDATE airlines SET ${updates.join(', ')} WHERE id = $${paramIndex};
 
     // display_order 컬럼이 있으면 포함, 없으면 0으로 대체
     try {
@@ -148,7 +148,7 @@ export async function DELETE(
 
     // 항공사 존재 확인
     const existing = await query(
-      'SELECT id FROM airlines WHERE id = $1',
+      'SELECT id FROM airlines WHERE id = ?',
       [id]
     );
     if (existing.rows.length === 0) {
@@ -160,7 +160,7 @@ export async function DELETE(
 
     // 사용 중인 사용자 확인
     const userCheck = await query(
-      'SELECT COUNT(*) as count FROM users WHERE airline_id = $1',
+      'SELECT COUNT(*) as count FROM users WHERE airline_id = ?',
       [id]
     );
 
@@ -172,7 +172,7 @@ export async function DELETE(
     }
 
     // 삭제
-    await query('DELETE FROM airlines WHERE id = $1', [id]);
+    await query('DELETE FROM airlines WHERE id = ?', [id]);
 
     return NextResponse.json(
       { message: '항공사가 삭제되었습니다.' },

@@ -92,7 +92,7 @@ export async function GET(
       FROM callsigns cs
       LEFT JOIN actions a ON cs.id = a.callsign_id
       LEFT JOIN airlines al ON a.airline_id = al.id
-      WHERE cs.airline_id = $1
+      WHERE cs.airline_id = ?
     `;
     const queryParams: any[] = [airlineId];
 
@@ -147,7 +147,7 @@ export async function GET(
     let countSql = `
       SELECT COUNT(DISTINCT cs.id) as total FROM callsigns cs
       LEFT JOIN actions a ON cs.id = a.callsign_id
-      WHERE cs.airline_id = $1
+      WHERE cs.airline_id = ?
     `;
     const countParams: any[] = [airlineId];
 
@@ -312,7 +312,7 @@ export async function POST(
 
     // 항공사 존재 여부 및 코드 조회
     const airlineCheck = await query(
-      'SELECT id, code FROM airlines WHERE id = $1',
+      'SELECT id, code FROM airlines WHERE id = ?',
       [airlineId]
     );
 
@@ -328,7 +328,7 @@ export async function POST(
     // 호출부호 존재 및 항공사 코드 일치 확인
     // (내 항공사이거나 상대 항공사인 경우 모두 허용)
     const callsignCheck = await query(
-      'SELECT id FROM callsigns WHERE id = $1 AND (airline_code = $2 OR other_airline_code = $2)',
+      'SELECT id FROM callsigns WHERE id = ? AND (airline_code = ? OR other_airline_code = ?)',
       [callsignId, airlineCode]
     );
 
@@ -351,25 +351,10 @@ export async function POST(
           airline_id, callsign_id, action_type, description,
           manager_name, planned_due_date, completed_at,
           status, registered_by, registered_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING *`,
-        [
-          airlineId,
-          callsignId,
-          actionType,
-          description || null,
-          managerName || null,
-          plannedDueDate || null,
-          completedTimestamp,
-          actionStatus,
-          payload.userId, // 현재 관리자 ID
-          new Date().toISOString(),
-          new Date().toISOString(),
-        ]
-      );
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
       // 호출부호 상태를 완료로 변경
-      await trx('UPDATE callsigns SET status = $1 WHERE id = $2', ['completed', callsignId]);
+      await trx('UPDATE callsigns SET status = ? WHERE id = ?', ['completed', callsignId]);
 
       return actionResult;
     });

@@ -50,7 +50,7 @@ export async function PATCH(
 
     // 2. 공지사항 존재 확인 및 기존 데이터 조회
     const existResult = await query(
-      `SELECT id, start_date as "startDate", end_date as "endDate" FROM announcements WHERE id = $1`,
+      `SELECT id, start_date as "startDate", end_date as "endDate" FROM announcements WHERE id = ?`,
       [params.id]
     );
 
@@ -111,7 +111,7 @@ export async function PATCH(
     }
 
     // updated_at 항상 업데이트
-    updates.push(`updated_at = NOW()`);
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
     updates.push(`updated_by = $${paramIndex++}`);
     params_arr.push(payload.userId);
 
@@ -143,14 +143,7 @@ export async function PATCH(
     const sql = `
       UPDATE announcements
       SET ${updates.join(', ')}
-      WHERE id = $${paramIndex}
-      RETURNING
-        id, title, content, level,
-        start_date as "startDate", end_date as "endDate",
-        target_airlines as "targetAirlines",
-        is_active as "isActive",
-        updated_at as "updatedAt"
-    `;
+      WHERE id = $${paramIndex};
 
     const result = await query(sql, params_arr);
 
@@ -191,7 +184,7 @@ export async function DELETE(
 
     // 2. 공지사항 존재 확인
     const existResult = await query(
-      `SELECT id FROM announcements WHERE id = $1`,
+      `SELECT id FROM announcements WHERE id = ?`,
       [params.id]
     );
 
@@ -204,7 +197,7 @@ export async function DELETE(
 
     // 3. 삭제 (ON DELETE CASCADE로 announcement_views도 함께 삭제)
     await query(
-      `DELETE FROM announcements WHERE id = $1`,
+      `DELETE FROM announcements WHERE id = ?`,
       [params.id]
     );
 

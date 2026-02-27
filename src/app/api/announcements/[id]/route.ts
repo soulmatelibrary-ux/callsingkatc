@@ -43,7 +43,7 @@ export async function GET(
       SELECT u.id, u.airline_id, a.code as airline_code
       FROM users u
       LEFT JOIN airlines a ON u.airline_id = a.id
-      WHERE u.id = $1
+      WHERE u.id = ?
       `,
       [payload.userId]
     );
@@ -68,16 +68,16 @@ export async function GET(
         updated_by as "updatedBy", updated_at as "updatedAt",
         is_active as "isActive",
         CASE
-          WHEN start_date <= NOW() AND end_date >= NOW() THEN 'active'
+          WHEN start_date <= CURRENT_TIMESTAMP AND end_date >= CURRENT_TIMESTAMP THEN 'active'
           ELSE 'expired'
         END as status,
-        (SELECT COUNT(*)::int FROM announcement_views WHERE announcement_id = $1)::int as "viewCount"
+        (SELECT COUNT(*)::int FROM announcement_views WHERE announcement_id = ?)::int as "viewCount"
       FROM announcements
-      WHERE id = $1
+      WHERE id = ?
         AND is_active = true
         AND (
           target_airlines IS NULL
-          OR $2 = ANY(string_to_array(target_airlines, ','))
+          OR ? = ANY(string_to_array(target_airlines, ','))
         )
       `,
       [params.id, user.airline_code]
@@ -97,7 +97,7 @@ export async function GET(
       `
       SELECT id, viewed_at as "viewedAt"
       FROM announcement_views
-      WHERE announcement_id = $1 AND user_id = $2
+      WHERE announcement_id = ? AND user_id = ?
       `,
       [params.id, user.id]
     );
@@ -143,7 +143,7 @@ export async function POST(
 
     // 2. 공지사항 존재 확인
     const announcementResult = await query(
-      `SELECT id FROM announcements WHERE id = $1`,
+      `SELECT id FROM announcements WHERE id = ?`,
       [params.id]
     );
 
@@ -158,9 +158,9 @@ export async function POST(
     await query(
       `
       INSERT INTO announcement_views (announcement_id, user_id, viewed_at)
-      VALUES ($1, $2, NOW())
+      VALUES (?, ?, CURRENT_TIMESTAMP)
       ON CONFLICT (announcement_id, user_id)
-      DO UPDATE SET viewed_at = NOW()
+      DO UPDATE SET viewed_at = CURRENT_TIMESTAMP
       `,
       [params.id, payload.userId]
     );

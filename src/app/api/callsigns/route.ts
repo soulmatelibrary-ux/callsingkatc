@@ -15,7 +15,6 @@ import { query } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-const isSQLite = (process.env.DB_TYPE || 'postgres') === 'sqlite';
 
 export async function GET(request: NextRequest) {
   try {

@@ -64,8 +64,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     let resolvedAirlineId: string | undefined;
     if (airlineId || airlineCode) {
       const airlineCheck = airlineCode
-        ? await query('SELECT id FROM airlines WHERE code = $1', [airlineCode])
-        : await query('SELECT id FROM airlines WHERE id = $1', [airlineId]);
+        ? await query('SELECT id FROM airlines WHERE code = ?', [airlineCode])
+        : await query('SELECT id FROM airlines WHERE id = ?', [airlineId]);
       if (airlineCheck.rows.length === 0) {
         return NextResponse.json(
           { error: '존재하지 않는 항공사입니다.' },
@@ -99,7 +99,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     }
 
     // 항상 updated_at 업데이트
-    updates.push(`updated_at = NOW()`);
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
 
     if (updates.length === 0) {
       return NextResponse.json(
@@ -114,8 +114,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     // 사용자 업데이트
     const sql = `UPDATE users
                  SET ${updates.join(', ')}
-                 WHERE id = $${paramCount}
-                 RETURNING id, email, status, role, airline_id, last_login_at, created_at, updated_at`;
+                 WHERE id = $${paramCount};
 
     const result = await query(sql, params_array);
 
@@ -130,7 +129,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
     // 항공사 정보 조회
     const airlineResult = await query(
-      'SELECT code, name_ko, name_en FROM airlines WHERE id = $1',
+      'SELECT code, name_ko, name_en FROM airlines WHERE id = ?',
       [user.airline_id]
     );
 
@@ -193,7 +192,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     const userId = params.id;
 
     // 관리자는 삭제 불가
-    const adminCheck = await query('SELECT role FROM users WHERE id = $1', [userId]);
+    const adminCheck = await query('SELECT role FROM users WHERE id = ?', [userId]);
     if (adminCheck.rows.length === 0) {
       return NextResponse.json(
         { error: '사용자를 찾을 수 없습니다.' },
@@ -209,7 +208,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     }
 
     // 사용자 삭제
-    const deleteResult = await query('DELETE FROM users WHERE id = $1 RETURNING id, email', [userId]);
+    const deleteResult = await query('DELETE FROM users WHERE id = ?;
 
     if (deleteResult.rows.length === 0) {
       return NextResponse.json(

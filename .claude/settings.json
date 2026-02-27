@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git pull --no-rebase origin master)"
+      "Bash(git pull --no-rebase origin master)",
+      "Bash(git checkout --ours .bkit/agent-state.json docs/.bkit-memory.json docs/.pdca-status.json data/katc1.db)",
+      "Bash(npx tsc --noEmit --project tsconfig.json)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(git push origin master)"
     ]
   }
 }

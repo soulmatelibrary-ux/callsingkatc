@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const kalCallsigns = await query(
       `SELECT id, airline_code, other_airline_code, callsign_pair
        FROM callsigns
-       WHERE airline_code = $1 OR other_airline_code = $1
+       WHERE airline_code = ? OR other_airline_code = ?
        LIMIT 5`,
       ['KAL']
     );

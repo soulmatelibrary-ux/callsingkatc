@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       SELECT u.id, u.airline_id, a.code as airline_code
       FROM users u
       LEFT JOIN airlines a ON u.airline_id = a.id
-      WHERE u.id = $1
+      WHERE u.id = ?
       `,
       [payload.userId]
     );
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     // 5. WHERE 조건 부분을 먼저 구성
     let whereClause = `(
       a.target_airlines IS NULL
-      OR $2 = ANY(string_to_array(a.target_airlines, ','))
+      OR ? = ANY(string_to_array(a.target_airlines, ','))
     )`;
 
     const queryParams: any[] = [user.id, user.airline_code];
@@ -110,9 +110,9 @@ export async function GET(request: NextRequest) {
     // 상태 필터
     if (status !== 'all') {
       if (status === 'active') {
-        whereClause += ` AND a.start_date <= NOW() AND a.end_date >= NOW()`;
+        whereClause += ` AND a.start_date <= CURRENT_TIMESTAMP AND a.end_date >= CURRENT_TIMESTAMP`;
       } else if (status === 'expired') {
-        whereClause += ` AND (a.start_date > NOW() OR a.end_date < NOW())`;
+        whereClause += ` AND (a.start_date > CURRENT_TIMESTAMP OR a.end_date < CURRENT_TIMESTAMP)`;
       }
     }
 
@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
       SELECT COUNT(*)::int as count
       FROM announcements a
       LEFT JOIN announcement_views av
-        ON a.id = av.announcement_id AND av.user_id = $1
+        ON a.id = av.announcement_id AND av.user_id = ?
       WHERE ${whereClause}
       `,
       queryParams
@@ -154,13 +154,13 @@ export async function GET(request: NextRequest) {
         a.is_active as "isActive",
         a.created_at as "createdAt",
         CASE
-          WHEN a.start_date <= NOW() AND a.end_date >= NOW() THEN 'active'
+          WHEN a.start_date <= CURRENT_TIMESTAMP AND a.end_date >= CURRENT_TIMESTAMP THEN 'active'
           ELSE 'expired'
         END as status,
         COALESCE(av.id IS NOT NULL, false) as "isViewed"
       FROM announcements a
       LEFT JOIN announcement_views av
-        ON a.id = av.announcement_id AND av.user_id = $1
+        ON a.id = av.announcement_id AND av.user_id = ?
       WHERE ${whereClause}
     `;
 

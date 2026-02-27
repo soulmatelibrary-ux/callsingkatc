@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     // 사용자 조회 (이메일 존재 여부는 응답에 노출하지 않음)
     const result = await query(
-      'SELECT id, email, status FROM users WHERE email = $1',
+      'SELECT id, email, status FROM users WHERE email = ?',
       [email.toLowerCase().trim()]
     );
 
@@ -96,11 +96,11 @@ export async function POST(request: NextRequest) {
         // DB 업데이트: 비밀번호 교체 + 변경 강제 플래그 설정
         await query(
           `UPDATE users
-           SET password_hash = $1,
+           SET password_hash = ?,
                is_default_password = true,
                password_change_required = true,
-               updated_at = NOW()
-           WHERE id = $2`,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`,
           [passwordHash, user.id]
         );
 

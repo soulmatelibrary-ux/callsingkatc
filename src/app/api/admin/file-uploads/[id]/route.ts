@@ -40,7 +40,7 @@ export async function DELETE(
 
     // 1. 해당 file_upload_id로 연결된 callsigns 확인
     const callsignsResult = await query(
-      `SELECT id FROM callsigns WHERE file_upload_id = $1`,
+      `SELECT id FROM callsigns WHERE file_upload_id = ?`,
       [fileUploadId]
     );
 
@@ -50,7 +50,7 @@ export async function DELETE(
       // 2. callsign_id가 actions 테이블에 있는지 확인
       const actionsCountResult = await query(
         `SELECT COUNT(*) as count FROM actions
-         WHERE callsign_id = ANY($1)`,
+         WHERE callsign_id = ANY(?)`,
         [callsignIds]
       );
 
@@ -71,13 +71,11 @@ export async function DELETE(
 
     // 3. 조치가 없으면 삭제 진행
     // callsigns 삭제 (ON DELETE CASCADE로 callsign_occurrences 자동 삭제)
-    await query(`DELETE FROM callsigns WHERE file_upload_id = $1`, [fileUploadId]);
+    await query(`DELETE FROM callsigns WHERE file_upload_id = ?`, [fileUploadId]);
 
     // file_uploads 삭제
     const deleteResult = await query(
-      `DELETE FROM file_uploads WHERE id = $1 RETURNING id`,
-      [fileUploadId]
-    );
+      `DELETE FROM file_uploads WHERE id = ?;
 
     if (deleteResult.rows.length === 0) {
       return NextResponse.json(

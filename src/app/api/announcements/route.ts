@@ -3,7 +3,7 @@
  * 현재 활성 공지사항 조회 (로그인한 사용자의 항공사별)
  *
  * 필터 조건:
- *   - start_date <= NOW() <= end_date
+ *   - start_date <= CURRENT_TIMESTAMP <= end_date
  *   - is_active = true
  *   - (target_airlines IS NULL OR user.airline_id IN target_airlines)
  *
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       SELECT u.id, u.airline_id, u.role, a.code as airline_code
       FROM users u
       LEFT JOIN airlines a ON u.airline_id = a.id
-      WHERE u.id = $1
+      WHERE u.id = ?
       `,
       [payload.userId]
     );
@@ -68,11 +68,11 @@ export async function GET(request: NextRequest) {
         updated_at as "updatedAt"
       FROM announcements
       WHERE is_active = true
-        AND start_date <= NOW()
-        AND end_date >= NOW()
+        AND start_date <= CURRENT_TIMESTAMP
+        AND end_date >= CURRENT_TIMESTAMP
         AND (
           target_airlines IS NULL
-          OR $1 = ANY(string_to_array(target_airlines, ','))
+          OR ? = ANY(string_to_array(target_airlines, ','))
         )
       ORDER BY start_date DESC
     `;
