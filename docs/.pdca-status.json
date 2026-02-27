@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-27T13:50:56.381Z",
+  "lastUpdated": "2026-02-27T13:54:09.289Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -42,7 +42,8 @@
     "file-uploads",
     "tabs",
     "db",
-    "queries"
+    "queries",
+    "test-callsigns"
   ],
   "primaryFeature": "katc1",
   "features": {
@@ -302,9 +303,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-27T13:45:13.174Z"
+        "lastUpdated": "2026-02-27T13:54:01.903Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/file-uploads/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/actions/[id]/route.ts"
     },
     "katc1-backend": {
       "phase": "do",
@@ -461,9 +462,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:06.344Z",
-        "lastUpdated": "2026-02-27T13:50:27.739Z"
+        "lastUpdated": "2026-02-27T13:54:09.289Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/announcements/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/announcements/route.ts"
     },
     "history": {
       "phase": "do",
@@ -595,6 +596,19 @@
         "lastUpdated": "2026-02-27T13:04:54.030Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/queries/file-uploads.ts"
+    },
+    "test-callsigns": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-27T13:53:43.712Z",
+        "lastUpdated": "2026-02-27T13:53:43.712Z"
+      },
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/test-callsigns/route.ts"
     }
   },
   "pipeline": {
@@ -605,7 +619,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-27T13:50:56.381Z"
+    "lastActivity": "2026-02-27T13:54:09.289Z"
   },
   "history": [
     {
@@ -7259,6 +7273,30 @@
     {
       "timestamp": "2026-02-27T13:50:56.381Z",
       "feature": "file-uploads",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:53:43.712Z",
+      "feature": "test-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:53:56.420Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:54:01.903Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:54:09.289Z",
+      "feature": "announcements",
       "phase": "do",
       "action": "updated"
     }

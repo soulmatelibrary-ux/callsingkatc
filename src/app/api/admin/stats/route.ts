@@ -40,9 +40,9 @@ export async function GET(request: NextRequest) {
     // 사용자 통계
     const statsResult = await query(`
       SELECT
-        COUNT(*) FILTER (WHERE 1=1)                 AS total,
-        COUNT(*) FILTER (WHERE status = 'active')   AS active,
-        COUNT(*) FILTER (WHERE status = 'suspended') AS suspended
+        SUM(CASE WHEN 1=1 THEN 1 ELSE 0 END)                 AS total,
+        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END)   AS active,
+        SUM(CASE WHEN status = 'suspended' THEN 1 ELSE 0 END) AS suspended
       FROM users
     `);
 

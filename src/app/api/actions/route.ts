@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
 
     // 검색 조건 (유사호출부호, 조치유형, 담당자) - SQLite LIKE 사용
     if (search && search.trim()) {
-      const searchValue = `%${search.trim()}%`;
+      const searchValue = `%?%`;
       sql += ` AND (
         cs.callsign_pair LIKE ?
         OR a.action_type LIKE ?
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (search && search.trim()) {
-      const searchValue = `%${search.trim()}%`;
+      const searchValue = `%?%`;
       countSql += ` AND (
         cs.callsign_pair LIKE ?
         OR a.action_type LIKE ?

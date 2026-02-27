@@ -111,7 +111,7 @@ export async function GET(
 
     // 검색 조건 (유사호출부호, 조치유형, 담당자) - SQLite LIKE 사용
     if (search && search.trim()) {
-      const searchValue = `%${search.trim()}%`;
+      const searchValue = `%?%`;
       sql += ` AND (
         cs.callsign_pair LIKE ?
         OR a.action_type LIKE ?
@@ -161,7 +161,7 @@ export async function GET(
     }
 
     if (search && search.trim()) {
-      const searchValue = `%${search.trim()}%`;
+      const searchValue = `%?%`;
       countSql += ` AND (
         cs.callsign_pair LIKE ?
         OR a.action_type LIKE ?
@@ -382,7 +382,7 @@ export async function POST(
     console.error('조치 생성 오류:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: `조치 생성 중 오류가 발생했습니다: ${errorMessage}` },
+      { error: `조치 생성 중 오류가 발생했습니다: ?` },
       { status: 500 }
     );
   }

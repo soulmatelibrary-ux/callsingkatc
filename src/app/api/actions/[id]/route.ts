@@ -257,16 +257,21 @@ export async function PATCH(
       // 1. action 업데이트
       const actionResult = await trx(sql, values);
 
-      if (actionResult.rows.length > 0) {
-        // 2. callsigns 상태 동기화: action의 status와 일치하게
-        const newStatus = actionResult.rows[0].status;
-        await trx('UPDATE callsigns SET status = ? WHERE id = ?', [newStatus, callsignId]);
+      if (actionResult.changes > 0) {
+        // 2. 업데이트된 action 조회 (응답용)
+        const updated = await trx('SELECT * FROM actions WHERE id = ?', [id]);
+        if (updated.rows.length > 0) {
+          const newStatus = updated.rows[0].status;
+          // 3. callsigns 상태 동기화: action의 status와 일치하게
+          await trx('UPDATE callsigns SET status = ? WHERE id = ?', [newStatus, callsignId]);
+        }
+        return updated;
       }
 
-      return actionResult;
+      return { rows: [], changes: 0 };
     });
 
-    if (result.rows.length === 0) {
+    if (result.changes === 0 || result.rows.length === 0) {
       return NextResponse.json(
         { error: '조치 업데이트에 실패했습니다.' },
         { status: 500 }
@@ -283,7 +288,7 @@ export async function PATCH(
       description: updatedAction.description,
       manager_name: updatedAction.manager_name,
       planned_due_date: updatedAction.planned_due_date,
-      status: 'completed', // action row 존재 = completed
+      status: updatedAction.status
       result_detail: updatedAction.result_detail,
       completed_at: updatedAction.completed_at,
       registered_by: updatedAction.registered_by,

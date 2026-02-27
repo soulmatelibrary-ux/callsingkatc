@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
       passwordHash = await bcrypt.hash(password, 10);
     } else {
       // 임시 비밀번호 생성 (UUID의 일부)
-      const tempPassword = `Temp${Date.now()}@${Math.random().toString(36).substr(2, 5)}`;
+      const tempPassword = `Temp?@?`;
       passwordHash = await bcrypt.hash(tempPassword, 10);
     }
 

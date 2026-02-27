@@ -96,7 +96,7 @@ export async function PATCH(
 
     values.push(id);
 
-    const sql = `UPDATE airlines SET ${updates.join(', ')} WHERE id = ?`;
+    const sql = `UPDATE airlines SET ? WHERE id = ?`;
 
     const result = await query(sql, values);
 

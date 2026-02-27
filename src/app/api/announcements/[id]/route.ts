@@ -71,7 +71,7 @@ export async function GET(
           WHEN start_date <= CURRENT_TIMESTAMP AND end_date >= CURRENT_TIMESTAMP THEN 'active'
           ELSE 'expired'
         END as status,
-        (SELECT COUNT(*)::int FROM announcement_views WHERE announcement_id = ?)::int as "viewCount"
+        (SELECT COUNT(*) FROM announcement_views WHERE announcement_id = ?) as "viewCount"
       FROM announcements
       WHERE id = ?
         AND is_active = true

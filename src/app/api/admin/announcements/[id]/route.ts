@@ -141,7 +141,7 @@ export async function PATCH(
     params_arr.push(params.id);
     const sql = `
       UPDATE announcements
-      SET ${updates.join(', ')}
+      SET ?
       WHERE id = ?`;
 
     const result = await query(sql, params_arr);

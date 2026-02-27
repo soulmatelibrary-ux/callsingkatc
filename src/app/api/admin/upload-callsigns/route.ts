@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
 
           const rowData: ExcelRow = {
             airline_code: myAirlineCode,
-            callsign_pair: `${myCallsign} | ${otherCallsign}`,
+            callsign_pair: `? | ?`,
             my_callsign: myCallsign,
             other_callsign: otherCallsign,
             other_airline_code: otherAirlineCode || undefined,
@@ -257,7 +257,7 @@ export async function POST(request: NextRequest) {
 
           // 필수 필드 검증
           if (!rowData.airline_code || !rowData.callsign_pair || !rowData.my_callsign || !rowData.other_callsign) {
-            errors.push(`행 ${i + 2}: 필수 필드 누락`);
+            errors.push(`행 ?: 필수 필드 누락`);
             continue;
           }
 
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
           );
 
           if (airlineResult.rows.length === 0) {
-            errors.push(`행 ${i + 2}: 항공사 코드(${rowData.airline_code})를 찾을 수 없습니다.`);
+            errors.push(`행 ?: 항공사 코드(?)를 찾을 수 없습니다.`);
             continue;
           }
 
@@ -406,7 +406,7 @@ export async function POST(request: NextRequest) {
               const year = actualDate.getFullYear();
               const month = String(actualDate.getMonth() + 1).padStart(2, '0');
               const day = String(actualDate.getDate()).padStart(2, '0');
-              occurredDate = `${year}-${month}-${day}`;
+              occurredDate = `?-?-?`;
             } else {
               // 숫자가 아니거나 포맷이 다르면 문자열로 처리
               const dateStr = String(dateValue).trim();
@@ -414,7 +414,7 @@ export async function POST(request: NextRequest) {
                 const parts = dateStr.split('/');
                 if (parts.length === 3) {
                   // "MM/DD/YYYY" -> "YYYY-MM-DD"
-                  occurredDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+                  occurredDate = `?-?-?`;
                 } else {
                   occurredDate = new Date().toISOString().split('T')[0];
                 }
@@ -440,7 +440,7 @@ export async function POST(request: NextRequest) {
             );
           } catch (occurrenceError) {
             // 발생 이력 저장 실패해도 호출부호는 이미 저장되었으므로 진행
-            console.warn(`발생 이력 저장 실패 (callsignId: ${callsignId}, date: ${occurredDate}):`, occurrenceError);
+            console.warn(`발생 이력 저장 실패 (callsignId: ?, date: ?):`, occurrenceError);
           }
 
           if (isNewCallsign) {
@@ -449,7 +449,7 @@ export async function POST(request: NextRequest) {
             updatedCount++;
           }
         } catch (rowError) {
-          errors.push(`행 ${i + 2}: ${rowError instanceof Error ? rowError.message : '처리 오류'}`);
+          errors.push(`행 ?: ?`);
         }
       }
 

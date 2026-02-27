@@ -90,7 +90,7 @@ export async function GET(
          AND NOT EXISTS (
            SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
          )
-         ${riskLevelCondition}
+         ?
        ORDER BY
          CASE
            WHEN risk_level = '매우높음' THEN 3
@@ -129,7 +129,7 @@ export async function GET(
          AND NOT EXISTS (
            SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
          )
-         ${countRiskCondition}`,
+         ?`,
       countParams
     );
     const total = parseInt(countResult.rows[0].total, 10);

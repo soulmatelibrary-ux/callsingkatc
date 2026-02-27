@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
           ROW_NUMBER() OVER (PARTITION BY a.callsign_id ORDER BY a.updated_at DESC, a.registered_at DESC) as rn
         FROM actions a
       ) latest_action ON c.id = latest_action.callsign_id AND latest_action.rn = 1
-      WHERE 1=1 ${whereClause}
+      WHERE 1=1 ?
       ORDER BY
         CASE
           WHEN c.risk_level = '매우높음' THEN 3

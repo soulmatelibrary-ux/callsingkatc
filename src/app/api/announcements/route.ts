@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
         AND end_date >= CURRENT_TIMESTAMP
         AND (
           target_airlines IS NULL
-          OR ? = ANY(string_to_array(target_airlines, ','))
+          OR INSTR(target_airlines, ?) > 0
         )
       ORDER BY start_date DESC
     `;

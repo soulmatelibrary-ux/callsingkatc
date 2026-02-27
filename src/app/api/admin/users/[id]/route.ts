@@ -109,7 +109,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
     // 사용자 업데이트
     const sql = `UPDATE users
-                 SET ${updates.join(', ')}
+                 SET ?
                  WHERE id = ?`;
 
     const result = await query(sql, params_array);

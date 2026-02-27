@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
     // 제목/내용 검색
     if (search) {
       whereClause += ` AND (a.title LIKE ? OR a.content LIKE ?)`;
-      queryParams.push(`%${search}%`, `%${search}%`);
+      queryParams.push(`%?%`, `%?%`);
     }
 
     // 7. COUNT 쿼리 실행 (subquery 안전함)
@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
       FROM announcements a
       LEFT JOIN announcement_views av
         ON a.id = av.announcement_id AND av.user_id = ?
-      WHERE ${whereClause}
+      WHERE ?
       `,
       queryParams
     );
@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
       FROM announcements a
       LEFT JOIN announcement_views av
         ON a.id = av.announcement_id AND av.user_id = ?
-      WHERE ${whereClause}
+      WHERE ?
     `;
 
     sql += ` ORDER BY a.start_date DESC LIMIT ? OFFSET ?`;
