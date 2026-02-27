@@ -100,43 +100,39 @@ export async function GET(
     if (status) {
       if (status === 'in_progress') {
         // action이 없거나 상태가 in_progress
-        sql += ` AND (a.id IS NULL OR a.status = $${queryParams.length + 1})`;
+        sql += ` AND (a.id IS NULL OR a.status = ?)`;
         queryParams.push('in_progress');
       } else if (status === 'completed') {
         // action이 있고 상태가 completed
-        sql += ` AND a.id IS NOT NULL AND a.status = $${queryParams.length + 1}`;
+        sql += ` AND a.id IS NOT NULL AND a.status = ?`;
         queryParams.push('completed');
       }
     }
 
-    // 검색 조건 (유사호출부호, 조치유형, 담당자)
+    // 검색 조건 (유사호출부호, 조치유형, 담당자) - SQLite LIKE 사용
     if (search && search.trim()) {
       const searchValue = `%${search.trim()}%`;
-      const callsignPlaceholder = `$${queryParams.length + 1}`;
-      const actionTypePlaceholder = `$${queryParams.length + 2}`;
-      const managerPlaceholder = `$${queryParams.length + 3}`;
-
       sql += ` AND (
-        cs.callsign_pair ILIKE ${callsignPlaceholder}
-        OR a.action_type ILIKE ${actionTypePlaceholder}
-        OR a.manager_name ILIKE ${managerPlaceholder}
+        cs.callsign_pair LIKE ?
+        OR a.action_type LIKE ?
+        OR a.manager_name LIKE ?
       )`;
       queryParams.push(searchValue, searchValue, searchValue);
     }
 
     // 날짜 필터 조건
     if (dateFrom) {
-      sql += ` AND a.registered_at::date >= $${queryParams.length + 1}::date`;
+      sql += ` AND a.registered_at >= ?`;
       queryParams.push(dateFrom);
     }
 
     if (dateTo) {
-      sql += ` AND a.registered_at::date <= $${queryParams.length + 1}::date`;
+      sql += ` AND a.registered_at <= ?`;
       queryParams.push(dateTo);
     }
 
     // 페이지네이션
-    sql += ` ORDER BY a.registered_at DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+    sql += ` ORDER BY a.registered_at DESC LIMIT ? OFFSET ?`;
     queryParams.push(limit);
     queryParams.push(offset);
 
@@ -155,37 +151,33 @@ export async function GET(
     if (status) {
       if (status === 'in_progress') {
         // action이 없거나 상태가 in_progress
-        countSql += ` AND (a.id IS NULL OR a.status = $${countParams.length + 1})`;
+        countSql += ` AND (a.id IS NULL OR a.status = ?)`;
         countParams.push('in_progress');
       } else if (status === 'completed') {
         // action이 있고 상태가 completed
-        countSql += ` AND a.id IS NOT NULL AND a.status = $${countParams.length + 1}`;
+        countSql += ` AND a.id IS NOT NULL AND a.status = ?`;
         countParams.push('completed');
       }
     }
 
     if (search && search.trim()) {
       const searchValue = `%${search.trim()}%`;
-      const callsignPlaceholder = `$${countParams.length + 1}`;
-      const actionTypePlaceholder = `$${countParams.length + 2}`;
-      const managerPlaceholder = `$${countParams.length + 3}`;
-
       countSql += ` AND (
-        cs.callsign_pair ILIKE ${callsignPlaceholder}
-        OR a.action_type ILIKE ${actionTypePlaceholder}
-        OR a.manager_name ILIKE ${managerPlaceholder}
+        cs.callsign_pair LIKE ?
+        OR a.action_type LIKE ?
+        OR a.manager_name LIKE ?
       )`;
       countParams.push(searchValue, searchValue, searchValue);
     }
 
     // 날짜 필터 조건
     if (dateFrom) {
-      countSql += ` AND a.registered_at::date >= $${countParams.length + 1}::date`;
+      countSql += ` AND a.registered_at >= ?`;
       countParams.push(dateFrom);
     }
 
     if (dateTo) {
-      countSql += ` AND a.registered_at::date <= $${countParams.length + 1}::date`;
+      countSql += ` AND a.registered_at <= ?`;
       countParams.push(dateTo);
     }
 
@@ -329,7 +321,7 @@ export async function POST(
     // (내 항공사이거나 상대 항공사인 경우 모두 허용)
     const callsignCheck = await query(
       'SELECT id FROM callsigns WHERE id = ? AND (airline_code = ? OR other_airline_code = ?)',
-      [callsignId, airlineCode]
+      [callsignId, airlineCode, airlineCode]
     );
 
     if (callsignCheck.rows.length === 0) {
@@ -351,7 +343,9 @@ export async function POST(
           airline_id, callsign_id, action_type, description,
           manager_name, planned_due_date, completed_at,
           status, registered_by, registered_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        [airlineId, callsignId, actionType, description || null, managerName || null, plannedDueDate || null, completedTimestamp, actionStatus, payload.userId]
+      );
 
       // 호출부호 상태를 완료로 변경
       await trx('UPDATE callsigns SET status = ? WHERE id = ?', ['completed', callsignId]);
