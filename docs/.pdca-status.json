@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-27T13:07:39.773Z",
+  "lastUpdated": "2026-02-27T13:45:32.850Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -159,9 +159,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:43:44.364Z",
-        "lastUpdated": "2026-02-26T13:50:58.701Z"
+        "lastUpdated": "2026-02-27T13:45:32.850Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/auth/login/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/login/route.ts"
     },
     "signup": {
       "phase": "do",
@@ -198,9 +198,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:44:00.843Z",
-        "lastUpdated": "2026-02-21T03:18:12.101Z"
+        "lastUpdated": "2026-02-27T13:45:12.677Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/change-password/page.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/change-password/route.ts"
     },
     "pending": {
       "phase": "do",
@@ -263,9 +263,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:27:55.996Z",
-        "lastUpdated": "2026-02-22T09:05:45.092Z"
+        "lastUpdated": "2026-02-27T13:44:59.792Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/auth/logout/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/logout/route.ts"
     },
     "me": {
       "phase": "do",
@@ -302,9 +302,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-22T11:28:24.324Z"
+        "lastUpdated": "2026-02-27T13:45:13.174Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/file-uploads/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/file-uploads/[id]/route.ts"
     },
     "katc1-backend": {
       "phase": "do",
@@ -367,9 +367,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T02:15:21.252Z",
-        "lastUpdated": "2026-02-22T03:34:05.470Z"
+        "lastUpdated": "2026-02-27T13:44:21.818Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/airlines/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/airlines/route.ts"
     },
     "actions": {
       "phase": "do",
@@ -380,9 +380,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:32.683Z",
-        "lastUpdated": "2026-02-27T13:07:39.773Z"
+        "lastUpdated": "2026-02-27T13:41:27.412Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/actions/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/actions/route.ts"
     },
     "callsigns": {
       "phase": "do",
@@ -393,9 +393,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:58.733Z",
-        "lastUpdated": "2026-02-26T13:51:55.861Z"
+        "lastUpdated": "2026-02-27T13:44:05.287Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/callsigns/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/callsigns/route.ts"
     },
     "upload-callsigns": {
       "phase": "do",
@@ -461,9 +461,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:06.344Z",
-        "lastUpdated": "2026-02-25T13:51:27.894Z"
+        "lastUpdated": "2026-02-27T13:44:51.385Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/announcements/AnnouncementTable.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/announcements/route.ts"
     },
     "history": {
       "phase": "do",
@@ -553,9 +553,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-22T11:29:21.212Z",
-        "lastUpdated": "2026-02-24T13:33:32.524Z"
+        "lastUpdated": "2026-02-27T13:43:00.087Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/admin/file-uploads/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/file-uploads/route.ts"
     },
     "tabs": {
       "phase": "do",
@@ -605,7 +605,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-27T13:07:39.773Z"
+    "lastActivity": "2026-02-27T13:45:32.850Z"
   },
   "history": [
     {
@@ -7061,6 +7061,156 @@
     {
       "timestamp": "2026-02-27T13:07:39.773Z",
       "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:15:59.381Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:16:08.644Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:16:16.881Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:16:31.786Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:41:18.077Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:41:27.412Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:43:00.087Z",
+      "feature": "file-uploads",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:43:16.815Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:43:21.388Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:43:25.079Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:43:28.306Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:43:39.831Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:43:49.207Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:43:59.173Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:44:05.287Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:44:21.818Z",
+      "feature": "airlines",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:44:41.151Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:44:50.765Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:44:51.385Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:44:54.449Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:44:59.792Z",
+      "feature": "logout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:45:07.321Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:45:12.677Z",
+      "feature": "change-password",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:45:13.174Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-27T13:45:32.850Z",
+      "feature": "login",
       "phase": "do",
       "action": "updated"
     }

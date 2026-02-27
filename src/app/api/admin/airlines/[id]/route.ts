@@ -69,27 +69,22 @@ export async function PATCH(
     // 업데이트 필드 동적 구성
     const updates: string[] = [];
     const values: any[] = [];
-    let paramIndex = 1;
 
     if (code !== undefined) {
-      updates.push(`code = $${paramIndex}`);
+      updates.push(`code = ?`);
       values.push(code);
-      paramIndex++;
     }
     if (name_ko !== undefined) {
-      updates.push(`name_ko = $${paramIndex}`);
+      updates.push(`name_ko = ?`);
       values.push(name_ko);
-      paramIndex++;
     }
     if (name_en !== undefined) {
-      updates.push(`name_en = $${paramIndex}`);
+      updates.push(`name_en = ?`);
       values.push(name_en);
-      paramIndex++;
     }
     if (display_order !== undefined) {
-      updates.push(`display_order = $${paramIndex}`);
+      updates.push(`display_order = ?`);
       values.push(display_order);
-      paramIndex++;
     }
 
     if (updates.length === 0) {
@@ -101,20 +96,7 @@ export async function PATCH(
 
     values.push(id);
 
-    let sql = `UPDATE airlines SET ${updates.join(', ')} WHERE id = $${paramIndex};
-
-    // display_order 컬럼이 있으면 포함, 없으면 0으로 대체
-    try {
-      // 먼저 컬럼 존재 여부 확인하기 위해 쿼리 시도
-      await query('SELECT display_order FROM airlines LIMIT 1');
-      sql += ', display_order';
-    } catch (err: any) {
-      if (err.code === '42703') { // column does not exist
-        sql += ', 0 as display_order';
-      } else {
-        throw err;
-      }
-    }
+    const sql = `UPDATE airlines SET ${updates.join(', ')} WHERE id = ?`;
 
     const result = await query(sql, values);
 

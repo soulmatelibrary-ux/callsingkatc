@@ -78,24 +78,20 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     // 업데이트할 필드 동적 구성
     const updates: string[] = [];
     const params_array: any[] = [];
-    let paramCount = 1;
 
     if (status) {
-      updates.push(`status = $${paramCount}`);
+      updates.push(`status = ?`);
       params_array.push(status);
-      paramCount++;
     }
 
     if (role) {
-      updates.push(`role = $${paramCount}`);
+      updates.push(`role = ?`);
       params_array.push(role);
-      paramCount++;
     }
 
     if (resolvedAirlineId) {
-      updates.push(`airline_id = $${paramCount}`);
+      updates.push(`airline_id = ?`);
       params_array.push(resolvedAirlineId);
-      paramCount++;
     }
 
     // 항상 updated_at 업데이트
@@ -114,7 +110,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     // 사용자 업데이트
     const sql = `UPDATE users
                  SET ${updates.join(', ')}
-                 WHERE id = $${paramCount};
+                 WHERE id = ?`;
 
     const result = await query(sql, params_array);
 
@@ -208,7 +204,7 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     }
 
     // 사용자 삭제
-    const deleteResult = await query('DELETE FROM users WHERE id = ?;
+    const deleteResult = await query('DELETE FROM users WHERE id = ?', [userId]);
 
     if (deleteResult.rows.length === 0) {
       return NextResponse.json(

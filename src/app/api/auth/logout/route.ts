@@ -41,7 +41,3 @@ async function handleLogout(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return handleLogout(request);
 }
-
-export async function GET(request: NextRequest) {
-  return handleLogout(request);
-}

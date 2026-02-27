@@ -249,10 +249,11 @@ export async function POST(request: NextRequest) {
 
     // 5. DB 저장
     const result = await query(
-      `
-      INSERT INTO announcements
+      `INSERT INTO announcements
         (title, content, level, start_date, end_date, target_airlines, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [title, content, level, startDate, endDate, targetAirlinesStr, payload.userId]
+    );
 
     return NextResponse.json(result.rows[0], { status: 201 });
   } catch (error) {

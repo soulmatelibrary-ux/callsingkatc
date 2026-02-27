@@ -54,12 +54,12 @@ export async function GET(request: NextRequest) {
 
     // 상태 필터
     if (status && ['pending', 'processing', 'completed', 'failed'].includes(status)) {
-      sql += ` AND status = $${params.length + 1}`;
+      sql += ` AND status = ?`;
       params.push(status);
     }
 
     // 정렬 및 페이지네이션 (최신 순)
-    sql += ` ORDER BY uploaded_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    sql += ` ORDER BY uploaded_at DESC LIMIT ? OFFSET ?`;
     params.push(limit, offset);
 
     const result = await query(sql, params);

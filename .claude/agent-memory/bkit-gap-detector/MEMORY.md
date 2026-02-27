@@ -1,11 +1,12 @@
 # Gap Detector Memory - KATC1 Project
 
 ## Project Overview
-- **Stack**: Next.js 14 + PostgreSQL 15 (direct, no ORM)
+- **Stack**: Next.js 14 + SQLite 3 (better-sqlite3, no ORM) -- MIGRATED from PostgreSQL 2026-02-27
 - **Auth**: JWT (1h access, 7d refresh httpOnly cookie) + bcryptjs
-- **State**: Zustand (client), pg.Pool (server)
-- **DB Init**: `scripts/init.sql` (11 tables: airlines, users, password_history, audit_logs, file_uploads, callsigns, callsign_occurrences, actions, action_history, announcements, announcement_views)
-- **Airlines**: DB now has 11 (includes both EOK and ESR for Eastar Jet, plus APZ)
+- **State**: Zustand (client), better-sqlite3 singleton (server)
+- **DB Init**: `src/lib/db/sqlite-schema.ts` (11 tables, runtime init) + `scripts/init.sql` (legacy PostgreSQL)
+- **DB Driver**: `src/lib/db/sqlite.ts` -> WAL mode, foreign_keys ON, ? param binding
+- **Airlines**: DB has 11 (includes both EOK and ESR for Eastar Jet, plus APZ)
 
 ## Key Findings (2026-02-20 v5.0 Extended Scope Analysis)
 - Extended Match Rate: 65% (expanded scope: routing + flows + filtering + admin)
@@ -178,13 +179,36 @@
 - `docs/03-analysis/features/announcement-system.analysis.md` - Phase 5 (94%)
 - `docs/03-analysis/features/callsign-management-v1.analysis.md` - Phase 6 v3.0 (87%, was 83%, was 79%)
 
-## Core Infrastructure Files
+## SQLite Migration Analysis (2026-02-27)
+- **Auth-Only Match Rate: 95%** (all 6 auth routes clean, SQLite ? params)
+- **Full-System Match Rate: 82%** (weighted, migration incomplete in non-auth routes)
+- **SQLite Migration Completeness: 62%** (12 of ~25 API files have PostgreSQL remnants)
+- **CRITICAL**: 66 occurrences of $N placeholders across 12 non-auth API files
+- **CRITICAL**: 8 ILIKE usages (3 files), 8 ::date casts (2 files) -- PostgreSQL-only
+- **Remaining isSQLite**: `src/app/api/callsigns/route.ts` still has conditional branching
+- Auth queries properly extracted to `src/lib/db/queries/auth.ts` (all use ?)
+- `scripts/init.sql` still PostgreSQL syntax (gen_random_uuid, NOW(), JSONB, ON CONFLICT)
+- Stale comments: db.ts mentions PostgreSQL, user.ts says "PostgreSQL database"
+
+## Analysis Reports
+- `docs/03-analysis/features/katc1-auth-gap.md` - v4.0 auth-focused (92%)
+- `docs/03-analysis/features/katc1-full-gap-v5.md` - v5.0 full system (65%)
+- `docs/03-analysis/features/airline-data-action-management.analysis.md` - Phase 4 v2.0 (75%)
+- `docs/03-analysis/features/announcement-system.analysis.md` - Phase 5 (94%)
+- `docs/03-analysis/features/callsign-management-v1.analysis.md` - Phase 6 v3.0 (87%)
+- `docs/03-analysis/features/katc1-auth-sqlite-migration.analysis.md` - Post-migration (86%)
+
+## Core Infrastructure Files (Post-SQLite Migration)
 - `src/middleware.ts` - Route protection (refreshToken + user cookie)
-- `src/store/authStore.ts` - Zustand auth state
-- `src/lib/api/client.ts` - apiFetch with 401 interceptor
+- `src/store/authStore.ts` - Zustand auth state (server-centric, no cookie storage)
+- `src/lib/api/client.ts` - apiFetch with 401 interceptor + singleton refresh
 - `src/lib/jwt.ts` - JWT generation/verification
-- `src/lib/db.ts` - pg.Pool query + transaction
-- `scripts/init.sql` - DB schema (11 airlines, 11 tables, sample data)
+- `src/lib/db.ts` - Re-export from db/index.ts
+- `src/lib/db/index.ts` - SQLite-only interface (query, transaction, closePool)
+- `src/lib/db/sqlite.ts` - better-sqlite3 driver (WAL, foreign_keys, ? params)
+- `src/lib/db/sqlite-schema.ts` - Runtime schema init (11 tables + indexes + sample data)
+- `src/lib/db/queries/auth.ts` - Extracted auth queries (getUserByEmail, updateLastLogin, etc.)
+- `scripts/init.sql` - LEGACY PostgreSQL schema (not used by SQLite runtime)
 - `src/hooks/useActions.ts` - 11 hooks (actions + callsigns CRUD + stats)
 - `src/hooks/useFileUploads.ts` - useFileUploads + useDeleteFileUpload
 - `src/types/action.ts` - 12 interfaces (dual naming)

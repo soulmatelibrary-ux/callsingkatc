@@ -201,54 +201,53 @@ export async function PATCH(
     let sql = 'UPDATE actions SET ';
     const fields: string[] = [];
     const values: any[] = [];
-    let paramIndex = 1;
 
     // status 필드 업데이트 (필수)
     if (status !== undefined) {
-      fields.push(`status = $${paramIndex++}`);
+      fields.push(`status = ?`);
       values.push(status);
     }
 
     if (action_type !== undefined) {
-      fields.push(`action_type = $${paramIndex++}`);
+      fields.push(`action_type = ?`);
       values.push(action_type);
     }
     if (description !== undefined) {
-      fields.push(`description = $${paramIndex++}`);
+      fields.push(`description = ?`);
       values.push(description);
     }
     if (manager_name !== undefined) {
-      fields.push(`manager_name = $${paramIndex++}`);
+      fields.push(`manager_name = ?`);
       values.push(manager_name);
     }
     if (planned_due_date !== undefined) {
-      fields.push(`planned_due_date = $${paramIndex++}`);
+      fields.push(`planned_due_date = ?`);
       values.push(planned_due_date);
     }
     if (result_detail !== undefined) {
-      fields.push(`result_detail = $${paramIndex++}`);
+      fields.push(`result_detail = ?`);
       values.push(result_detail);
     }
     if (completed_at !== undefined) {
-      fields.push(`completed_at = $${paramIndex++}`);
+      fields.push(`completed_at = ?`);
       values.push(completed_at);
     }
     if (review_comment !== undefined) {
-      fields.push(`review_comment = $${paramIndex++}`);
+      fields.push(`review_comment = ?`);
       values.push(review_comment);
     }
 
     // 검토 정보 추가
-    fields.push(`reviewed_by = $${paramIndex++}`);
+    fields.push(`reviewed_by = ?`);
     values.push(payload.userId); // 현재 관리자 ID
 
-    fields.push(`reviewed_at = $${paramIndex++}`);
+    fields.push(`reviewed_at = ?`);
     values.push(new Date().toISOString());
 
-    fields.push(`updated_at = $${paramIndex++}`);
+    fields.push(`updated_at = ?`);
     values.push(new Date().toISOString());
 
-    sql += fields.join(', ') + ` WHERE id = $${paramIndex};
+    sql += fields.join(', ') + ` WHERE id = ?`;
     values.push(id);
 
     // 트랜잭션: action 업데이트 + callsigns 상태 동기화

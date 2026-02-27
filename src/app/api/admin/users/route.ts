@@ -52,13 +52,13 @@ export async function GET(request: NextRequest) {
 
     // 상태 필터 (active|suspended만 가능)
     if (status && ['active', 'suspended'].includes(status)) {
-      sql += ` AND u.status = $${params.length + 1}`;
+      sql += ` AND u.status = ?`;
       params.push(status);
     }
 
     // 항공사 필터
     if (airlineId) {
-      sql += ` AND u.airline_id = $${params.length + 1}`;
+      sql += ` AND u.airline_id = ?`;
       params.push(airlineId);
     }
 
@@ -190,7 +190,9 @@ export async function POST(request: NextRequest) {
         `INSERT INTO users (
            email, password_hash, airline_id, status, role,
            is_default_password, password_change_required
-         ) VALUES (?, ?, ?, ?, ?, ?, ?);
+         ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [email, passwordHash, resolvedAirlineId, 'active', role, password ? false : true, password ? false : true]
+      );
 
       return createResult.rows[0];
     });

@@ -84,6 +84,31 @@ export async function POST(request: NextRequest) {
     // 새 비밀번호 암호화
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
+    // 최근 5개 비밀번호 이력 조회 (재사용 방지)
+    const historyResult = await query(
+      `SELECT password_hash FROM password_history
+       WHERE user_id = ?
+       ORDER BY changed_at DESC
+       LIMIT 5`,
+      [userId]
+    );
+
+    // 현재 비밀번호도 포함하여 이력 확인
+    const allPreviousHashes = [
+      user.password_hash,
+      ...historyResult.rows.map((row: any) => row.password_hash),
+    ];
+
+    for (const oldHash of allPreviousHashes) {
+      const isReused = await bcrypt.compare(newPassword, oldHash);
+      if (isReused) {
+        return NextResponse.json(
+          { error: '최근 사용한 비밀번호는 재사용할 수 없습니다.' },
+          { status: 400 }
+        );
+      }
+    }
+
     // 트랜잭션: 비밀번호 변경 + 이력 기록 + 플래그 업데이트
     await transaction(async (trx) => {
       // 1. 비밀번호 이력에 새 비밀번호 기록

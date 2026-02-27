@@ -59,13 +59,13 @@ export async function GET(
 
     const summaryResult = await query(
       `SELECT
-         COUNT(*)::int AS total_actions,
-         COUNT(*) FILTER (WHERE status = 'pending')::int AS pending_count,
-         COUNT(*) FILTER (WHERE status = 'in_progress')::int AS in_progress_count,
-         COUNT(*) FILTER (WHERE status = 'completed')::int AS completed_count
+         COUNT(*) AS total_actions,
+         SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+         SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress_count,
+         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_count
        FROM actions
        WHERE airline_id = ?
-         AND registered_at::date BETWEEN ?::date AND ?::date`,
+         AND DATE(registered_at) BETWEEN DATE(?) AND DATE(?)`,
       [airlineId, fromDateString, toDateString]
     );
 
@@ -84,22 +84,22 @@ export async function GET(
     const completionRate = total > 0 ? Math.round((completedCount / total) * 100) : 0;
 
     const avgResult = await query(
-      `SELECT AVG(EXTRACT(EPOCH FROM (completed_at - registered_at)) / 86400) AS avg_days
+      `SELECT AVG(CAST((julianday(completed_at) - julianday(registered_at)) AS REAL)) AS avg_days
        FROM actions
        WHERE airline_id = ?
          AND status = 'completed'
          AND completed_at IS NOT NULL
          AND registered_at IS NOT NULL
-         AND registered_at::date BETWEEN ?::date AND ?::date`,
+         AND DATE(registered_at) BETWEEN DATE(?) AND DATE(?)`,
       [airlineId, fromDateString, toDateString]
     );
     const averageCompletionDays = avgResult.rows[0]?.avg_days ? Math.round(avgResult.rows[0].avg_days) : 0;
 
     const typeResult = await query(
-      `SELECT COALESCE(action_type, '미정의') AS action_type, COUNT(*)::int AS count
+      `SELECT COALESCE(action_type, '미정의') AS action_type, COUNT(*) AS count
        FROM actions
        WHERE airline_id = ?
-         AND registered_at::date BETWEEN ?::date AND ?::date
+         AND DATE(registered_at) BETWEEN DATE(?) AND DATE(?)
        GROUP BY 1
        ORDER BY count DESC`,
       [airlineId, fromDateString, toDateString]
@@ -112,10 +112,10 @@ export async function GET(
     }));
 
     const monthlyResult = await query(
-      `SELECT TO_CHAR(registered_at, 'YYYY-MM') AS month, COUNT(*)::int AS count
+      `SELECT strftime('%Y-%m', registered_at) AS month, COUNT(*) AS count
        FROM actions
        WHERE airline_id = ?
-         AND registered_at::date BETWEEN ?::date AND ?::date
+         AND DATE(registered_at) BETWEEN DATE(?) AND DATE(?)
        GROUP BY month
        ORDER BY month DESC
        LIMIT 6`,

@@ -48,10 +48,10 @@ export async function DELETE(
 
     if (callsignIds.length > 0) {
       // 2. callsign_id가 actions 테이블에 있는지 확인
+      const placeholders = callsignIds.map(() => '?').join(',');
       const actionsCountResult = await query(
-        `SELECT COUNT(*) as count FROM actions
-         WHERE callsign_id = ANY(?)`,
-        [callsignIds]
+        `SELECT COUNT(*) as count FROM actions WHERE callsign_id IN (${placeholders})`,
+        callsignIds
       );
 
       const actionsCount = parseInt(actionsCountResult.rows[0].count, 10);
@@ -75,9 +75,11 @@ export async function DELETE(
 
     // file_uploads 삭제
     const deleteResult = await query(
-      `DELETE FROM file_uploads WHERE id = ?;
+      `DELETE FROM file_uploads WHERE id = ?`,
+      [fileUploadId]
+    );
 
-    if (deleteResult.rows.length === 0) {
+    if (!deleteResult) {
       return NextResponse.json(
         { error: '업로드 이력을 찾을 수 없습니다.' },
         { status: 404 }

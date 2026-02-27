@@ -60,6 +60,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 90일 비밀번호 만료 확인
+    if (user.last_password_changed_at) {
+      const lastChanged = new Date(user.last_password_changed_at);
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      if (lastChanged < ninetyDaysAgo) {
+        // password_change_required 플래그 설정
+        await query(
+          `UPDATE users SET password_change_required = true, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+          [user.id]
+        );
+        user.password_change_required = true;
+      }
+    }
+
     // 마지막 로그인 시간 업데이트
     await query(authQueries.updateLastLogin, [user.id]);
 

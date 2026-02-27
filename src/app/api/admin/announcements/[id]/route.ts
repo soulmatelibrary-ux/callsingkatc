@@ -70,30 +70,29 @@ export async function PATCH(
     // 4. 동적 UPDATE 쿼리 구성
     const updates: string[] = [];
     const params_arr: any[] = [];
-    let paramIndex = 1;
 
     if (title !== undefined) {
-      updates.push(`title = $${paramIndex++}`);
+      updates.push(`title = ?`);
       params_arr.push(title);
     }
 
     if (content !== undefined) {
-      updates.push(`content = $${paramIndex++}`);
+      updates.push(`content = ?`);
       params_arr.push(content);
     }
 
     if (level !== undefined && ['warning', 'info', 'success'].includes(level)) {
-      updates.push(`level = $${paramIndex++}`);
+      updates.push(`level = ?`);
       params_arr.push(level);
     }
 
     if (startDate !== undefined) {
-      updates.push(`start_date = $${paramIndex++}`);
+      updates.push(`start_date = ?`);
       params_arr.push(startDate);
     }
 
     if (endDate !== undefined) {
-      updates.push(`end_date = $${paramIndex++}`);
+      updates.push(`end_date = ?`);
       params_arr.push(endDate);
     }
 
@@ -101,18 +100,18 @@ export async function PATCH(
       const targetAirlinesStr = targetAirlines && targetAirlines.length > 0
         ? targetAirlines.join(',')
         : null;
-      updates.push(`target_airlines = $${paramIndex++}`);
+      updates.push(`target_airlines = ?`);
       params_arr.push(targetAirlinesStr);
     }
 
     if (isActive !== undefined) {
-      updates.push(`is_active = $${paramIndex++}`);
+      updates.push(`is_active = ?`);
       params_arr.push(isActive);
     }
 
     // updated_at 항상 업데이트
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
-    updates.push(`updated_by = $${paramIndex++}`);
+    updates.push(`updated_by = ?`);
     params_arr.push(payload.userId);
 
     if (updates.length === 2) {
@@ -143,7 +142,7 @@ export async function PATCH(
     const sql = `
       UPDATE announcements
       SET ${updates.join(', ')}
-      WHERE id = $${paramIndex};
+      WHERE id = ?`;
 
     const result = await query(sql, params_arr);
 

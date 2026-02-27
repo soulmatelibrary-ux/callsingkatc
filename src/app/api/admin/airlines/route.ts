@@ -115,7 +115,9 @@ export async function POST(request: NextRequest) {
     // 항공사 생성
     const result = await query(
       `INSERT INTO airlines (code, name_ko, name_en, display_order)
-       VALUES (?, ?, ?, ?);
+       VALUES (?, ?, ?, ?)`,
+      [code, name_ko, name_en, nextOrder]
+    );
 
     return NextResponse.json(
       { airline: result.rows[0] },
