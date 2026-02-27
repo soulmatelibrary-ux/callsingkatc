@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     // 5. WHERE 조건 부분을 먼저 구성
     let whereClause = `(
       a.target_airlines IS NULL
-      OR ? = ANY(string_to_array(a.target_airlines, ','))
+      OR INSTR(a.target_airlines, ?) > 0
     )`;
 
     const queryParams: any[] = [user.id, user.airline_code];
@@ -118,18 +118,18 @@ export async function GET(request: NextRequest) {
 
     // 날짜 범위 필터
     if (dateFrom) {
-      whereClause += ` AND a.start_date >= $${queryParams.length + 1}::DATE`;
+      whereClause += ` AND a.start_date >= $${queryParams.length + 1}`;
       queryParams.push(dateFrom);
     }
 
     if (dateTo) {
-      whereClause += ` AND a.start_date <= $${queryParams.length + 1}::DATE + INTERVAL '1 day'`;
+      whereClause += ` AND a.start_date <= $${queryParams.length + 1} + INTERVAL '1 day'`;
       queryParams.push(dateTo);
     }
 
     // 제목/내용 검색
     if (search) {
-      whereClause += ` AND (a.title ILIKE $${queryParams.length + 1} OR a.content ILIKE $${queryParams.length + 1})`;
+      whereClause += ` AND (a.title LIKE $${queryParams.length + 1} OR a.content LIKE $${queryParams.length + 1})`;
       queryParams.push(`%${search}%`);
     }
 

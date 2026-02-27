@@ -98,18 +98,18 @@ export async function GET(request: NextRequest) {
     }
 
     if (dateFrom) {
-      whereClause += ` AND a.start_date >= $${queryParams.length + 1}::DATE`;
+      whereClause += ` AND a.start_date >= $${queryParams.length + 1}`;
       queryParams.push(dateFrom);
     }
 
     if (dateTo) {
-      whereClause += ` AND a.start_date <= $${queryParams.length + 1}::DATE + INTERVAL '1 day'`;
+      whereClause += ` AND a.start_date <= $${queryParams.length + 1} + INTERVAL '1 day'`;
       queryParams.push(dateTo);
     }
 
     // 제목/내용 검색
     if (search) {
-      whereClause += ` AND (a.title ILIKE $${queryParams.length + 1} OR a.content ILIKE $${queryParams.length + 1})`;
+      whereClause += ` AND (a.title LIKE $${queryParams.length + 1} OR a.content LIKE $${queryParams.length + 1})`;
       queryParams.push(`%${search}%`);
     }
 
