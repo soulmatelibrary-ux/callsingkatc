@@ -405,9 +405,9 @@ export async function POST(
         [airlineId, callsignId, actionType, description || null, managerName || null, plannedDueDate || null, completedTimestamp, actionStatus, payload.userId]
       );
 
-      // 호출부호 상태 업데이트 로직
-      // - 상호 항공사 여부 확인 후 결정
-      // - 둘 다 조치가 있으면 'completed', 하나만 있으면 'in_progress' 유지
+      // callsigns 테이블 업데이트
+      // 1. my_action_status: 자사 조치 상태를 actions.status로 설정
+      // 2. status: 호출부호 전체 처리 상태 (둘 다 조치되면 'completed')
       let newCallsignStatus = 'in_progress';
 
       if (otherActionExists) {
@@ -420,7 +420,14 @@ export async function POST(
         newCallsignStatus = 'in_progress';
       }
 
-      await trx('UPDATE callsigns SET status = ? WHERE id = ?', [newCallsignStatus, callsignId]);
+      // 자사인지 타사인지에 따라 업데이트할 컬럼 결정
+      const isMy = callsignData.airline_code === airlineCode;
+      const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
+
+      await trx(
+        `UPDATE callsigns SET status = ?, ${statusColumnName} = ? WHERE id = ?`,
+        [newCallsignStatus, actionStatus, callsignId]
+      );
     });
 
     // 생성된 조치 조회

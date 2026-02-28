@@ -156,7 +156,7 @@ export async function PATCH(
 
     // 기존 조치 확인
     const existingAction = await query(
-      'SELECT id, status, callsign_id FROM actions WHERE id = ?',
+      'SELECT a.id, a.status, a.callsign_id, a.airline_id, c.airline_code, c.other_airline_code FROM actions a LEFT JOIN callsigns c ON a.callsign_id = c.id WHERE a.id = ?',
       [id]
     );
 
@@ -167,18 +167,32 @@ export async function PATCH(
       );
     }
 
-    // 상태 로직: in_progress는 action row 삭제 + callsigns.status 'in_progress'로 복원
+    // 상태 로직: in_progress는 action row 삭제 + callsigns 상태 복원
     if (status === 'in_progress') {
       // in_progress = 항공사 미조치 상태 = action row 삭제 + callsign 상태 복원
       const callsignId = existingAction.rows[0].callsign_id;
+      const airlineId = existingAction.rows[0].airline_id;
+      const airlineCode = existingAction.rows[0].airline_code;
+      const otherAirlineCode = existingAction.rows[0].other_airline_code;
+
+      // 자사/타사 판단 (현재 항공사 코드와 비교)
+      // NOTE: 항공사 정보를 위해 별도 조회 필요
+      const airlineCheck = await query('SELECT code FROM airlines WHERE id = ?', [airlineId]);
+      const isMy = airlineCheck.rows[0]?.code === airlineCode;
 
       // 트랜잭션: action 삭제 + callsign 상태 복원
       await transaction(async (trx) => {
         // 1. action 행 삭제
         await trx('DELETE FROM actions WHERE id = ?', [id]);
 
-        // 2. callsign 상태를 'in_progress'로 변경 (항공사가 다시 조치하도록)
-        await trx('UPDATE callsigns SET status = ? WHERE id = ?', ['in_progress', callsignId]);
+        // 2. callsign 상태 복원
+        // - status: 'in_progress'로 변경
+        // - my_action_status 또는 other_action_status: 'no_action'으로 초기화
+        const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
+        await trx(
+          `UPDATE callsigns SET status = ?, ${statusColumnName} = ? WHERE id = ?`,
+          ['in_progress', 'no_action', callsignId]
+        );
       });
 
       // 삭제된 action 데이터 반환 (mutation 성공 처리)
@@ -240,6 +254,12 @@ export async function PATCH(
 
     // 트랜잭션: action 업데이트 + callsigns 상태 동기화
     const callsignId = existingAction.rows[0].callsign_id;
+    const airlineId = existingAction.rows[0].airline_id;
+    const airlineCode = existingAction.rows[0].airline_code;
+
+    // 자사/타사 판단
+    const airlineCheck = await query('SELECT code FROM airlines WHERE id = ?', [airlineId]);
+    const isMy = airlineCheck.rows[0]?.code === airlineCode;
 
     const result = await transaction(async (trx) => {
       // 1. action 업데이트
@@ -250,8 +270,14 @@ export async function PATCH(
         const updated = await trx('SELECT * FROM actions WHERE id = ?', [id]);
         if (updated.rows.length > 0) {
           const newStatus = updated.rows[0].status;
-          // 3. callsigns 상태 동기화: action의 status와 일치하게
-          await trx('UPDATE callsigns SET status = ? WHERE id = ?', [newStatus, callsignId]);
+          // 3. callsigns 상태 동기화
+          // - status: action의 status와 일치하게
+          // - my_action_status/other_action_status: action의 status로 업데이트
+          const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
+          await trx(
+            `UPDATE callsigns SET status = ?, ${statusColumnName} = ? WHERE id = ?`,
+            [newStatus, newStatus, callsignId]
+          );
         }
         return updated;
       }
@@ -333,9 +359,9 @@ export async function DELETE(
       );
     }
 
-    // 조치 존재 확인
+    // 조치 존재 확인 및 callsign 정보 조회
     const existingAction = await query(
-      'SELECT id FROM actions WHERE id = ?',
+      'SELECT a.id, a.callsign_id, a.airline_id, c.airline_code, c.other_airline_code FROM actions a LEFT JOIN callsigns c ON a.callsign_id = c.id WHERE a.id = ?',
       [id]
     );
 
@@ -346,9 +372,28 @@ export async function DELETE(
       );
     }
 
+    const actionData = existingAction.rows[0];
+    const airlineId = actionData.airline_id;
+    const airlineCode = actionData.airline_code;
+    const callsignId = actionData.callsign_id;
+
+    // 자사/타사 판단
+    const airlineCheck = await query('SELECT code FROM airlines WHERE id = ?', [airlineId]);
+    const isMy = airlineCheck.rows[0]?.code === airlineCode;
+
     // 삭제 (on_delete cascade는 자동으로 action_history도 삭제)
+    // 동시에 callsigns.my_action_status/other_action_status를 'no_action'으로 초기화
     await transaction(async (trx) => {
-      return trx('DELETE FROM actions WHERE id = ?', [id]);
+      // 1. action 삭제
+      await trx('DELETE FROM actions WHERE id = ?', [id]);
+
+      // 2. callsign 상태 초기화
+      // - 자사/타사에 따라 my_action_status 또는 other_action_status를 'no_action'으로 설정
+      const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
+      await trx(
+        `UPDATE callsigns SET ${statusColumnName} = ? WHERE id = ?`,
+        ['no_action', callsignId]
+      );
     });
 
     return NextResponse.json(

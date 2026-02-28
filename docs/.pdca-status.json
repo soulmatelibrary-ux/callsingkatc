@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-28T13:35:10.553Z",
+  "lastUpdated": "2026-02-28T13:37:50.740Z",
   "activeFeatures": [
     "actions",
     "callsign-management",
@@ -14,7 +14,8 @@
     "password-reset",
     "callsigns",
     "stats",
-    "layout"
+    "layout",
+    "[id]"
   ],
   "primaryFeature": "actions",
   "features": {
@@ -27,7 +28,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T05:13:16.433Z",
-        "lastUpdated": "2026-02-28T10:27:44.248Z"
+        "lastUpdated": "2026-02-28T13:36:42.038Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/actions/route.ts"
     },
@@ -186,6 +187,19 @@
         "lastUpdated": "2026-02-28T13:00:02.612Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/layout/Header.tsx"
+    },
+    "[id]": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-28T13:37:20.422Z",
+        "lastUpdated": "2026-02-28T13:37:50.740Z"
+      },
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/actions/[id]/route.ts"
     }
   },
   "pipeline": {
@@ -196,7 +210,7 @@
   "session": {
     "startedAt": "2026-02-28T05:13:16.433Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-28T13:35:10.553Z"
+    "lastActivity": "2026-02-28T13:37:50.740Z"
   },
   "history": [
     {
@@ -940,6 +954,36 @@
     {
       "timestamp": "2026-02-28T13:35:10.553Z",
       "feature": "callsigns-with-actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T13:36:42.038Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T13:37:20.422Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T13:37:28.395Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T13:37:34.690Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T13:37:50.740Z",
+      "feature": "[id]",
       "phase": "do",
       "action": "updated"
     }
