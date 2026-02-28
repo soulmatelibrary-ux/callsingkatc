@@ -10,6 +10,7 @@ import {
 } from '@/types/airline';
 import { formatAnnouncementPeriod, truncateText } from '@/hooks/useDateRangeFilter';
 import { Announcement } from '@/types/announcement';
+import { ChevronDown } from 'lucide-react';
 
 interface AirlineAnnouncementListProps {
   title?: string;
@@ -48,6 +49,7 @@ export function AirlineAnnouncementList({
   const [statusFilter, setStatusFilter] = useState<'active' | 'expired' | 'all'>(initialStatus);
   const [currentPage, setCurrentPage] = useState(1);
   const [markingAsRead, setMarkingAsRead] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // API 쿼리 파라미터 구성
   const filters = useMemo(
@@ -267,7 +269,7 @@ export function AirlineAnnouncementList({
           공지사항이 없습니다.
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {announcements.map((item) => {
             const levelMeta =
               ANNOUNCEMENT_LEVEL_META[
@@ -275,45 +277,72 @@ export function AirlineAnnouncementList({
               ] || ANNOUNCEMENT_LEVEL_META.info;
             const statusKey = (item.status as 'active' | 'expired') || 'active';
             const statusMeta = ANNOUNCEMENT_STATUS_META[statusKey];
+            const isExpanded = expandedId === item.id;
 
             return (
               <div
                 key={item.id}
-                className="border border-gray-100 rounded-lg p-5 hover:border-primary/30 transition"
+                className="border border-gray-100 rounded-lg overflow-hidden hover:border-primary/30 transition"
               >
-                <div className="flex flex-wrap items-center gap-2 text-[11px] font-black text-gray-500 uppercase tracking-widest">
-                  <span className={`px-2 py-1 rounded-full ${levelMeta.badge}`}>
-                    {levelMeta.label}
-                  </span>
-                  <span className={`px-2 py-1 rounded-full ${statusMeta.badge}`}>
-                    {statusMeta.label}
-                  </span>
-                  <span className="text-gray-400 ml-auto">
-                    {formatAnnouncementPeriod(item.startDate, item.endDate)}
-                  </span>
-                </div>
-                <h4 className="text-lg font-black text-gray-900 mt-3">
-                  {item.title}
-                </h4>
-                <p className="text-sm text-gray-600 mt-1">
-                  {truncateText(item.content, 140)}
-                </p>
-                <div className="flex justify-between items-center text-xs text-gray-400 mt-4">
-                  <span>
-                    작성{' '}
-                    {new Date(item.createdAt).toLocaleDateString('ko-KR')}
-                  </span>
-                  {!item.isViewed && (
-                    <button
-                      type="button"
-                      onClick={() => handleMarkAsRead(item.id)}
-                      disabled={markingAsRead === item.id}
-                      className="px-3 py-1 bg-emerald-500 text-white text-xs font-semibold rounded hover:bg-emerald-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
-                    >
-                      {markingAsRead === item.id ? '처리 중...' : '✓ 확인했음'}
-                    </button>
-                  )}
-                </div>
+                {/* 헤더 - 항상 표시 */}
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                  className="w-full px-5 py-4 flex items-start gap-3 hover:bg-gray-50 transition text-left"
+                >
+                  {/* 배지 */}
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-black ${levelMeta.badge}`}>
+                      {levelMeta.label}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-black ${statusMeta.badge}`}>
+                      {statusMeta.label}
+                    </span>
+                  </div>
+
+                  {/* 제목과 확장 버튼 */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-base font-black text-gray-900">
+                      {item.title}
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {formatAnnouncementPeriod(item.startDate, item.endDate)}
+                    </p>
+                  </div>
+
+                  <ChevronDown
+                    className={`w-5 h-5 text-gray-400 flex-shrink-0 mt-1 transition-transform ${
+                      isExpanded ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+
+                {/* 내용 - 펼쳤을 때만 표시 */}
+                {isExpanded && (
+                  <div className="px-5 py-4 bg-gray-50 border-t border-gray-100">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap mb-4">
+                      {item.content}
+                    </p>
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <span>
+                        작성 {new Date(item.createdAt).toLocaleDateString('ko-KR')}
+                      </span>
+                      {!item.isViewed && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleMarkAsRead(item.id);
+                          }}
+                          disabled={markingAsRead === item.id}
+                          className="px-3 py-1 bg-emerald-500 text-white text-xs font-semibold rounded hover:bg-emerald-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                        >
+                          {markingAsRead === item.id ? '처리 중...' : '✓ 확인했음'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
