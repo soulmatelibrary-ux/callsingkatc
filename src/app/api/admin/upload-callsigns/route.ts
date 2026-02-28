@@ -440,7 +440,7 @@ export async function POST(request: NextRequest) {
             );
           } catch (occurrenceError) {
             // 발생 이력 저장 실패해도 호출부호는 이미 저장되었으므로 진행
-            console.warn(`발생 이력 저장 실패 (callsignId: ?, date: ?):`, occurrenceError);
+            console.warn(`발생 이력 저장 실패 (callsignId: ${callsignId}, date: ${occurredDate}):`, occurrenceError);
           }
 
           if (isNewCallsign) {

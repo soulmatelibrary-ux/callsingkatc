@@ -78,8 +78,12 @@ export function UserApprovalTable() {
 
   async function handleDeleteConfirm() {
     if (!deleteConfirm) return;
-    await deleteUser.mutate(deleteConfirm.userId);
-    setDeleteConfirm(null);
+    try {
+      await deleteUser.mutateAsync(deleteConfirm.userId);
+      setDeleteConfirm(null);
+    } catch (error) {
+      console.error('사용자 삭제 실패:', error);
+    }
   }
 
   return (

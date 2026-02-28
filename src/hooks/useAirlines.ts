@@ -6,6 +6,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
+import { apiFetch } from '@/lib/api/client';
 
 export interface Airline {
   id: string;
@@ -48,11 +49,7 @@ export function useAdminAirlines() {
         throw new Error('인증 토큰이 없습니다.');
       }
 
-      const response = await fetch('/api/admin/airlines', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await apiFetch('/api/admin/airlines');
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
@@ -87,11 +84,10 @@ export function useCreateAirline() {
         throw new Error('인증 토큰이 없습니다.');
       }
 
-      const response = await fetch('/api/admin/airlines', {
+      const response = await apiFetch('/api/admin/airlines', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data),
       });
@@ -133,11 +129,10 @@ export function useUpdateAirline() {
         throw new Error('인증 토큰이 없습니다.');
       }
 
-      const response = await fetch(`/api/admin/airlines/${id}`, {
+      const response = await apiFetch(`/api/admin/airlines/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data),
       });
@@ -169,11 +164,8 @@ export function useDeleteAirline() {
         throw new Error('인증 토큰이 없습니다.');
       }
 
-      const response = await fetch(`/api/admin/airlines/${id}`, {
+      const response = await apiFetch(`/api/admin/airlines/${id}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
       });
 
       if (!response.ok) {
