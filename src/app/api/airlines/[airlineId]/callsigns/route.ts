@@ -90,7 +90,7 @@ export async function GET(
          AND NOT EXISTS (
            SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
          )
-         ?
+         ${riskLevelCondition}
        ORDER BY
          CASE
            WHEN risk_level = '매우높음' THEN 3
@@ -105,13 +105,6 @@ export async function GET(
     );
 
     const result = simpleResult;
-
-    // 디버그 로그
-    console.log('🔍 callsigns API 쿼리:', {
-      airlineCode,
-      riskLevel: filteredRiskLevel,
-      resultCount: result.rows.length
-    });
 
     // 전체 개수 조회 (진행 중인 호출부호만 카운트, riskLevel 필터 적용)
     const countParams: (string | number)[] = [airlineCode, airlineCode];

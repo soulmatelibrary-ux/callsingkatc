@@ -50,7 +50,7 @@ export async function DELETE(
       // 2. callsign_id가 actions 테이블에 있는지 확인
       const placeholders = callsignIds.map(() => '?').join(',');
       const actionsCountResult = await query(
-        `SELECT COUNT(*) as count FROM actions WHERE callsign_id IN (?)`,
+        `SELECT COUNT(*) as count FROM actions WHERE callsign_id IN (${placeholders})`,
         callsignIds
       );
 

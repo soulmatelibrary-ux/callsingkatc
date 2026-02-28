@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-28T00:39:42.874Z",
+  "lastUpdated": "2026-02-28T00:41:07.875Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -303,9 +303,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-28T00:37:04.626Z"
+        "lastUpdated": "2026-02-28T00:40:47.209Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/airlines/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/file-uploads/[id]/route.ts"
     },
     "katc1-backend": {
       "phase": "do",
@@ -394,9 +394,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:58.733Z",
-        "lastUpdated": "2026-02-28T00:38:02.729Z"
+        "lastUpdated": "2026-02-28T00:41:07.875Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/callsigns/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/callsigns/route.ts"
     },
     "upload-callsigns": {
       "phase": "do",
@@ -619,7 +619,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-28T00:39:42.874Z"
+    "lastActivity": "2026-02-28T00:41:07.875Z"
   },
   "history": [
     {
@@ -7417,6 +7417,24 @@
     {
       "timestamp": "2026-02-28T00:39:42.874Z",
       "feature": "users",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:40:47.209Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:41:03.789Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:41:07.875Z",
+      "feature": "callsigns",
       "phase": "do",
       "action": "updated"
     }
