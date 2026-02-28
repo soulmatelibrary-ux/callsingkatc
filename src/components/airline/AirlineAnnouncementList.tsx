@@ -122,14 +122,14 @@ export function AirlineAnnouncementList({
   const totalPages = data ? Math.ceil(data.total / (data.limit || defaultLimit)) : 1;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* 헤더 */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
-          <h3 className="text-lg font-black text-gray-900 tracking-tight">
+          <h3 className="text-xl font-black text-gray-900 tracking-tight">
             {title}
           </h3>
-          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-sm text-gray-500 mt-2">{subtitle}</p>}
         </div>
         {onViewAll && (
           <button
@@ -143,29 +143,32 @@ export function AirlineAnnouncementList({
       </div>
 
       {/* 검색 및 필터 */}
-      <div className="space-y-4 pb-4 border-b border-gray-100">
+      <div className="space-y-4 pb-6 border-b border-gray-150">
         {showSearch && (
-          <div className="flex gap-2.5">
+          <div className="flex gap-3">
             <input
               type="text"
               placeholder="제목, 내용으로 검색..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleSearchKeydown}
-              className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors duration-200"
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary focus:shadow-sm transition-all duration-200"
             />
             <button
               type="button"
               onClick={handleSearch}
-              className="px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/95 active:bg-primary/85 transition-colors duration-200 shadow-sm"
+              className="px-7 py-3 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/95 active:bg-primary/85 transition-colors duration-200 shadow-md hover:shadow-lg"
             >
               검색
             </button>
           </div>
         )}
 
-        {/* 필터 버튼 */}
-        <div className="flex flex-wrap gap-2.5">
+        {/* 필터 섹션 */}
+        {(showLevelFilter || showStatusFilter) && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">필터</p>
+            <div className="flex flex-wrap gap-2.5">
           {showLevelFilter && (
             <div className="flex gap-2">
               <button
@@ -252,24 +255,42 @@ export function AirlineAnnouncementList({
               </button>
             </div>
           )}
-        </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 콘텐츠 영역 */}
       {isLoading ? (
-        <div className="py-12 text-center text-gray-400 font-semibold">
-          공지사항을 불러오는 중입니다...
+        <div className="py-20 flex flex-col items-center justify-center">
+          <div className="relative w-12 h-12 mb-4">
+            <div className="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
+          </div>
+          <p className="text-gray-600 font-semibold">공지사항을 불러오는 중입니다...</p>
         </div>
       ) : error ? (
-        <div className="py-12 text-center text-red-500 font-semibold">
-          공지사항 조회에 실패했습니다.
+        <div className="py-20 flex flex-col items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-gray-700 font-semibold">공지사항 조회에 실패했습니다</p>
+          <p className="text-gray-500 text-sm mt-1">잠시 후 다시 시도해주세요</p>
         </div>
       ) : announcements.length === 0 ? (
-        <div className="py-12 text-center text-gray-400 font-semibold">
-          공지사항이 없습니다.
+        <div className="py-20 flex flex-col items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <p className="text-gray-700 font-semibold">공지사항이 없습니다</p>
+          <p className="text-gray-500 text-sm mt-1">새로운 공지사항이 등록되면 여기에 표시됩니다</p>
         </div>
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {announcements.map((item) => {
             const levelMeta =
               ANNOUNCEMENT_LEVEL_META[
@@ -282,52 +303,62 @@ export function AirlineAnnouncementList({
             return (
               <div
                 key={item.id}
-                className="border border-gray-200 rounded-lg overflow-hidden hover:border-primary/40 hover:shadow-sm transition-all duration-200 bg-white"
+                className={`border rounded-lg overflow-hidden transition-all duration-200 bg-white ${
+                  isExpanded
+                    ? 'border-primary/30 shadow-md'
+                    : 'border-gray-200 shadow-sm hover:border-primary/30 hover:shadow-md'
+                }`}
               >
                 {/* 헤더 - 항상 표시 */}
                 <button
                   type="button"
                   onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                  className="w-full px-4 py-3 flex items-center gap-2.5 hover:bg-gray-50 transition-colors duration-200 text-left"
+                  className="w-full px-5 py-4 flex items-center gap-3 hover:bg-gray-50/50 transition-colors duration-200 text-left"
                 >
-                  {/* 배지 */}
-                  <div className="flex gap-2 flex-shrink-0">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${levelMeta.badge}`}>
+                  {/* 레벨 배지 (왼쪽) */}
+                  <div className="flex-shrink-0">
+                    <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-black ${levelMeta.badge}`}>
                       {levelMeta.label}
                     </span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${statusMeta.badge}`}>
-                      {statusMeta.label}
+                  </div>
+
+                  {/* 제목과 상태 정보 */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="text-sm font-bold text-gray-900 line-clamp-1">
+                        {item.title}
+                      </h4>
+                      {!item.isViewed && (
+                        <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-500 whitespace-nowrap">
+                      {formatAnnouncementPeriod(item.startDate, item.endDate)}
                     </span>
                   </div>
 
-                  {/* 제목과 기간 */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <h4 className="text-sm font-bold text-gray-900">
-                        {item.title}
-                      </h4>
-                      <span className="text-xs text-gray-500 whitespace-nowrap">
-                        {formatAnnouncementPeriod(item.startDate, item.endDate)}
-                      </span>
-                    </div>
+                  {/* 상태 배지 + 확장 버튼 */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-black ${statusMeta.badge}`}>
+                      {statusMeta.label}
+                    </span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
+                        isExpanded ? 'rotate-180' : ''
+                      }`}
+                    />
                   </div>
-
-                  <ChevronDown
-                    className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${
-                      isExpanded ? 'rotate-180' : ''
-                    }`}
-                  />
                 </button>
 
                 {/* 내용 - 펼쳤을 때만 표시 */}
                 {isExpanded && (
-                  <div className="px-4 py-4 bg-gray-50 border-t border-gray-100">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap mb-4 leading-relaxed">
+                  <div className="px-5 py-4 bg-gradient-to-b from-gray-50 to-white border-t border-gray-100">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap mb-5 leading-relaxed">
                       {item.content}
                     </p>
-                    <div className="flex justify-between items-center text-xs text-gray-500">
-                      <span>
-                        작성 {new Date(item.createdAt).toLocaleDateString('ko-KR')}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                      <span className="text-xs text-gray-500">
+                        작성일 {new Date(item.createdAt).toLocaleDateString('ko-KR')}
                       </span>
                       {!item.isViewed && (
                         <button
@@ -337,7 +368,7 @@ export function AirlineAnnouncementList({
                             handleMarkAsRead(item.id);
                           }}
                           disabled={markingAsRead === item.id}
-                          className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg hover:bg-emerald-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
+                          className="px-3.5 py-1.5 bg-emerald-500 text-white text-xs font-semibold rounded-lg hover:bg-emerald-600 active:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 shadow-sm"
                         >
                           {markingAsRead === item.id ? '처리 중...' : '✓ 확인했음'}
                         </button>
@@ -353,15 +384,18 @@ export function AirlineAnnouncementList({
 
       {/* 페이지네이션 */}
       {announcements.length > 0 && totalPages > 1 && (
-        <div className="mt-8 space-y-4 pt-6 border-t border-gray-100">
-          <div className="flex items-center justify-center gap-2">
+        <div className="mt-10 space-y-5 pt-8 border-t border-gray-150">
+          <div className="flex items-center justify-center gap-1.5">
             <button
               type="button"
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 disabled:text-gray-400 disabled:bg-gray-50 disabled:border-gray-200 disabled:cursor-not-allowed hover:bg-gray-100 hover:border-gray-400 transition-colors duration-200"
+              className="p-2 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 disabled:text-gray-400 disabled:bg-gray-50 disabled:border-gray-200 disabled:cursor-not-allowed hover:bg-gray-100 hover:border-gray-400 transition-colors duration-200"
+              title="이전 페이지"
             >
-              이전
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
             </button>
 
             <div className="flex gap-1">
@@ -374,10 +408,10 @@ export function AirlineAnnouncementList({
                     key={pageNum}
                     type="button"
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-3 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 ${
+                    className={`min-w-10 h-10 flex items-center justify-center text-sm font-semibold rounded-lg transition-all duration-200 ${
                       currentPage === pageNum
-                        ? 'bg-primary text-white shadow-sm'
-                        : 'border border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400'
+                        ? 'bg-primary text-white shadow-md'
+                        : 'border border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400 hover:shadow-sm'
                     }`}
                   >
                     {pageNum}
@@ -390,14 +424,19 @@ export function AirlineAnnouncementList({
               type="button"
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 disabled:text-gray-400 disabled:bg-gray-50 disabled:border-gray-200 disabled:cursor-not-allowed hover:bg-gray-100 hover:border-gray-400 transition-colors duration-200"
+              className="p-2 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 disabled:text-gray-400 disabled:bg-gray-50 disabled:border-gray-200 disabled:cursor-not-allowed hover:bg-gray-100 hover:border-gray-400 transition-colors duration-200"
+              title="다음 페이지"
             >
-              다음
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </div>
 
-          <div className="text-center text-xs text-gray-500">
-            페이지 {currentPage} / {totalPages}
+          <div className="text-center text-sm text-gray-600">
+            <span className="font-semibold">{currentPage}</span>
+            <span className="text-gray-400 mx-1">/</span>
+            <span className="text-gray-600">{totalPages}</span>
           </div>
         </div>
       )}
