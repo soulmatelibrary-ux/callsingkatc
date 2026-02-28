@@ -4,6 +4,10 @@ const nextConfig = {
   experimental: {
     missingSuspenseWithCSRBailout: false,
   },
+  eslint: {
+    // 빌드 중 ESLint 검사 비활성화 (devDependencies 설치 안 될 경우 대비)
+    ignoreDuringBuilds: true,
+  },
   headers: async () => {
     return [
       {
