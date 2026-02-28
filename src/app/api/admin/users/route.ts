@@ -178,24 +178,39 @@ export async function POST(request: NextRequest) {
       // 입력된 비밀번호 사용
       passwordHash = await bcrypt.hash(password, 10);
     } else {
-      // 임시 비밀번호 생성 (UUID의 일부)
-      const tempPassword = `Temp?@?`;
+      // 임시 비밀번호 생성 (임의의 문자열)
+      const tempPassword = `Temp${Math.random().toString(36).substring(2, 8)}@`;
       passwordHash = await bcrypt.hash(tempPassword, 10);
     }
 
     // 사용자 생성 (트랜잭션)
-    const result = await transaction(async (trx) => {
+    await transaction(async (trx) => {
       // 사용자 생성
-      const createResult = await trx(
+      await trx(
         `INSERT INTO users (
            email, password_hash, airline_id, status, role,
            is_default_password, password_change_required
          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [email, passwordHash, resolvedAirlineId, 'active', role, password ? false : true, password ? false : true]
       );
-
-      return createResult.rows[0];
     });
+
+    // 생성된 사용자 조회
+    const userResult = await query(
+      `SELECT id, email, status, role, airline_id, is_default_password, password_change_required
+       FROM users
+       WHERE email = ?`,
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: '사용자 조회 실패' },
+        { status: 500 }
+      );
+    }
+
+    const result = userResult.rows[0];
 
     // 항공사 정보 조회
     const airlineResult = await query(
