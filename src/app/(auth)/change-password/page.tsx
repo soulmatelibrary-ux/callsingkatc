@@ -3,10 +3,6 @@
 import { useSearchParams } from 'next/navigation';
 import { ChangePasswordForm } from '@/components/forms/ChangePasswordForm';
 
-export const metadata = {
-  title: '비밀번호 변경 | KATC 유사호출부호 경고시스템',
-};
-
 export default function ChangePasswordPage() {
   const searchParams = useSearchParams();
   const isForced = searchParams.get('forced') === 'true';

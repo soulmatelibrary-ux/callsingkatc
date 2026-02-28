@@ -70,8 +70,8 @@ export function LoginForm() {
         setServerError(AUTH_ERRORS.SUSPENDED_ACCOUNT);
         useAuthStore.getState().logout();
       } else if (result.forceChangePassword) {
-        // 첫 로그인 - 비밀번호 변경 필수
-        router.push(ROUTES.CHANGE_PASSWORD);
+        // 첫 로그인 - 비밀번호 변경 필수 (강제 모드)
+        router.push(`${ROUTES.CHANGE_PASSWORD}?forced=true`);
       } else {
         // 정상 로그인 - 역할에 따라 리다이렉트
         if (result.user.role === 'admin') {

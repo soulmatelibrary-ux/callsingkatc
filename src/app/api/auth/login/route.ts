@@ -36,12 +36,6 @@ export async function POST(request: NextRequest) {
     }
 
     const user = result.rows[0];
-    console.log('[LOGIN] 조회된 사용자:', {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-    });
 
     // 비밀번호 검증
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);

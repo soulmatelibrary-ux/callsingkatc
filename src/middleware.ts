@@ -35,7 +35,6 @@ const decodeJwtPayload = (token: string): RefreshTokenPayload | null => {
 
     return JSON.parse(jsonPayload);
   } catch (error) {
-    console.warn('[Middleware] refreshToken payload decode 실패:', error);
     return null;
   }
 };
@@ -51,13 +50,9 @@ const isTokenExpired = (payload: RefreshTokenPayload | null): boolean => {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  console.log('[Middleware] pathname:', pathname);
-
   // refreshToken 쿠키만 확인 (단순화)
   const refreshToken = request.cookies.get('refreshToken')?.value;
   const userCookie = request.cookies.get('user')?.value;
-
-  console.log('[Middleware] refreshToken exists:', !!refreshToken);
 
   // 토큰 유효성/만료 여부 체크
   let tokenPayload: RefreshTokenPayload | null = null;
@@ -73,7 +68,6 @@ export function middleware(request: NextRequest) {
     } else {
       tokenPayload = decodeJwtPayload(refreshToken);
       if (!tokenPayload || isTokenExpired(tokenPayload)) {
-        console.log('[Middleware] refreshToken 만료 또는 손상 → 삭제 예정');
         shouldDeleteRefreshToken = true;
         tokenPayload = null;
       }
@@ -93,13 +87,11 @@ export function middleware(request: NextRequest) {
       // 📌 passwordChangeRequired 플래그 확인
       needsPasswordChange = parsed?.passwordChangeRequired === true;
     } catch (error) {
-      console.warn('[Middleware] 사용자 쿠키 파싱 실패:', error);
+      // 쿠키 파싱 실패: 로그인 상태로 간주하지 않음
     }
   }
 
   const defaultRedirect = userRole === 'admin' ? '/admin' : '/airline';
-
-  console.log('[Middleware] isLoggedIn:', isLoggedIn, 'isProtectedRoute:', isProtectedRoute, 'isAuthRoute:', isAuthRoute);
 
   const finalizeResponse = (response: NextResponse) => {
     if (shouldDeleteRefreshToken) {
@@ -115,26 +107,22 @@ export function middleware(request: NextRequest) {
 
   // 0. 강제 비밀번호 변경 → /change-password로 리다이렉트 (우회 불가)
   if (needsForcedPasswordChange) {
-    console.log('[Middleware] 리다이렉트: 강제 비밀번호 변경 필요 → /change-password?forced=true');
     return finalizeResponse(NextResponse.redirect(new URL('/change-password?forced=true', request.url)));
   }
 
   // 1. 로그인 안 된 상태 + 보호 라우트 → /으로 리다이렉트
   if (!isLoggedIn && isProtectedRoute) {
-    console.log('[Middleware] 리다이렉트: 보호 라우트 - 인증 실패 → 홈으로 이동');
     return finalizeResponse(NextResponse.redirect(new URL('/', request.url)));
   }
 
   // 2. 로그인 상태 + 인증 라우트 → 역할별 기본 페이지로 리다이렉트
   // (비밀번호 변경 필요한 경우는 제외)
   if (isLoggedIn && isAuthRoute && !needsPasswordChange) {
-    console.log('[Middleware] 리다이렉트: 인증 라우트 →', defaultRedirect);
     return finalizeResponse(NextResponse.redirect(new URL(defaultRedirect, request.url)));
   }
 
   // 3. 로그인 상태 + 홈(/) 접속 → 역할별 기본 페이지로 리다이렉트
   if (isLoggedIn && pathname === '/') {
-    console.log('[Middleware] 리다이렉트: 홈 →', defaultRedirect);
     return finalizeResponse(NextResponse.redirect(new URL(defaultRedirect, request.url)));
   }
 
