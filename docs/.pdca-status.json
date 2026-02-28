@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-28T00:41:07.875Z",
+  "lastUpdated": "2026-02-28T00:47:27.802Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -134,9 +134,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:43:18.371Z",
-        "lastUpdated": "2026-02-24T12:21:49.654Z"
+        "lastUpdated": "2026-02-28T00:47:27.802Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/layout.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/admin/CreateUserModal.tsx"
     },
     "(auth)": {
       "phase": "do",
@@ -303,7 +303,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-28T00:40:47.209Z"
+        "lastUpdated": "2026-02-28T00:46:49.504Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/file-uploads/[id]/route.ts"
     },
@@ -381,7 +381,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:32.683Z",
-        "lastUpdated": "2026-02-28T00:39:00.619Z"
+        "lastUpdated": "2026-02-28T00:47:15.733Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/actions/route.ts"
     },
@@ -394,7 +394,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:58.733Z",
-        "lastUpdated": "2026-02-28T00:41:07.875Z"
+        "lastUpdated": "2026-02-28T00:45:02.392Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/callsigns/route.ts"
     },
@@ -407,7 +407,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T09:06:56.111Z",
-        "lastUpdated": "2026-02-27T13:05:39.822Z"
+        "lastUpdated": "2026-02-28T00:47:17.966Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/upload-callsigns/route.ts"
     },
@@ -475,7 +475,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:17.641Z",
-        "lastUpdated": "2026-02-28T00:33:14.559Z"
+        "lastUpdated": "2026-02-28T00:46:19.226Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/announcements/history/route.ts"
     },
@@ -619,7 +619,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-28T00:41:07.875Z"
+    "lastActivity": "2026-02-28T00:47:27.802Z"
   },
   "history": [
     {
@@ -7435,6 +7435,78 @@
     {
       "timestamp": "2026-02-28T00:41:07.875Z",
       "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:44:13.123Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:45:02.392Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:45:28.701Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:46:19.226Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:46:49.504Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:46:49.756Z",
+      "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:00.177Z",
+      "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:09.368Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:15.733Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:16.154Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:17.966Z",
+      "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:27.802Z",
+      "feature": "admin",
       "phase": "do",
       "action": "updated"
     }

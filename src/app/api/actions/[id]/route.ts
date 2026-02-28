@@ -271,7 +271,7 @@ export async function PATCH(
       return { rows: [], changes: 0 };
     });
 
-    if (result.changes === 0 || result.rows.length === 0) {
+    if (result.rows.length === 0) {
       return NextResponse.json(
         { error: '조치 업데이트에 실패했습니다.' },
         { status: 500 }

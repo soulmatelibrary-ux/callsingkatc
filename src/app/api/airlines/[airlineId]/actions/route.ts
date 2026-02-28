@@ -394,7 +394,7 @@ export async function POST(
     console.error('조치 생성 오류:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: `조치 생성 중 오류가 발생했습니다: ?` },
+      { error: `조치 생성 중 오류가 발생했습니다: ${errorMessage}` },
       { status: 500 }
     );
   }

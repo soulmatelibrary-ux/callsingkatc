@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (search && search.trim()) {
-      const searchValue = `%?%`;
+      const searchValue = `%${search}%`;
       countSql += ` AND (
         cs.callsign_pair LIKE ?
         OR a.action_type LIKE ?

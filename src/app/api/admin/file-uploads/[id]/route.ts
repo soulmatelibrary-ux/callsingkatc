@@ -79,7 +79,7 @@ export async function DELETE(
       [fileUploadId]
     );
 
-    if (!deleteResult) {
+    if (deleteResult.changes === 0) {
       return NextResponse.json(
         { error: '업로드 이력을 찾을 수 없습니다.' },
         { status: 404 }

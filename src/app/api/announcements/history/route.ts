@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
           WHEN a.start_date <= CURRENT_TIMESTAMP AND a.end_date >= CURRENT_TIMESTAMP THEN 'active'
           ELSE 'expired'
         END as status,
-        COALESCE(av.id IS NOT NULL, false) as "isViewed"
+        CASE WHEN av.id IS NOT NULL THEN 1 ELSE 0 END as "isViewed"
       FROM announcements a
       LEFT JOIN announcement_views av
         ON a.id = av.announcement_id AND av.user_id = ?

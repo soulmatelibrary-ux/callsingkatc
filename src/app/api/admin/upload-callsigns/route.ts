@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
 
           const rowData: ExcelRow = {
             airline_code: myAirlineCode,
-            callsign_pair: `? | ?`,
+            callsign_pair: `${myCallsign} | ${otherCallsign}`,
             my_callsign: myCallsign,
             other_callsign: otherCallsign,
             other_airline_code: otherAirlineCode || undefined,
@@ -406,7 +406,7 @@ export async function POST(request: NextRequest) {
               const year = actualDate.getFullYear();
               const month = String(actualDate.getMonth() + 1).padStart(2, '0');
               const day = String(actualDate.getDate()).padStart(2, '0');
-              occurredDate = `?-?-?`;
+              occurredDate = `${year}-${month}-${day}`;
             } else {
               // 숫자가 아니거나 포맷이 다르면 문자열로 처리
               const dateStr = String(dateValue).trim();
