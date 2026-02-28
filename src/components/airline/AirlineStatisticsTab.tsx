@@ -234,10 +234,10 @@ export function AirlineStatisticsTab({
                         </div>
                     </div>
 
-                    {/* Second Priority: Status Distribution + Response Time */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Second Priority: Status Distribution */}
+                    <div className="grid grid-cols-1 gap-6">
                         {/* Status Distribution Card */}
-                        <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[320px]">
+                        <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[300px]">
                             <h4 className="text-base font-bold text-slate-800 mb-6">상태별 분포 <span className="text-sm font-normal text-slate-400 ml-2">Status Distribution</span></h4>
                             <div className="flex-1 flex flex-col items-center justify-center relative">
                                 {statusPieData.length > 0 ? (
@@ -280,30 +280,6 @@ export function AirlineStatisticsTab({
                                     </>
                                 ) : (
                                     <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">데이터 없음</div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Response Time Distribution Card */}
-                        <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[320px]">
-                            <h4 className="text-base font-bold text-slate-800 mb-6">응답 시간 분포 <span className="text-sm font-normal text-slate-400 ml-2">Response Time</span></h4>
-                            <div className="flex-1 w-full relative">
-                                {responseTimeDistribution.length > 0 ? (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={responseTimeDistribution} layout="vertical" margin={{ top: 0, right: 30, left: 80, bottom: 0 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
-                                            <XAxis type="number" hide />
-                                            <YAxis dataKey="range" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12, fontWeight: 600 }} width={70} />
-                                            <Tooltip
-                                                cursor={{ fill: '#F1F5F9' }}
-                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)' }}
-                                                formatter={(value: any) => [`${value}건`, '건수']}
-                                            />
-                                            <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={20} fill={COLORS.blue} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                ) : (
-                                    <div className="absolute inset-0 flex items-center justify-center text-slate-400 font-medium text-sm">데이터가 없습니다.</div>
                                 )}
                             </div>
                         </div>
