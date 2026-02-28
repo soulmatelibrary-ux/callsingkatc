@@ -1,14 +1,25 @@
 {
   "version": "1.0",
-  "enabled": false,
+  "enabled": true,
   "teamName": "",
   "feature": "actions",
   "pdcaPhase": "do",
   "orchestrationPattern": "leader",
   "ctoAgent": "opus",
-  "startedAt": "2026-02-28T10:11:33.004Z",
-  "lastUpdated": "2026-02-28T10:29:34.216Z",
-  "teammates": [],
+  "startedAt": "2026-02-28T11:55:50.330Z",
+  "lastUpdated": "2026-02-28T11:55:50.330Z",
+  "teammates": [
+    {
+      "name": "a181b7017e833656b",
+      "role": "senior-code-reviewer",
+      "model": "sonnet",
+      "status": "spawning",
+      "currentTask": null,
+      "taskId": null,
+      "startedAt": "2026-02-28T11:55:50.330Z",
+      "lastActivityAt": "2026-02-28T11:55:50.330Z"
+    }
+  ],
   "progress": {
     "totalTasks": 0,
     "completedTasks": 0,
@@ -17,5 +28,5 @@
     "pendingTasks": 0
   },
   "recentMessages": [],
-  "sessionId": "d7db75d9-d2da-4bb4-b717-d140274fcfbb"
+  "sessionId": "a6e09b55-1a2f-48f9-8309-d04d87c32fac"
 }

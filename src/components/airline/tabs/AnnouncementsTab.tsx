@@ -24,7 +24,7 @@ export function AnnouncementsTab({
           subtitle="전체 공지사항을 확인하세요"
           showSearch={true}
           showLevelFilter={true}
-          showStatusFilter={true}
+          showStatusFilter={false}
           defaultLimit={10}
           initialStatus="all"
         />
