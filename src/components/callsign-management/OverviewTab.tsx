@@ -221,10 +221,10 @@ export function OverviewTab() {
                     최근발생일
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                    자사 조치
+                    자사 조치상태
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                    타사 조치
+                    타사 조치상태
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
                     전체 완료
@@ -291,11 +291,14 @@ export function OverviewTab() {
                       {(() => {
                         const meta = getActionStatusMeta(callsign.my_action_status);
                         return (
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border whitespace-nowrap ${meta.bubble}`}
-                          >
-                            {meta.label}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-bold text-gray-500">{callsign.my_airline_code}</span>
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black border whitespace-nowrap w-fit ${meta.bubble}`}
+                            >
+                              {meta.label}
+                            </span>
+                          </div>
                         );
                       })()}
                     </td>
@@ -305,26 +308,40 @@ export function OverviewTab() {
                       {(() => {
                         const meta = getActionStatusMeta(callsign.other_action_status);
                         return (
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border whitespace-nowrap ${meta.bubble}`}
-                          >
-                            {meta.label}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-bold text-gray-500">{callsign.other_airline_code || '-'}</span>
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black border whitespace-nowrap w-fit ${meta.bubble}`}
+                            >
+                              {meta.label}
+                            </span>
+                          </div>
                         );
                       })()}
                     </td>
 
                     {/* 전체 완료 여부 */}
                     <td className="px-6 py-5">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border whitespace-nowrap ${
-                          callsign.both_completed
-                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                            : 'bg-gray-50 text-gray-600 border-gray-100'
-                        }`}
-                      >
-                        {callsign.both_completed ? '✓ 완료' : '미완료'}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        {callsign.both_completed ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black border bg-emerald-50 text-emerald-600 border-emerald-100 whitespace-nowrap w-fit">
+                            ✓ 양쪽완료
+                          </span>
+                        ) : (
+                          <>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black border bg-orange-50 text-orange-600 border-orange-100 whitespace-nowrap w-fit">
+                              부분완료
+                            </span>
+                            <span className="text-[8px] text-gray-400">
+                              {callsign.my_action_status === 'completed' && callsign.other_action_status !== 'completed'
+                                ? `${callsign.my_airline_code}만 완료`
+                                : callsign.my_action_status !== 'completed' && callsign.other_action_status === 'completed'
+                                ? `${callsign.other_airline_code}만 완료`
+                                : '아직 미조치'}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </td>
 
                     {/* 등록일 */}
