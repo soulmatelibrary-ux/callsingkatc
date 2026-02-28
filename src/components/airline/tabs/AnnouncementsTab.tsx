@@ -91,7 +91,7 @@ export function AnnouncementsTab({
           showStatusFilter={false}
           onViewAll={() => router.push('/airline/announcements')}
           defaultLimit={5}
-          initialStatus="active"
+          initialStatus="all"
         />
       </div>
     </div>

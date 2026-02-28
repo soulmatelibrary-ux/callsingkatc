@@ -110,9 +110,9 @@ export async function GET(request: NextRequest) {
     // 상태 필터
     if (status !== 'all') {
       if (status === 'active') {
-        whereClause += ` AND a.start_date <= CURRENT_TIMESTAMP AND a.end_date >= CURRENT_TIMESTAMP`;
+        whereClause += ` AND DATETIME(a.start_date) <= CURRENT_TIMESTAMP AND DATETIME(a.end_date) >= CURRENT_TIMESTAMP`;
       } else if (status === 'expired') {
-        whereClause += ` AND (a.start_date > CURRENT_TIMESTAMP OR a.end_date < CURRENT_TIMESTAMP)`;
+        whereClause += ` AND (DATETIME(a.start_date) > CURRENT_TIMESTAMP OR DATETIME(a.end_date) < CURRENT_TIMESTAMP)`;
       }
     }
 
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
         a.is_active as "isActive",
         a.created_at as "createdAt",
         CASE
-          WHEN a.start_date <= CURRENT_TIMESTAMP AND a.end_date >= CURRENT_TIMESTAMP THEN 'active'
+          WHEN DATETIME(a.start_date) <= CURRENT_TIMESTAMP AND DATETIME(a.end_date) >= CURRENT_TIMESTAMP THEN 'active'
           ELSE 'expired'
         END as status,
         CASE WHEN av.id IS NOT NULL THEN 1 ELSE 0 END as "isViewed"
