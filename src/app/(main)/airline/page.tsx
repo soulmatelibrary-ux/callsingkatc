@@ -13,6 +13,7 @@ import { ActionModal } from '@/components/actions/ActionModal';
 import { Header } from '@/components/layout/Header';
 import { AirlineStatisticsTab } from '@/components/airline/AirlineStatisticsTab';
 import { IncidentsTab, ActionsTab, AnnouncementsTab } from '@/components/airline/tabs';
+import { AnnouncementPopup } from '@/components/airline/AnnouncementPopup';
 import { NanoIcon } from '@/components/ui/NanoIcon';
 import {
   BarChart3,
@@ -49,6 +50,10 @@ export default function AirlinePage() {
   const [selectedCallsignForDetail, setSelectedCallsignForDetail] = useState<Callsign | null>(null);
   const [isCallsignDetailModalOpen, setIsCallsignDetailModalOpen] = useState(false);
 
+  // 공지사항 팝업 상태
+  const [isAnnouncementPopupOpen, setIsAnnouncementPopupOpen] = useState(false);
+  const [popupShown, setPopupShown] = useState(false);
+
   // 필터 상태
   const [errorTypeFilter, setErrorTypeFilter] = useState<'all' | ErrorType>('all');
   const [isExporting, setIsExporting] = useState(false);
@@ -75,6 +80,20 @@ export default function AirlinePage() {
     queryClient.removeQueries({ queryKey: ['airline-actions'], exact: false });
     setActionPage(1);
   }, [actionStatusFilter, queryClient, airlineId]);
+
+  // 공지사항 팝업 자동 표시 (미읽은 공지사항이 있으면 로드 후 1회만 표시)
+  useEffect(() => {
+    if (popupShown || !announcementHistoryData) return;
+
+    const unreadAnnouncements = announcementHistoryData.announcements.filter(
+      (a) => !a.isViewed
+    );
+
+    if (unreadAnnouncements.length > 0) {
+      setIsAnnouncementPopupOpen(true);
+      setPopupShown(true);
+    }
+  }, [announcementHistoryData, popupShown]);
 
   // 초기 로드
   useEffect(() => {
@@ -157,6 +176,11 @@ export default function AirlinePage() {
 
   const { data: activeAnnouncementsData, isLoading: activeAnnouncementsLoading } = useActiveAnnouncements();
 
+  const { data: announcementHistoryData } = useAnnouncementHistory({
+    status: 'active',
+    limit: 100,
+  });
+
   // 메모이제이션된 데이터 변환
   const incidents = useMemo<Incident[]>(() => {
     if (!callsignsData?.data) return [];
@@ -185,6 +209,11 @@ export default function AirlinePage() {
   const activeAnnouncements = useMemo(
     () => activeAnnouncementsData?.announcements ?? [],
     [activeAnnouncementsData]
+  );
+
+  const unreadAnnouncements = useMemo(
+    () => announcementHistoryData?.announcements.filter((a) => !a.isViewed) ?? [],
+    [announcementHistoryData]
   );
 
   // 호출부호 상세 메타 (메모이제이션)
@@ -537,6 +566,15 @@ export default function AirlinePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 공지사항 팝업 */}
+      {isAnnouncementPopupOpen && unreadAnnouncements.length > 0 && (
+        <AnnouncementPopup
+          announcements={unreadAnnouncements}
+          onClose={() => setIsAnnouncementPopupOpen(false)}
+          onAllRead={() => setIsAnnouncementPopupOpen(false)}
+        />
       )}
 
       {/* Footer */}

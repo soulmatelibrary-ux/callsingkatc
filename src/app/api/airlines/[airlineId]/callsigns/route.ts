@@ -38,7 +38,7 @@ export async function GET(
     }
 
     // 토큰에서 항공사 ID 확인
-    const tokenAirlineId = payload.airline_id;
+    const tokenAirlineId = payload.airlineId;
     if (!tokenAirlineId) {
       return NextResponse.json(
         { error: '토큰에 항공사 정보가 없습니다.' },

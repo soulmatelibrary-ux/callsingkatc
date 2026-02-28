@@ -448,3 +448,52 @@ export function useDeleteAction() {
     },
   });
 }
+
+/**
+ * 관리자용: 호출부호와 양쪽 항공사의 조치 상태를 함께 조회
+ */
+export function useCallsignsWithActions(
+  filters?: {
+    riskLevel?: string;
+    page?: number;
+    limit?: number;
+  },
+  options?: { enabled?: boolean }
+) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const page = filters?.page || 1;
+  const limit = filters?.limit || 20;
+
+  return useQuery({
+    queryKey: ['callsigns-with-actions', filters?.riskLevel, page, limit],
+    queryFn: async () => {
+      if (!accessToken) {
+        throw new Error('인증 토큰이 없습니다.');
+      }
+
+      const params = new URLSearchParams();
+      if (filters?.riskLevel) params.append('riskLevel', filters.riskLevel);
+      params.append('page', String(page));
+      params.append('limit', String(limit));
+
+      const response = await fetch(
+        `/api/callsigns-with-actions?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('호출부호 조치 상태 조회 실패');
+      }
+
+      const data = (await response.json()) as CallsignListResponse;
+      return data;
+    },
+    enabled: !!accessToken && (options?.enabled ?? true),
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+}

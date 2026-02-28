@@ -82,15 +82,7 @@ export function ChangePasswordForm({ forced = false }: ChangePasswordFormProps) 
         });
       }
 
-      // 📌 강제 변경 모드: 비밀번호 변경 완료 후 역할별 페이지로 리다이렉트
-      if (forced) {
-        setIsRedirecting(true);
-        // 2초 후 리다이렉트 (성공 메시지 표시 후)
-        setTimeout(() => {
-          const targetUrl = user?.role === 'admin' ? '/admin' : '/airline';
-          router.push(targetUrl);
-        }, 2000);
-      }
+      // 📌 강제 변경 모드: 성공 메시지 표시 (버튼 클릭 시 이동)
     } catch (err: any) {
       // changePasswordAPI throws { error: string }, not axios-style error
       const errorMessage = err?.error || err?.message || AUTH_ERRORS.UNKNOWN_ERROR;
@@ -101,15 +93,29 @@ export function ChangePasswordForm({ forced = false }: ChangePasswordFormProps) 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       {isSuccess && (
-        <div
-          role="status"
-          className="px-3 py-2.5 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700"
-        >
-          ✅ 비밀번호가 성공적으로 변경되었습니다.
+        <div className="space-y-3">
+          <div
+            role="status"
+            className="px-3 py-2.5 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700"
+          >
+            ✅ 비밀번호가 성공적으로 변경되었습니다.
+          </div>
           {forced && (
-            <div className="text-xs mt-1 text-green-600">
-              {isRedirecting ? '페이지로 이동하는 중입니다...' : '잠시 후 자동으로 이동됩니다.'}
-            </div>
+            <Button
+              type="button"
+              variant="primary"
+              fullWidth
+              size="lg"
+              isLoading={isRedirecting}
+              disabled={isRedirecting}
+              onClick={() => {
+                setIsRedirecting(true);
+                const targetUrl = user?.role === 'admin' ? '/admin' : '/airline';
+                router.push(targetUrl);
+              }}
+            >
+              {isRedirecting ? '이동 중...' : '확인'}
+            </Button>
           )}
         </div>
       )}

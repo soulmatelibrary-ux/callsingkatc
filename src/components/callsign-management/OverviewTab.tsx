@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useCallsigns } from '@/hooks/useActions';
+import { useCallsignsWithActions } from '@/hooks/useActions';
 import { useAirlines } from '@/hooks/useAirlines';
 import { useAuthStore } from '@/store/authStore';
 import { StatCard } from './StatCard';
@@ -15,7 +15,6 @@ interface StatsResponse {
 }
 
 export function OverviewTab() {
-  const [selectedAirline, setSelectedAirline] = useState<string>('');
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -23,8 +22,7 @@ export function OverviewTab() {
   const accessToken = useAuthStore((s) => s.accessToken);
 
   const airlinesQuery = useAirlines();
-  const callsignsQuery = useCallsigns({
-    airlineId: selectedAirline || undefined,
+  const callsignsQuery = useCallsignsWithActions({
     riskLevel: selectedRiskLevel || undefined,
     page,
     limit,
@@ -32,14 +30,13 @@ export function OverviewTab() {
 
   // 전체 통계 조회
   const statsQuery = useQuery({
-    queryKey: ['callsigns-stats', selectedAirline, selectedRiskLevel],
+    queryKey: ['callsigns-stats', selectedRiskLevel],
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('인증 토큰이 없습니다.');
       }
 
       const params = new URLSearchParams();
-      if (selectedAirline) params.append('airlineId', selectedAirline);
       if (selectedRiskLevel) params.append('riskLevel', selectedRiskLevel);
 
       const response = await fetch(`/api/callsigns/stats?${params.toString()}`, {
@@ -107,7 +104,6 @@ export function OverviewTab() {
   };
 
   const handleReset = () => {
-    setSelectedAirline('');
     setSelectedRiskLevel('');
     setPage(1);
   };
@@ -155,21 +151,6 @@ export function OverviewTab() {
         <div className="px-8 py-6 border-b border-gray-50 bg-gray-50/50">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-              <select
-                value={selectedAirline}
-                onChange={(e) => {
-                  setSelectedAirline(e.target.value);
-                  setPage(1);
-                }}
-                className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
-              >
-                <option value="">항공사 선택</option>
-                {airlinesQuery.data?.map((airline) => (
-                  <option key={airline.id} value={airline.id}>
-                    {airline.code} - {airline.name_ko}
-                  </option>
-                ))}
-              </select>
               <select
                 value={selectedRiskLevel}
                 onChange={(e) => {
