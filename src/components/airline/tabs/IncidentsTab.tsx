@@ -3,13 +3,14 @@
 import React, { useMemo, useCallback, useState } from 'react';
 import {
   Incident,
-  ErrorTypeStat,
-  SubTypeStat,
   DateRangeType,
   RISK_LEVEL_ORDER,
-  ERROR_TYPE_CONFIG,
   ErrorType,
 } from '@/types/airline';
+import { IncidentSummaryCards } from './IncidentSummaryCards';
+import { SubErrorAnalysis } from './SubErrorAnalysis';
+import { IncidentFilters } from './IncidentFilters';
+import { IncidentTable } from './IncidentTable';
 
 interface IncidentsTabProps {
   incidents: Incident[];
@@ -37,60 +38,6 @@ interface IncidentsTabProps {
   onExport: () => void;
 }
 
-/**
- * 호출부호 쌍 분리 유틸리티
- */
-function splitCallsignPair(pair: string): [string, string] | null {
-  if (!pair) return null;
-  const separators = ['↔', '|'];
-  for (const separator of separators) {
-    if (pair.includes(separator)) {
-      const [left, right] = pair.split(separator);
-      if (left && right) {
-        return [left.trim(), right.trim()];
-      }
-    }
-  }
-  return null;
-}
-
-/**
- * 호출부호 문자별 색상 계산
- */
-function getCallsignCharColors(my: string, other: string) {
-  const myChars = Array.from(my);
-  const otherChars = Array.from(other);
-  const myColors = myChars.map(() => 'text-blue-700');
-  const otherColors = otherChars.map(() => 'text-blue-700');
-  const maxLength = Math.max(myChars.length, otherChars.length);
-
-  for (let i = 0; i < maxLength; i += 1) {
-    const myChar = myChars[i];
-    const otherChar = otherChars[i];
-    const isSame = myChar !== undefined && otherChar !== undefined && myChar === otherChar;
-
-    if (!isSame) {
-      if (myChar !== undefined) {
-        myColors[i] = 'text-rose-700';
-      }
-      if (otherChar !== undefined) {
-        otherColors[i] = 'text-rose-700';
-      }
-    }
-  }
-
-  return { myChars, otherChars, myColors, otherColors };
-}
-
-const SUB_ERROR_COLORS: Record<string, string> = {
-  '복창오류': '#6366f1',
-  '무응답/재호출': '#4f46e5',
-  '고도이탈': '#10b981',
-  '비행경로이탈': '#f97316',
-  '기타': '#6b7280',
-  '오류 미발생': '#22c55e',
-};
-
 export function IncidentsTab({
   incidents,
   airlineCode,
@@ -116,6 +63,7 @@ export function IncidentsTab({
 }: IncidentsTabProps) {
   // 분석 섹션 표시 토글
   const [showAnalysis, setShowAnalysis] = useState(false);
+
   // 날짜 필터링된 incidents
   const filteredByDate = useMemo(() => {
     const startDateObj = startDate ? new Date(startDate) : null;
@@ -128,114 +76,6 @@ export function IncidentsTab({
       return incidentDate >= startDateObj && incidentDate <= endDateObj;
     });
   }, [incidents, startDate, endDate]);
-
-  // 전체 통계용 카운트
-  const visibleIncidentCount = filteredByDate.length;
-
-  // 동적 오류 유형별 통계 생성
-  const errorTypeStats = useMemo<ErrorTypeStat[]>(() => {
-    const uniqueTypes = Array.from(
-      new Set(filteredByDate.map((i) => i.errorType).filter(Boolean))
-    );
-
-    return uniqueTypes.map((type) => {
-      const count = filteredByDate.filter((i) => i.errorType === type).length;
-      const config =
-        ERROR_TYPE_CONFIG[type as ErrorType] || {
-          label: type,
-          bgColor: 'bg-gray-50',
-          textColor: 'text-gray-600',
-          description: `${type}로 판명된 사례`,
-        };
-      return {
-        type,
-        count,
-        percentage:
-          visibleIncidentCount > 0
-            ? Math.round((count / visibleIncidentCount) * 100)
-            : 0,
-        ...config,
-      };
-    });
-  }, [filteredByDate, visibleIncidentCount]);
-
-  // 필터링된 incidents (에러타입 필터 적용)
-  const filteredIncidentsForAnalysis = useMemo(() => {
-    return errorTypeFilter === 'all'
-      ? filteredByDate
-      : filteredByDate.filter((i) => i.errorType === errorTypeFilter);
-  }, [filteredByDate, errorTypeFilter]);
-
-  // 세부 오류 통계 계산
-  const subTypeStats = useMemo<SubTypeStat[]>(() => {
-    const stats: SubTypeStat[] = [
-      {
-        key: '복창오류',
-        label: '복창오류',
-        count: filteredIncidentsForAnalysis.filter((i) => i.subError === '복창오류').length,
-        color: SUB_ERROR_COLORS['복창오류'],
-      },
-      {
-        key: '무응답/재호출',
-        label: '무응답/재호출',
-        count: filteredIncidentsForAnalysis.filter((i) => i.subError === '무응답/재호출').length,
-        color: SUB_ERROR_COLORS['무응답/재호출'],
-      },
-      {
-        key: '고도이탈',
-        label: '고도이탈',
-        count: filteredIncidentsForAnalysis.filter((i) => i.subError === '고도이탈').length,
-        color: SUB_ERROR_COLORS['고도이탈'],
-      },
-      {
-        key: '비행경로이탈',
-        label: '비행경로이탈',
-        count: filteredIncidentsForAnalysis.filter((i) => i.subError === '비행경로이탈').length,
-        color: SUB_ERROR_COLORS['비행경로이탈'],
-      },
-      {
-        key: '기타',
-        label: '기타',
-        count: filteredIncidentsForAnalysis.filter(
-          (i) =>
-            i.subError &&
-            !['복창오류', '무응답/재호출', '고도이탈', '비행경로이탈'].includes(i.subError)
-        ).length,
-        color: SUB_ERROR_COLORS['기타'],
-      },
-      {
-        key: '오류 미발생',
-        label: '오류 미발생',
-        count: filteredIncidentsForAnalysis.filter((i) => !i.subError).length,
-        color: SUB_ERROR_COLORS['오류 미발생'],
-      },
-    ];
-    return stats;
-  }, [filteredIncidentsForAnalysis]);
-
-  // 분석용 최대값
-  const maxSubCount = useMemo(
-    () => Math.max(...subTypeStats.map((s) => s.count), 1),
-    [subTypeStats]
-  );
-
-  // 가장 빈번한 오류 타입
-  const topError = useMemo(() => {
-    if (subTypeStats.length === 0) return null;
-    return subTypeStats.reduce((max, curr) => (curr.count > max.count ? curr : max), subTypeStats[0]);
-  }, [subTypeStats]);
-
-  const totalErrors = useMemo(
-    () => subTypeStats.reduce((sum, s) => sum + s.count, 0),
-    [subTypeStats]
-  );
-
-  const topPercentage = useMemo(
-    () => (totalErrors > 0 && topError ? Math.round((topError.count / totalErrors) * 100) : 0),
-    [totalErrors, topError]
-  );
-
-  const selectedErrorLabel = errorTypeFilter === 'all' ? '전체' : errorTypeFilter;
 
   // 에러 타입 + 검색어 + 정렬 적용된 최종 목록
   const allFilteredIncidents = useMemo(() => {
@@ -271,548 +111,53 @@ export function IncidentsTab({
     return allFilteredIncidents.slice(start, start + incidentsLimit);
   }, [allFilteredIncidents, incidentsPage, incidentsLimit]);
 
-  // 호출부호 렌더링 컴포넌트
-  const CallsignPairDisplay = useCallback(
-    ({ pair }: { pair: string }) => {
-      const parts = splitCallsignPair(pair);
-      if (!parts) return <span>{pair}</span>;
-
-      const [my, other] = parts;
-      const { myChars, otherChars, myColors, otherColors } = getCallsignCharColors(
-        my,
-        other
-      );
-
-      return (
-        <div className="flex items-center gap-0.5">
-          <div className="flex items-center gap-0">
-            {myChars.map((char, idx) => (
-              <span
-                key={`my-${idx}`}
-                className={`font-black text-2xl leading-none font-extrabold ${myColors[idx]}`}
-              >
-                {char}
-              </span>
-            ))}
-          </div>
-          <span className="text-gray-400 font-bold text-sm px-0.5">|</span>
-          <div className="flex items-center gap-0">
-            {otherChars.map((char, idx) => (
-              <span
-                key={`other-${idx}`}
-                className={`font-black text-2xl leading-none font-extrabold ${otherColors[idx]}`}
-              >
-                {char}
-              </span>
-            ))}
-          </div>
-        </div>
-      );
-    },
-    []
-  );
-
   return (
     <>
-      {/* 요약 통계 - 상단 카드 */}
-      {visibleIncidentCount > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Total Cases 카드 */}
-          <div className="group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
-            <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity bg-gray-900" />
-            <div className="relative flex flex-col h-full">
-              <div className="flex justify-between items-start mb-4">
-                <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
-                  Total Cases
-                </p>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <p className="text-5xl font-black text-gray-900 tracking-tighter">
-                  {visibleIncidentCount}
-                </p>
-                <span className="text-sm font-bold text-gray-400">건</span>
-              </div>
-              <p className="mt-1 text-[12px] font-bold text-gray-400 leading-tight">
-                전체 진행 중 호출부호 누적 건수
-              </p>
-            </div>
-          </div>
+      {/* 요약 통계 카드 */}
+      <IncidentSummaryCards
+        incidents={filteredByDate}
+        errorTypeFilter={errorTypeFilter}
+        onErrorTypeFilterChange={onErrorTypeFilterChange}
+      />
 
-          {/* 동적으로 생성된 에러 타입별 카드 */}
-          {errorTypeStats.map((stat) => (
-            <div
-              key={stat.type}
-              onClick={() =>
-                onErrorTypeFilterChange(
-                  errorTypeFilter === stat.type ? 'all' : (stat.type as ErrorType)
-                )
-              }
-              className={`group relative bg-white rounded-none p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden cursor-pointer ${
-                errorTypeFilter === stat.type ? 'ring-2 ring-opacity-50' : ''
-              }`}
-            >
-              <div
-                className="absolute -right-6 -bottom-6 w-32 h-32 rounded-none opacity-[0.03] group-hover:opacity-[0.07] transition-opacity"
-              />
-              <div className="relative flex flex-col h-full">
-                <div className="flex justify-between items-start mb-4">
-                  <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
-                    {stat.label}
-                  </p>
-                  {visibleIncidentCount > 0 && (
-                    <span
-                      className={`text-[10px] font-black px-2 py-1 rounded-none ${stat.bgColor} ${stat.textColor}`}
-                    >
-                      {stat.percentage}%
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <p className={`text-5xl font-black tracking-tighter ${stat.textColor}`}>
-                    {stat.count}
-                  </p>
-                  <span className="text-sm font-bold text-gray-400">건</span>
-                </div>
-                <p className="mt-auto pt-4 text-[12px] font-bold text-gray-400 leading-tight">
-                  {stat.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* 세부 오류분석 (collapsible) */}
+      <SubErrorAnalysis
+        incidents={filteredByDate}
+        errorTypeFilter={errorTypeFilter}
+        showAnalysis={showAnalysis}
+        onToggleAnalysis={setShowAnalysis}
+      />
 
-      {/* 세부 오류분석 섹션 (collapsible) */}
-      {visibleIncidentCount > 0 && (
-        <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden">
-          {/* 토글 헤더 */}
-          <button
-            type="button"
-            onClick={() => setShowAnalysis(!showAnalysis)}
-            className="w-full px-8 py-4 flex items-center justify-between text-sm font-black text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
-          >
-            <div className="flex items-center gap-3">
-              <span>📊</span>
-              <span>세부 오류 유형별 분포</span>
-            </div>
-            <span className="text-xs text-gray-400">
-              {showAnalysis ? '접기' : '펼치기'}
-            </span>
-          </button>
-
-          {/* 펼쳐진 내용 */}
-          {showAnalysis && (
-            <div className="px-8 py-6 space-y-6">
-              {/* 바 차트 */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-black text-gray-600">오류 분포</h4>
-                {subTypeStats.map((stat) => (
-                  <div key={stat.key} className="flex items-center gap-4">
-                    <div className="w-32 text-sm font-bold text-gray-700 truncate">
-                      {stat.label}
-                    </div>
-                    <div className="flex-1 h-10 bg-gray-100 rounded-none overflow-hidden relative">
-                      <div
-                        className="h-full transition-all duration-500 ease-out"
-                        style={{
-                          width: `${maxSubCount > 0 ? (stat.count / maxSubCount) * 100 : 0}%`,
-                          backgroundColor: stat.color,
-                        }}
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-black text-gray-600">
-                        {stat.count}건
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 분석 인사이트 */}
-              {subTypeStats.filter((s) => s.count > 0).length > 0 && topError && (
-                <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-none border border-blue-100">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-none flex items-center justify-center text-2xl flex-shrink-0">
-                      💡
-                    </div>
-                    <div>
-                      <h4 className="font-black text-gray-900 mb-2">주요 발견사항</h4>
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        현재{' '}
-                        <span className="font-black text-blue-700">
-                          {selectedErrorLabel}
-                        </span>{' '}
-                        필터 기준, 가장 빈번한 세부 오류 유형은{' '}
-                        <span
-                          className="font-black"
-                          style={{ color: topError.color }}
-                        >
-                          {topError.label}
-                        </span>
-                        이며 전체의{' '}
-                        <span className="font-black text-blue-700">
-                          {topPercentage}%
-                        </span>
-                        를 차지합니다.
-                        {topError.key === '복창오류' &&
-                          ' 복창 절차 준수에 대한 교육 강화가 권장됩니다.'}
-                        {topError.key === '무응답/재호출' &&
-                          ' 통신 품질 및 주파수 관리 점검이 필요합니다.'}
-                        {topError.key === '고도이탈' &&
-                          ' 고도 유지 절차에 대한 추가 교육이 권장됩니다.'}
-                        {topError.key === '비행경로이탈' &&
-                          ' 항로 이탈 방지를 위한 모니터링 강화가 필요합니다.'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 필터 통합 한 줄: 검색 바 + Limit + 날짜 범위 + Quick Range + Excel */}
-      <div className="flex flex-col md:flex-row items-center gap-3">
-        {/* 검색 바 (flex-1) */}
-        <div className="flex-1 relative group w-full md:w-auto">
-          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-          <input
-            type="text"
-            placeholder="호출부호 쌍을 검색하세요 (예: KAL123)"
-            value={incidentsSearchInput}
-            onChange={(e) => onSearchInputChange(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') onSearchSubmit(); }}
-            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-none text-sm font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-rose-700/20 focus:border-rose-700 transition-all placeholder:text-gray-300"
-          />
-          <button
-            onClick={onSearchSubmit}
-            className="absolute right-2 top-1.5 bottom-1.5 px-5 bg-[#00205b] text-white text-[11px] font-black rounded-none shadow-none hover:bg-[#001540] transition-all uppercase tracking-widest"
-          >
-            Search
-          </button>
-        </div>
-
-        {/* Limit 선택 */}
-        <div className="bg-white/50 backdrop-blur-sm rounded-none px-3 py-2 shadow-sm border border-gray-100 flex items-center gap-1.5 flex-shrink-0">
-          <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
-            Limit
-          </span>
-          <select
-            value={incidentsLimit}
-            onChange={(e) => onLimitChange(parseInt(e.target.value, 10))}
-            className="bg-transparent text-sm font-black text-gray-700 focus:outline-none cursor-pointer"
-          >
-            <option value="10">10</option>
-            <option value="30">30</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
-
-        {/* 날짜 범위 */}
-        <div className="bg-white border border-gray-100 shadow-sm rounded-none px-3 py-2 flex items-center gap-2 flex-shrink-0">
-          <input
-            type="date"
-            value={startDate}
-            onChange={onStartDateChange}
-            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
-          />
-          <span className="text-gray-300 font-bold">~</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={onEndDateChange}
-            className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer"
-          />
-        </div>
-
-        {/* Quick Range 버튼 - 검색, 오늘, 1개월 */}
-        <div className="flex rounded-none border border-gray-200 overflow-hidden flex-shrink-0">
-          {(['search', 'today', '1m'] as const).map((range) => (
-            <button
-              key={range}
-              type="button"
-              onClick={() => {
-                if (range === 'search') {
-                  onSearchSubmit();
-                } else {
-                  onApplyQuickRange(range as '1m' | 'today');
-                }
-              }}
-              className={`px-3 py-2 text-xs font-black tracking-tight transition-all border-r border-gray-200 last:border-r-0 ${
-                range === 'search'
-                  ? 'bg-white text-gray-500 hover:bg-gray-900 hover:text-white'
-                  : activeRange === range
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-white text-gray-500 hover:bg-gray-900 hover:text-white'
-              }`}
-            >
-              {range === 'search' ? '검색' : range === 'today' ? '오늘' : '1개월'}
-            </button>
-          ))}
-        </div>
-
-        {/* Excel 내보내기 */}
-        <button
-          type="button"
-          onClick={onExport}
-          disabled={isExporting || allFilteredIncidents.length === 0}
-          className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-none font-bold shadow-sm transition-all text-sm border ${
-            isExporting || allFilteredIncidents.length === 0
-              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-            />
-          </svg>
-          <span className="whitespace-nowrap">{isExporting ? '...' : 'Excel'}</span>
-        </button>
-      </div>
+      {/* 필터 바 */}
+      <IncidentFilters
+        startDate={startDate}
+        endDate={endDate}
+        activeRange={activeRange}
+        isExporting={isExporting}
+        incidentsLimit={incidentsLimit}
+        incidentsSearchInput={incidentsSearchInput}
+        allFilteredIncidentsCount={allFilteredIncidents.length}
+        onSearchInputChange={onSearchInputChange}
+        onSearchSubmit={onSearchSubmit}
+        onLimitChange={onLimitChange}
+        onStartDateChange={onStartDateChange}
+        onEndDateChange={onEndDateChange}
+        onApplyQuickRange={onApplyQuickRange}
+        onExport={onExport}
+      />
 
       {/* 발생현황 테이블 */}
-      <div className="bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-        {/* 총 개수 표시 */}
-        <div className="px-8 py-4 border-b border-gray-50 flex items-center justify-between">
-          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-            Total {allFilteredIncidents.length} Cases
-          </span>
-          {incidentsSearch && (
-            <span className="text-[10px] font-bold text-rose-600">
-              &quot;{incidentsSearch}&quot; 검색 결과
-            </span>
-          )}
-        </div>
-        <div className="overflow-x-auto flex-1">
-          <div className="divide-y divide-gray-50">
-            {pagedIncidents.map((incident) => (
-              <div
-                key={incident.id}
-                className={`border-b-2 border-gray-100 last:border-b-0 border-l-4 ${
-                  incident.risk === '매우높음'
-                    ? 'border-l-red-600'
-                    : incident.risk === '높음'
-                    ? 'border-l-amber-500'
-                    : 'border-l-emerald-600'
-                }`}
-              >
-                {/* 첫 번째 행: 호출부호 | 분류 정보 태그 | 조치 버튼 */}
-                <div className="px-6 py-3 flex items-center justify-between gap-5 group hover:bg-slate-50 transition-colors border-b border-gray-50">
-                  <div className="flex items-center gap-1 flex-shrink-0 bg-gray-50 rounded-none px-2 py-0.5">
-                    <CallsignPairDisplay pair={incident.pair} />
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 items-center">
-                    <span
-                      className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-none ${
-                        incident.errorType === '관제사 오류'
-                          ? 'text-rose-600 bg-rose-50'
-                          : incident.errorType === '조종사 오류'
-                          ? 'text-amber-600 bg-amber-50'
-                          : 'text-emerald-600 bg-emerald-50'
-                      }`}
-                    >
-                      {incident.errorType}
-                    </span>
-                    {incident.subError && (
-                      <span className="inline-block text-[9px] font-bold px-2 py-0.5 rounded-none text-indigo-600 bg-indigo-50">
-                        {incident.subError}
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => onOpenActionModal(incident)}
-                    className="flex-shrink-0 px-3 py-1.5 bg-rose-700 text-white text-[10px] font-black rounded-none shadow-none hover:bg-rose-800 transition-all uppercase tracking-widest whitespace-nowrap"
-                  >
-                    조치 등록
-                  </button>
-                </div>
-
-                {/* 두 번째 행: 상세 정보 */}
-                <div className="px-6 py-4 bg-gray-50/40 grid grid-cols-2 md:grid-cols-5 gap-3">
-                  <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
-                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                      발생건수
-                    </span>
-                    <span
-                      className={`text-base font-black ${
-                        incident.risk === '매우높음'
-                          ? 'text-rose-600'
-                          : incident.risk === '높음'
-                          ? 'text-amber-600'
-                          : 'text-emerald-600'
-                      }`}
-                    >
-                      {incident.count}건
-                    </span>
-                  </div>
-
-                  <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
-                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                      최초 발생일
-                    </span>
-                    <span className="text-[13px] font-bold text-gray-900">
-                      {incident.firstDate
-                        ? new Date(incident.firstDate).toLocaleDateString('ko-KR', {
-                            month: '2-digit',
-                            day: '2-digit',
-                          })
-                        : '-'}
-                    </span>
-                  </div>
-
-                  <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
-                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                      최근 발생일
-                    </span>
-                    <span className="text-[13px] font-bold text-gray-900">
-                      {incident.lastDate
-                        ? new Date(incident.lastDate).toLocaleDateString('ko-KR', {
-                            month: '2-digit',
-                            day: '2-digit',
-                          })
-                        : '-'}
-                    </span>
-                  </div>
-
-                  <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
-                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                      유사성
-                    </span>
-                    <span className="text-[13px] font-bold text-gray-900">
-                      {incident.similarity}
-                    </span>
-                  </div>
-
-                  <div className="rounded-none bg-gray-50 border border-gray-200 px-3 py-2 flex flex-col gap-1">
-                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-                      오류가능성
-                    </span>
-                    <span
-                      className={`text-[13px] font-black ${
-                        incident.risk === '매우높음'
-                          ? 'text-rose-600'
-                          : incident.risk === '높음'
-                          ? 'text-amber-600'
-                          : 'text-emerald-600'
-                      }`}
-                    >
-                      {incident.risk}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 세 번째 행: 발생 이력 */}
-                {incident.dates && incident.dates.length > 0 && (
-                  <>
-                    <div className="px-8 border-t border-dashed border-gray-200" />
-                    <div className="px-8 py-4 flex items-start gap-3">
-                      <span className="text-lg flex-shrink-0">📅</span>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 self-center">
-                          발생 이력
-                        </span>
-                        {incident.dates.map((date, idx) => (
-                          <span
-                            key={idx}
-                            className="inline-block text-xs font-bold px-3 py-1 rounded-none bg-blue-50 text-blue-600"
-                          >
-                            {new Date(date).toLocaleDateString('ko-KR', {
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 페이지네이션 */}
-        {totalPages > 1 && (
-          <div className="px-8 py-6 border-t border-gray-50 flex justify-center items-center gap-2">
-            <button
-              onClick={() => onPageChange(Math.max(1, incidentsPage - 1))}
-              disabled={incidentsPage === 1}
-              className="p-2 rounded-none border border-gray-200 text-gray-400 hover:text-rose-700 hover:border-rose-700 disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
-            >
-              PREV
-            </button>
-
-            <div className="flex gap-1 mx-4">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const startPage = Math.max(
-                  1,
-                  Math.min(incidentsPage - 2, totalPages - 4)
-                );
-                const pageNum = startPage + i;
-                if (pageNum > totalPages) return null;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => onPageChange(pageNum)}
-                    className={`w-10 h-10 rounded-none text-xs font-black transition-all border border-transparent ${
-                      pageNum === incidentsPage
-                        ? 'bg-rose-700 text-white shadow-none'
-                        : 'text-gray-400 hover:text-gray-900 border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={() => onPageChange(Math.min(totalPages, incidentsPage + 1))}
-              disabled={incidentsPage === totalPages}
-              className="p-2 rounded-none border border-gray-200 text-gray-400 hover:text-rose-700 hover:border-rose-700 disabled:opacity-30 disabled:hover:text-gray-400 disabled:hover:border-gray-200 transition-all font-black text-xs"
-            >
-              NEXT
-            </button>
-          </div>
-        )}
-      </div>
-
-      {allFilteredIncidents.length === 0 && (
-        <div className="bg-white rounded-none p-12 text-center shadow-sm border border-gray-100">
-          <div className="text-4xl mb-4">✅</div>
-          <p className="text-gray-500 font-bold">
-            등록된 유사호출부호 발생 이력이 없습니다
-          </p>
-        </div>
-      )}
+      <IncidentTable
+        incidents={allFilteredIncidents}
+        pagedIncidents={pagedIncidents}
+        totalPages={totalPages}
+        currentPage={incidentsPage}
+        pageLimit={incidentsLimit}
+        searchQuery={incidentsSearch}
+        allFilteredCount={allFilteredIncidents.length}
+        onPageChange={onPageChange}
+        onOpenActionModal={onOpenActionModal}
+      />
     </>
   );
 }
