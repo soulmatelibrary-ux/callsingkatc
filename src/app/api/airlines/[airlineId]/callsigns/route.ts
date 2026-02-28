@@ -17,7 +17,7 @@ export async function GET(
   { params }: { params: { airlineId: string } }
 ) {
   try {
-    const airlineId = params.airlineId;
+    const requestedAirlineId = params.airlineId;
 
     // 인증 확인
     const authHeader = request.headers.get('Authorization');
@@ -37,16 +37,34 @@ export async function GET(
       );
     }
 
+    // 토큰에서 항공사 ID 확인
+    const tokenAirlineId = payload.airline_id;
+    if (!tokenAirlineId) {
+      return NextResponse.json(
+        { error: '토큰에 항공사 정보가 없습니다.' },
+        { status: 401 }
+      );
+    }
+
+    // 요청한 항공사 ID가 로그인 사용자의 항공사 ID와 일치하는지 확인 (관리자는 제외)
+    const isAdmin = payload.role === 'admin';
+    if (!isAdmin && requestedAirlineId !== tokenAirlineId) {
+      return NextResponse.json(
+        { error: '권한이 없습니다.' },
+        { status: 403 }
+      );
+    }
+
     // 필터 파라미터
     const riskLevel = request.nextUrl.searchParams.get('riskLevel');
     const page = Math.max(1, parseInt(request.nextUrl.searchParams.get('page') || '1', 10));
     const limit = Math.min(1000, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 항공사 코드 조회 (존재 여부 확인 통합)
+    // 항공사 코드 조회
     const airlineCodeResult = await query(
       'SELECT id, code FROM airlines WHERE id = ?',
-      [airlineId]
+      [requestedAirlineId]
     );
 
     if (airlineCodeResult.rows.length === 0) {
@@ -62,13 +80,11 @@ export async function GET(
     const validRiskLevels = ['매우높음', '높음', '낮음'];
     const filteredRiskLevel = riskLevel && validRiskLevels.includes(riskLevel) ? riskLevel : null;
 
-    // 📌 진행 중인 호출부호만 조회 (status = 'in_progress')
-    // callsigns.status는 actions 상태와 동기화됨:
-    // - 초기값: 'in_progress'
-    // - 조치 완료: 'completed'로 자동 업데이트
+    // 📌 해당 항공사의 호출부호만 조회 (airline_code = ?)
+    // 예: ESR 사용자 → airline_code = 'ESR'인 항공사의 호출부호만
+    // 관리자 → 요청한 항공사의 호출부호만
 
-    // 동적 쿼리 파라미터 구성
-    const queryParams: (string | number)[] = [airlineCode, airlineCode];
+    const queryParams: (string | number)[] = [airlineCode];
     let riskLevelCondition = '';
 
     if (filteredRiskLevel) {
@@ -76,16 +92,15 @@ export async function GET(
       riskLevelCondition = `AND risk_level = ?`;
     }
 
-    // LIMIT과 OFFSET 추가
     queryParams.push(limit, offset);
 
-    const simpleResult = await query(
+    const callsignsResult = await query(
       `SELECT id, airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
               other_airline_code, error_type, sub_error, risk_level, similarity,
               file_upload_id, uploaded_at, occurrence_count, first_occurred_at, last_occurred_at,
               status, created_at, updated_at
        FROM callsigns
-       WHERE (airline_code = ? OR other_airline_code = ?)
+       WHERE airline_code = ?
          AND status = 'in_progress'
          ${riskLevelCondition}
        ORDER BY
@@ -101,10 +116,31 @@ export async function GET(
       queryParams
     );
 
-    const result = simpleResult;
+    // 각 호출부호에 대한 조치 상태 조회
+    const callsignIds = callsignsResult.rows.map((cs: any) => cs.id);
+    let actionStatusMap: { [key: string]: any } = {};
 
-    // 전체 개수 조회 (진행 중인 호출부호만 카운트, riskLevel 필터 적용)
-    const countParams: (string | number)[] = [airlineCode, airlineCode];
+    if (callsignIds.length > 0) {
+      const placeholders = callsignIds.map(() => '?').join(',');
+      const actionsResult = await query(
+        `SELECT callsign_id, status, action_type, completed_at
+         FROM actions
+         WHERE callsign_id IN (${placeholders})
+           AND airline_id = ?
+         ORDER BY registered_at DESC`,
+        [...callsignIds, requestedAirlineId]
+      );
+
+      // 각 호출부호별 최신 조치 상태 저장 (중복 제거)
+      for (const action of actionsResult.rows) {
+        if (!actionStatusMap[action.callsign_id]) {
+          actionStatusMap[action.callsign_id] = action;
+        }
+      }
+    }
+
+    // 전체 개수 조회
+    const countParams: (string | number)[] = [airlineCode];
     let countRiskCondition = '';
     if (filteredRiskLevel) {
       countParams.push(filteredRiskLevel);
@@ -114,7 +150,7 @@ export async function GET(
     const countResult = await query(
       `SELECT COUNT(*) as total
        FROM callsigns
-       WHERE (airline_code = ? OR other_airline_code = ?)
+       WHERE airline_code = ?
          AND status = 'in_progress'
          ${countRiskCondition}`,
       countParams
@@ -122,44 +158,54 @@ export async function GET(
     const total = parseInt(countResult.rows[0].total, 10);
 
     return NextResponse.json({
-      data: result.rows.map((callsign: any) => ({
-        id: callsign.id,
-        airline_id: callsign.airline_id,
-        airline_code: callsign.airline_code,
-        callsign_pair: callsign.callsign_pair,
-        my_callsign: callsign.my_callsign,
-        other_callsign: callsign.other_callsign,
-        other_airline_code: callsign.other_airline_code,
-        error_type: callsign.error_type,
-        sub_error: callsign.sub_error,
-        risk_level: callsign.risk_level,
-        similarity: callsign.similarity,
-        status: callsign.status,
-        occurrence_count: callsign.occurrence_count,
-        first_occurred_at: callsign.first_occurred_at,
-        last_occurred_at: callsign.last_occurred_at,
-        file_upload_id: callsign.file_upload_id,
-        uploaded_at: callsign.uploaded_at,
-        created_at: callsign.created_at,
-        updated_at: callsign.updated_at,
-        // camelCase 별칭
-        airlineId: callsign.airline_id,
-        airlineCode: callsign.airline_code,
-        callsignPair: callsign.callsign_pair,
-        myCallsign: callsign.my_callsign,
-        otherCallsign: callsign.other_callsign,
-        otherAirlineCode: callsign.other_airline_code,
-        errorType: callsign.error_type,
-        subError: callsign.sub_error,
-        riskLevel: callsign.risk_level,
-        occurrenceCount: callsign.occurrence_count,
-        lastOccurredAt: callsign.last_occurred_at,
-        firstOccurredAt: callsign.first_occurred_at,
-        fileUploadId: callsign.file_upload_id,
-        uploadedAt: callsign.uploaded_at,
-        createdAt: callsign.created_at,
-        updatedAt: callsign.updated_at,
-      })),
+      data: callsignsResult.rows.map((callsign: any) => {
+        const latestAction = actionStatusMap[callsign.id];
+        return {
+          id: callsign.id,
+          airline_id: callsign.airline_id,
+          airline_code: callsign.airline_code,
+          callsign_pair: callsign.callsign_pair,
+          my_callsign: callsign.my_callsign,
+          other_callsign: callsign.other_callsign,
+          other_airline_code: callsign.other_airline_code,
+          error_type: callsign.error_type,
+          sub_error: callsign.sub_error,
+          risk_level: callsign.risk_level,
+          similarity: callsign.similarity,
+          status: callsign.status,
+          occurrence_count: callsign.occurrence_count,
+          first_occurred_at: callsign.first_occurred_at,
+          last_occurred_at: callsign.last_occurred_at,
+          file_upload_id: callsign.file_upload_id,
+          uploaded_at: callsign.uploaded_at,
+          created_at: callsign.created_at,
+          updated_at: callsign.updated_at,
+          // 조치 상태 추가
+          action_status: latestAction?.status || 'no_action',
+          action_type: latestAction?.action_type || null,
+          action_completed_at: latestAction?.completed_at || null,
+          // camelCase 별칭
+          airlineId: callsign.airline_id,
+          airlineCode: callsign.airline_code,
+          callsignPair: callsign.callsign_pair,
+          myCallsign: callsign.my_callsign,
+          otherCallsign: callsign.other_callsign,
+          otherAirlineCode: callsign.other_airline_code,
+          errorType: callsign.error_type,
+          subError: callsign.sub_error,
+          riskLevel: callsign.risk_level,
+          occurrenceCount: callsign.occurrence_count,
+          lastOccurredAt: callsign.last_occurred_at,
+          firstOccurredAt: callsign.first_occurred_at,
+          fileUploadId: callsign.file_upload_id,
+          uploadedAt: callsign.uploaded_at,
+          createdAt: callsign.created_at,
+          updatedAt: callsign.updated_at,
+          actionStatus: latestAction?.status || 'no_action',
+          actionType: latestAction?.action_type || null,
+          actionCompletedAt: latestAction?.completed_at || null,
+        };
+      }),
       pagination: {
         page,
         limit,

@@ -175,6 +175,10 @@ export default function AirlinePage() {
       firstDate: cs.first_occurred_at ? new Date(cs.first_occurred_at).toISOString().split('T')[0] : null,
       lastDate: cs.last_occurred_at ? new Date(cs.last_occurred_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       dates: [],
+      // 조치 상태
+      actionStatus: cs.action_status || cs.actionStatus || 'no_action',
+      actionType: cs.action_type || cs.actionType || null,
+      actionCompletedAt: cs.action_completed_at || cs.actionCompletedAt || null,
     }));
   }, [callsignsData]);
 

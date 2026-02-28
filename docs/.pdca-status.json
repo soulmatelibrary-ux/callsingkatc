@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-28T02:42:57.457Z",
+  "lastUpdated": "2026-02-28T03:02:51.588Z",
   "activeFeatures": [
     "password-reset-force-change",
     "katc1",
@@ -357,9 +357,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T02:01:15.039Z",
-        "lastUpdated": "2026-02-28T02:40:14.370Z"
+        "lastUpdated": "2026-02-28T03:02:00.945Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/airline/AirlineAnnouncementList.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/(main)/airline/page.tsx"
     },
     "airlines": {
       "phase": "do",
@@ -383,7 +383,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:32.683Z",
-        "lastUpdated": "2026-02-28T00:47:15.733Z"
+        "lastUpdated": "2026-02-28T03:02:51.588Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/actions/route.ts"
     },
@@ -396,7 +396,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:58.733Z",
-        "lastUpdated": "2026-02-28T00:49:23.068Z"
+        "lastUpdated": "2026-02-28T02:47:07.589Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/callsigns/route.ts"
     },
@@ -606,9 +606,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-25T13:33:05.332Z",
-        "lastUpdated": "2026-02-28T02:37:17.948Z"
+        "lastUpdated": "2026-02-28T03:02:38.610Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/airline/tabs/IncidentsTab.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/airline/tabs/IncidentTable.tsx"
     },
     "db": {
       "phase": "do",
@@ -658,9 +658,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T00:48:23.166Z",
-        "lastUpdated": "2026-02-28T02:42:44.525Z"
+        "lastUpdated": "2026-02-28T03:00:54.925Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/middleware.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/types/airline.ts"
     }
   },
   "pipeline": {
@@ -671,7 +671,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-28T02:42:57.457Z"
+    "lastActivity": "2026-02-28T03:02:51.588Z"
   },
   "history": [
     {
@@ -8153,6 +8153,66 @@
     {
       "timestamp": "2026-02-28T02:42:57.457Z",
       "feature": "change-password",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T02:43:02.679Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T02:43:14.887Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T02:43:39.669Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T02:47:07.589Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T02:47:17.642Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T02:47:20.376Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T03:00:54.925Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T03:02:00.945Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T03:02:38.610Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T03:02:51.588Z",
+      "feature": "actions",
       "phase": "do",
       "action": "updated"
     }

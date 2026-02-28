@@ -67,7 +67,12 @@ export interface Callsign {
   created_at: string;
   updated_at: string;
 
-  // 최근 조치 정보
+  // 조치 상태 정보
+  action_status?: 'no_action' | 'pending' | 'in_progress' | 'completed';
+  action_type?: string | null;
+  action_completed_at?: string | null;
+
+  // 최근 조치 정보 (하위호환성)
   latest_action_id?: string;
   latest_action_status?: 'pending' | 'in_progress' | 'completed';
   latest_action_manager?: string | null;
@@ -91,6 +96,9 @@ export interface Callsign {
   uploadedAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  actionStatus?: 'no_action' | 'pending' | 'in_progress' | 'completed';
+  actionType?: string | null;
+  actionCompletedAt?: string | null;
   latestActionId?: string;
   latestActionStatus?: 'pending' | 'in_progress' | 'completed';
   latestActionManager?: string | null;

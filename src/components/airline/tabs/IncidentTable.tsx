@@ -167,14 +167,48 @@ export function IncidentTable({
                         {incident.subError}
                       </span>
                     )}
+                    {/* 조치 상태 배지 */}
+                    {incident.actionStatus && incident.actionStatus !== 'no_action' && (
+                      <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-none ${
+                        incident.actionStatus === 'completed'
+                          ? 'text-emerald-600 bg-emerald-50'
+                          : incident.actionStatus === 'in_progress'
+                          ? 'text-blue-600 bg-blue-50'
+                          : 'text-amber-600 bg-amber-50'
+                      }`}>
+                        조치중
+                      </span>
+                    )}
                   </div>
 
-                  <button
-                    onClick={() => onOpenActionModal(incident)}
-                    className="flex-shrink-0 px-3 py-1.5 bg-rose-700 text-white text-[10px] font-black rounded-none shadow-none hover:bg-rose-800 transition-all uppercase tracking-widest whitespace-nowrap"
-                  >
-                    조치 등록
-                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* 조치 상태 표시 */}
+                    {incident.actionStatus === 'completed' && (
+                      <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-none whitespace-nowrap">
+                        완료
+                      </span>
+                    )}
+                    {incident.actionStatus === 'in_progress' && (
+                      <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-none whitespace-nowrap">
+                        조치중
+                      </span>
+                    )}
+                    {incident.actionStatus === 'pending' && (
+                      <span className="text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-none whitespace-nowrap">
+                        미조치
+                      </span>
+                    )}
+                    <button
+                      onClick={() => onOpenActionModal(incident)}
+                      className={`flex-shrink-0 px-3 py-1.5 text-white text-[10px] font-black rounded-none shadow-none transition-all uppercase tracking-widest whitespace-nowrap ${
+                        incident.actionStatus === 'completed'
+                          ? 'bg-emerald-600 hover:bg-emerald-700'
+                          : 'bg-rose-700 hover:bg-rose-800'
+                      }`}
+                    >
+                      {incident.actionStatus === 'completed' ? '조치 보기' : '조치 등록'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* 두 번째 행: 상세 정보 */}

@@ -41,6 +41,10 @@ export interface Incident {
   firstDate: string | null;
   lastDate: string | null;
   dates: string[];        // 발생 이력 날짜 배열
+  // 조치 상태
+  actionStatus?: 'no_action' | 'pending' | 'in_progress' | 'completed';
+  actionType?: string | null;
+  actionCompletedAt?: string | null;
 }
 
 /**

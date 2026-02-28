@@ -65,13 +65,12 @@ export async function GET(
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 기본 쿼리 (호출부호 기준 조치 이력 조회)
-    // 상태 로직: action 없음 = in_progress, action 있음 = completed
+    // 기본 쿼리 (조치 기준으로 조회)
     let sql = `
       SELECT
         a.id, a.airline_id, a.callsign_id, a.action_type, a.description,
         a.manager_name, a.manager_email, a.planned_due_date,
-        CASE WHEN a.id IS NULL THEN 'in_progress' ELSE 'completed' END as status,
+        a.status,
         a.result_detail, a.completed_at,
         a.registered_by, a.registered_at, a.updated_at,
         a.reviewed_by, a.reviewed_at, a.review_comment,
@@ -89,24 +88,17 @@ export async function GET(
         cs.similarity,
         cs.created_at as callsign_created_at,
         cs.last_occurred_at
-      FROM callsigns cs
-      LEFT JOIN actions a ON cs.id = a.callsign_id
+      FROM actions a
       LEFT JOIN airlines al ON a.airline_id = al.id
-      WHERE cs.airline_id = ?
+      LEFT JOIN callsigns cs ON a.callsign_id = cs.id
+      WHERE a.airline_id = ?
     `;
     const queryParams: any[] = [airlineId];
 
     // 필터 조건: 실제 status 값으로 필터링
-    if (status) {
-      if (status === 'in_progress') {
-        // action이 없거나 상태가 in_progress
-        sql += ` AND (a.id IS NULL OR a.status = ?)`;
-        queryParams.push('in_progress');
-      } else if (status === 'completed') {
-        // action이 있고 상태가 completed
-        sql += ` AND a.id IS NOT NULL AND a.status = ?`;
-        queryParams.push('completed');
-      }
+    if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
+      sql += ` AND a.status = ?`;
+      queryParams.push(status);
     }
 
     // 검색 조건 (유사호출부호, 조치유형, 담당자) - SQLite LIKE 사용
@@ -139,25 +131,17 @@ export async function GET(
     // 데이터 조회
     const result = await query(sql, queryParams);
 
-    // 전체 개수 조회 (호출부호 기준)
+    // 전체 개수 조회
     let countSql = `
-      SELECT COUNT(DISTINCT cs.id) as total FROM callsigns cs
-      LEFT JOIN actions a ON cs.id = a.callsign_id
-      WHERE cs.airline_id = ?
+      SELECT COUNT(*) as total FROM actions a
+      WHERE a.airline_id = ?
     `;
     const countParams: any[] = [airlineId];
 
     // 필터 조건: 실제 status 값으로 필터링
-    if (status) {
-      if (status === 'in_progress') {
-        // action이 없거나 상태가 in_progress
-        countSql += ` AND (a.id IS NULL OR a.status = ?)`;
-        countParams.push('in_progress');
-      } else if (status === 'completed') {
-        // action이 있고 상태가 completed
-        countSql += ` AND a.id IS NOT NULL AND a.status = ?`;
-        countParams.push('completed');
-      }
+    if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
+      countSql += ` AND a.status = ?`;
+      countParams.push(status);
     }
 
     if (search && search.trim()) {
@@ -347,8 +331,12 @@ export async function POST(
         [airlineId, callsignId, actionType, description || null, managerName || null, plannedDueDate || null, completedTimestamp, actionStatus, payload.userId]
       );
 
-      // 호출부호 상태를 완료로 변경
-      await trx('UPDATE callsigns SET status = ? WHERE id = ?', ['completed', callsignId]);
+      // 조치 상태에 따라 호출부호 상태 업데이트
+      // - 조치가 완료(completed)면 호출부호도 완료로 변경
+      // - 그 외(pending, in_progress)는 호출부호 상태 유지
+      if (actionStatus === 'completed') {
+        await trx('UPDATE callsigns SET status = ? WHERE id = ?', ['completed', callsignId]);
+      }
     });
 
     // 생성된 조치 조회
