@@ -72,6 +72,16 @@ export function ChangePasswordForm({ forced = false }: ChangePasswordFormProps) 
       reset();
       setWatchedNewPassword('');
 
+      // 📌 Zustand 상태 업데이트: passwordChangeRequired 플래그 해제
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser) {
+        useAuthStore.getState().setUser({
+          ...currentUser,
+          is_default_password: false,
+          password_change_required: false,
+        });
+      }
+
       // 📌 강제 변경 모드: 비밀번호 변경 완료 후 역할별 페이지로 리다이렉트
       if (forced) {
         setIsRedirecting(true);

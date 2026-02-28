@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-28T02:40:14.370Z",
+  "lastUpdated": "2026-02-28T02:42:57.457Z",
   "activeFeatures": [
     "password-reset-force-change",
     "katc1",
@@ -123,7 +123,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:41:49.609Z",
-        "lastUpdated": "2026-02-28T02:25:49.709Z"
+        "lastUpdated": "2026-02-28T02:42:52.484Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/forms/ChangePasswordForm.tsx"
     },
@@ -201,9 +201,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:44:00.843Z",
-        "lastUpdated": "2026-02-28T00:55:16.544Z"
+        "lastUpdated": "2026-02-28T02:42:57.457Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/(auth)/change-password/page.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/change-password/route.ts"
     },
     "pending": {
       "phase": "do",
@@ -619,9 +619,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-25T14:03:29.895Z",
-        "lastUpdated": "2026-02-28T00:50:15.806Z"
+        "lastUpdated": "2026-02-28T02:42:38.557Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/sqlite.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/sqlite-schema.ts"
     },
     "queries": {
       "phase": "do",
@@ -658,9 +658,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T00:48:23.166Z",
-        "lastUpdated": "2026-02-28T02:12:19.876Z"
+        "lastUpdated": "2026-02-28T02:42:44.525Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/types/airline.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/middleware.ts"
     }
   },
   "pipeline": {
@@ -671,7 +671,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-28T02:40:14.370Z"
+    "lastActivity": "2026-02-28T02:42:57.457Z"
   },
   "history": [
     {
@@ -8129,6 +8129,30 @@
     {
       "timestamp": "2026-02-28T02:40:14.370Z",
       "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T02:42:38.557Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T02:42:44.525Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T02:42:52.484Z",
+      "feature": "forms",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T02:42:57.457Z",
+      "feature": "change-password",
       "phase": "do",
       "action": "updated"
     }

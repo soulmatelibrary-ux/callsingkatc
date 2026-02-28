@@ -13,7 +13,9 @@ export function initializeSchema(database: Database.Database) {
       .all() as any[];
 
     if (tables.length > 0) {
-      console.log('[SQLite] 스키마가 이미 존재합니다. 스킵합니다.');
+      console.log('[SQLite] 스키마가 이미 존재합니다. 누락 테이블 확인 중...');
+      // 누락된 테이블 생성 (마이그레이션 지원)
+      ensureMissingTables(database);
       return;
     }
 
@@ -35,6 +37,62 @@ export function initializeSchema(database: Database.Database) {
     }
   } catch (error: any) {
     console.error('[SQLite] 스키마 초기화 오류:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * 기존 데이터베이스에서 누락된 테이블 생성 (마이그레이션)
+ */
+function ensureMissingTables(database: Database.Database) {
+  try {
+    const existingTables = database
+      .prepare("SELECT name FROM sqlite_master WHERE type='table'")
+      .all()
+      .map((t: any) => t.name) as string[];
+
+    const requiredTables = [
+      'airlines',
+      'users',
+      'password_history',
+      'audit_logs',
+      'file_uploads',
+      'callsigns',
+      'callsign_occurrences',
+      'actions',
+      'action_history',
+      'announcements',
+      'announcement_views',
+    ];
+
+    const missingTables = requiredTables.filter(t => !existingTables.includes(t));
+
+    if (missingTables.length === 0) {
+      console.log('[SQLite] 모든 필수 테이블이 존재합니다.');
+      return;
+    }
+
+    console.log(`[SQLite] 누락된 테이블 감지: ${missingTables.join(', ')}`);
+
+    // 누락된 테이블 생성
+    if (missingTables.includes('password_history')) {
+      database.exec(`
+        CREATE TABLE IF NOT EXISTS password_history (
+          id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+          user_id TEXT NOT NULL REFERENCES users(id),
+          password_hash VARCHAR(255) NOT NULL,
+          changed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          changed_by VARCHAR(50)
+        )
+      `);
+      console.log('[SQLite] password_history 테이블 생성 완료');
+    }
+
+    // 인덱스 재생성
+    database.exec('CREATE INDEX IF NOT EXISTS idx_password_history_user_id ON password_history(user_id)');
+
+  } catch (error: any) {
+    console.error('[SQLite] 누락 테이블 생성 오류:', error.message);
     throw error;
   }
 }

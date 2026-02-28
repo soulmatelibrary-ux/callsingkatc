@@ -9,7 +9,8 @@ import type { NextRequest } from 'next/server';
 
 // 보호되는 라우트
 const protectedRoutes = ['/airline', '/admin', '/announcements', '/callsign-management'];
-const authRoutes = ['/login', '/forgot-password', '/change-password'];
+// 📌 /change-password는 제외: 로그인 상태의 사용자가 언제든 접근 가능해야 함
+const authRoutes = ['/login', '/forgot-password'];
 
 interface RefreshTokenPayload {
   userId: string;

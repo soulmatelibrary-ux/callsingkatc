@@ -119,11 +119,12 @@ export async function POST(request: NextRequest) {
       );
 
       // 2. 사용자 비밀번호 업데이트 + 플래그 업데이트
+      // 📌 SQLite boolean 호환성: false 대신 0 사용
       await trx(
         `UPDATE users
          SET password_hash = ?,
-             is_default_password = false,
-             password_change_required = false,
+             is_default_password = 0,
+             password_change_required = 0,
              last_password_changed_at = CURRENT_TIMESTAMP,
              updated_at = CURRENT_TIMESTAMP
          WHERE id = ?`,
