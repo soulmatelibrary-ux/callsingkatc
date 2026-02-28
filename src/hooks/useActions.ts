@@ -451,10 +451,14 @@ export function useDeleteAction() {
 
 /**
  * 관리자용: 호출부호와 양쪽 항공사의 조치 상태를 함께 조회
+ * 필터: riskLevel(선택), airlineId(선택), myActionStatus(선택)
+ * 페이지네이션 지원
  */
 export function useCallsignsWithActions(
   filters?: {
     riskLevel?: string;
+    airlineId?: string;
+    myActionStatus?: string;
     page?: number;
     limit?: number;
   },
@@ -465,7 +469,7 @@ export function useCallsignsWithActions(
   const limit = filters?.limit || 20;
 
   return useQuery({
-    queryKey: ['callsigns-with-actions', filters?.riskLevel, page, limit],
+    queryKey: ['callsigns-with-actions', filters?.riskLevel, filters?.airlineId, filters?.myActionStatus, page, limit],
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('인증 토큰이 없습니다.');
@@ -473,6 +477,8 @@ export function useCallsignsWithActions(
 
       const params = new URLSearchParams();
       if (filters?.riskLevel) params.append('riskLevel', filters.riskLevel);
+      if (filters?.airlineId) params.append('airlineId', filters.airlineId);
+      if (filters?.myActionStatus) params.append('myActionStatus', filters.myActionStatus);
       params.append('page', String(page));
       params.append('limit', String(limit));
 

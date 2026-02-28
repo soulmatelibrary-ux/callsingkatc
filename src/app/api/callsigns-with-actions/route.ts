@@ -4,6 +4,8 @@
  *
  * 쿼리 파라미터:
  *   - riskLevel: 위험도 필터 (매우높음|높음|낮음)
+ *   - airlineId: 항공사 ID 필터 (UUID)
+ *   - myActionStatus: 자사 조치 상태 필터 (completed|in_progress|pending|no_action)
  *   - page: 페이지 번호 (기본값: 1)
  *   - limit: 페이지 크기 (기본값: 20, 최대: 100)
  */
@@ -44,34 +46,55 @@ export async function GET(request: NextRequest) {
 
     // 쿼리 파라미터
     const riskLevel = request.nextUrl.searchParams.get('riskLevel');
+    const airlineId = request.nextUrl.searchParams.get('airlineId');
+    const myActionStatus = request.nextUrl.searchParams.get('myActionStatus');
     const page = Math.max(1, parseInt(request.nextUrl.searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
-    const offset = (page - 1) * limit;
 
-    // 유효한 riskLevel 값 검증
+    // 입력값 검증
     const validRiskLevels = ['매우높음', '높음', '낮음'];
     const filteredRiskLevel = riskLevel && validRiskLevels.includes(riskLevel) ? riskLevel : null;
 
-    // 쿼리 파라미터 구성
-    const queryParams: (string | number)[] = [];
-    let riskLevelCondition = '';
-
-    if (filteredRiskLevel) {
-      queryParams.push(filteredRiskLevel);
-      riskLevelCondition = `AND risk_level = ?`;
+    // airlineId UUID 형식 검증
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (airlineId && !uuidRegex.test(airlineId)) {
+      return NextResponse.json(
+        { error: '유효하지 않은 항공사 ID입니다.' },
+        { status: 400 }
+      );
     }
 
-    queryParams.push(limit, offset);
+    // myActionStatus 화이트리스트 검증
+    const validActionStatuses = ['completed', 'in_progress', 'pending', 'no_action'];
+    if (myActionStatus && !validActionStatuses.includes(myActionStatus)) {
+      return NextResponse.json(
+        { error: '유효하지 않은 조치 상태입니다.' },
+        { status: 400 }
+      );
+    }
 
-    // 호출부호 목록 조회
+    // SQL 쿼리 파라미터 구성 (페이지네이션은 필터 후 Node.js에서 처리)
+    const sqlParams: (string | number)[] = [];
+    let conditions = "WHERE status = 'in_progress'";
+
+    if (filteredRiskLevel) {
+      sqlParams.push(filteredRiskLevel);
+      conditions += ` AND risk_level = ?`;
+    }
+
+    if (airlineId) {
+      sqlParams.push(airlineId);
+      conditions += ` AND airline_id = ?`;
+    }
+
+    // 호출부호 목록 조회 (LIMIT/OFFSET 없음 - 필터 후 Node.js에서 처리)
     const callsignsResult = await query(
       `SELECT id, airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
               other_airline_code, error_type, sub_error, risk_level, similarity,
               occurrence_count, first_occurred_at, last_occurred_at,
               file_upload_id, uploaded_at, status, created_at, updated_at
        FROM callsigns
-       WHERE status = 'in_progress'
-         ${riskLevelCondition}
+       ${conditions}
        ORDER BY
          CASE
            WHEN risk_level = '매우높음' THEN 3
@@ -80,9 +103,8 @@ export async function GET(request: NextRequest) {
            ELSE 0
          END DESC,
          occurrence_count DESC,
-         last_occurred_at DESC
-       LIMIT ? OFFSET ?`,
-      queryParams
+         last_occurred_at DESC`,
+      sqlParams
     );
 
     // 각 호출부호의 양쪽 항공사 조치 상태 조회
@@ -168,72 +190,80 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 전체 개수 조회
-    const countParams: (string | number)[] = [];
-    let countRiskCondition = '';
-    if (filteredRiskLevel) {
-      countParams.push(filteredRiskLevel);
-      countRiskCondition = `AND risk_level = ?`;
+    // myActionStatus 필터 적용 (Node.js 레벨)
+    let filteredRows = callsignsResult.rows.map((callsign: any) => {
+      const actionStatus = actionStatusMap[callsign.id] || {
+        myAirlineId: callsign.airline_id,
+        myAirlineCode: callsign.airline_code,
+        myActionStatus: 'no_action',
+        myActionType: null,
+        otherAirlineCode: callsign.other_airline_code,
+        otherActionStatus: 'no_action',
+        otherActionType: null,
+      };
+      return { callsign, actionStatus };
+    });
+
+    if (myActionStatus) {
+      filteredRows = filteredRows.filter(
+        (row) => row.actionStatus.myActionStatus === myActionStatus
+      );
     }
 
-    const countResult = await query(
-      `SELECT COUNT(*) as total
-       FROM callsigns
-       WHERE status = 'in_progress'
-         ${countRiskCondition}`,
-      countParams
-    );
-    const total = parseInt(countResult.rows[0].total, 10);
+    // summary 계산 (필터링 후)
+    const summary = {
+      total: filteredRows.length,
+      completed: filteredRows.filter((r) => r.actionStatus.myActionStatus === 'completed').length,
+      in_progress: filteredRows.filter((r) => r.actionStatus.myActionStatus === 'in_progress').length,
+      pending: filteredRows.filter((r) => r.actionStatus.myActionStatus === 'pending').length,
+      no_action: filteredRows.filter((r) => r.actionStatus.myActionStatus === 'no_action').length,
+    };
+
+    // 페이지네이션 처리
+    const total = filteredRows.length;
+    const offset = (page - 1) * limit;
+    const paginatedRows = filteredRows.slice(offset, offset + limit);
+
+    // 전체 개수는 필터링 후 계산 (아래에서 처리)
 
     return NextResponse.json({
-      data: callsignsResult.rows.map((callsign: any) => {
-        const actionStatus = actionStatusMap[callsign.id] || {
-          myAirlineId: callsign.airline_id,
-          myAirlineCode: callsign.airline_code,
-          myActionStatus: 'no_action',
-          myActionType: null,
-          otherAirlineCode: callsign.other_airline_code,
-          otherActionStatus: 'no_action',
-          otherActionType: null,
-        };
-
-        return {
-          id: callsign.id,
-          airline_id: callsign.airline_id,
-          airline_code: callsign.airline_code,
-          callsign_pair: callsign.callsign_pair,
-          my_callsign: callsign.my_callsign,
-          other_callsign: callsign.other_callsign,
-          other_airline_code: callsign.other_airline_code,
-          error_type: callsign.error_type,
-          sub_error: callsign.sub_error,
-          risk_level: callsign.risk_level,
-          similarity: callsign.similarity,
-          occurrence_count: callsign.occurrence_count,
-          first_occurred_at: callsign.first_occurred_at,
-          last_occurred_at: callsign.last_occurred_at,
-          file_upload_id: callsign.file_upload_id,
-          uploaded_at: callsign.uploaded_at,
-          status: callsign.status,
-          created_at: callsign.created_at,
-          updated_at: callsign.updated_at,
-          // 양쪽 항공사 조치 상태
-          my_airline_id: actionStatus.myAirlineId,
-          my_airline_code: actionStatus.myAirlineCode,
-          my_action_status: actionStatus.myActionStatus,
-          my_action_type: actionStatus.myActionType,
-          other_action_status: actionStatus.otherActionStatus,
-          other_action_type: actionStatus.otherActionType,
-          // 전체 완료 여부 (양쪽 모두 completed)
-          both_completed: actionStatus.myActionStatus === 'completed' && actionStatus.otherActionStatus === 'completed',
-        };
-      }),
+      data: paginatedRows.map(({ callsign, actionStatus }: any) => ({
+        id: callsign.id,
+        airline_id: callsign.airline_id,
+        airline_code: callsign.airline_code,
+        callsign_pair: callsign.callsign_pair,
+        my_callsign: callsign.my_callsign,
+        other_callsign: callsign.other_callsign,
+        other_airline_code: callsign.other_airline_code,
+        error_type: callsign.error_type,
+        sub_error: callsign.sub_error,
+        risk_level: callsign.risk_level,
+        similarity: callsign.similarity,
+        occurrence_count: callsign.occurrence_count,
+        first_occurred_at: callsign.first_occurred_at,
+        last_occurred_at: callsign.last_occurred_at,
+        file_upload_id: callsign.file_upload_id,
+        uploaded_at: callsign.uploaded_at,
+        status: callsign.status,
+        created_at: callsign.created_at,
+        updated_at: callsign.updated_at,
+        // 양쪽 항공사 조치 상태
+        my_airline_id: actionStatus.myAirlineId,
+        my_airline_code: actionStatus.myAirlineCode,
+        my_action_status: actionStatus.myActionStatus,
+        my_action_type: actionStatus.myActionType,
+        other_action_status: actionStatus.otherActionStatus,
+        other_action_type: actionStatus.otherActionType,
+        // 전체 완료 여부 (양쪽 모두 completed)
+        both_completed: actionStatus.myActionStatus === 'completed' && actionStatus.otherActionStatus === 'completed',
+      })),
       pagination: {
         page,
         limit,
         total,
         totalPages: Math.ceil(total / limit),
       },
+      summary,
     });
   } catch (error) {
     console.error('호출부호 조치 상태 조회 오류:', error);

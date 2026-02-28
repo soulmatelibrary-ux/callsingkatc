@@ -279,6 +279,13 @@ export interface CallsignListResponse {
     total: number;
     totalPages: number;
   };
+  summary?: {
+    total: number;
+    completed: number;
+    in_progress: number;
+    pending: number;
+    no_action: number;
+  };
 }
 
 /**

@@ -6,6 +6,7 @@ import { useCallsignsWithActions } from '@/hooks/useActions';
 import { useAirlines } from '@/hooks/useAirlines';
 import { useAuthStore } from '@/store/authStore';
 import { StatCard } from './StatCard';
+import * as XLSX from 'xlsx';
 
 interface StatsResponse {
   total: number;
@@ -16,6 +17,8 @@ interface StatsResponse {
 
 export function OverviewTab() {
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>('');
+  const [selectedAirlineId, setSelectedAirlineId] = useState<string>('');
+  const [selectedActionStatus, setSelectedActionStatus] = useState<string>('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const pageSizeOptions = [10, 30, 50, 100];
@@ -24,6 +27,8 @@ export function OverviewTab() {
   const airlinesQuery = useAirlines();
   const callsignsQuery = useCallsignsWithActions({
     riskLevel: selectedRiskLevel || undefined,
+    airlineId: selectedAirlineId || undefined,
+    myActionStatus: selectedActionStatus || undefined,
     page,
     limit,
   });
@@ -66,11 +71,15 @@ export function OverviewTab() {
 
   const rows = callsignsQuery.data?.data ?? [];
   const pagination = callsignsQuery.data?.pagination;
+  const summary = callsignsQuery.data?.summary;
   const totalItems = pagination?.total ?? 0;
   const totalPagesFromApi = pagination?.totalPages ?? 0;
   const computedTotalPages = totalPagesFromApi > 0 ? totalPagesFromApi : 1;
   const startItem = totalItems === 0 ? 0 : (page - 1) * limit + 1;
   const endItem = totalItems === 0 ? 0 : Math.min(page * limit, totalItems);
+
+  // 필터 적용 여부 확인
+  const hasFilters = selectedRiskLevel || selectedAirlineId || selectedActionStatus;
 
   useEffect(() => {
     if (!pagination) return;
@@ -114,6 +123,8 @@ export function OverviewTab() {
 
   const handleReset = () => {
     setSelectedRiskLevel('');
+    setSelectedAirlineId('');
+    setSelectedActionStatus('');
     setPage(1);
   };
 
@@ -130,13 +141,23 @@ export function OverviewTab() {
 
   return (
     <div className="space-y-8">
-      {/* KPI 카드 */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-        <StatCard label="총 호출부호" value={stats.total} color="text-gray-900" />
-        <StatCard label="매우높음" value={stats.veryHigh} color="text-red-600" />
-        <StatCard label="높음" value={stats.high} color="text-amber-600" />
-        <StatCard label="낮음" value={stats.low} color="text-emerald-600" />
-      </div>
+      {/* KPI 카드 또는 필터 결과 요약 카드 */}
+      {hasFilters && summary ? (
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-6">
+          <StatCard label="전체" value={summary.total} color="text-gray-900" />
+          <StatCard label="완료" value={summary.completed} color="text-emerald-600" />
+          <StatCard label="진행중" value={summary.in_progress} color="text-blue-600" />
+          <StatCard label="대기중" value={summary.pending} color="text-amber-600" />
+          <StatCard label="미등록" value={summary.no_action} color="text-gray-600" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+          <StatCard label="총 호출부호" value={stats.total} color="text-gray-900" />
+          <StatCard label="매우높음" value={stats.veryHigh} color="text-red-600" />
+          <StatCard label="높음" value={stats.high} color="text-amber-600" />
+          <StatCard label="낮음" value={stats.low} color="text-emerald-600" />
+        </div>
+      )}
 
       {/* 호출부호 테이블 */}
       <div className="bg-white rounded-none shadow-sm border border-gray-100">
@@ -158,7 +179,8 @@ export function OverviewTab() {
 
         {/* 필터 */}
         <div className="px-8 py-6 border-b border-gray-50 bg-gray-50/50">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4">
+            {/* 필터 드롭다운 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
               <select
                 value={selectedRiskLevel}
@@ -173,25 +195,91 @@ export function OverviewTab() {
                 <option value="높음">높음</option>
                 <option value="낮음">낮음</option>
               </select>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                페이지당
-              </span>
+
               <select
-                value={String(limit)}
+                value={selectedAirlineId}
                 onChange={(e) => {
-                  setLimit(Number(e.target.value));
+                  setSelectedAirlineId(e.target.value);
                   setPage(1);
                 }}
                 className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
               >
-                {pageSizeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}개
+                <option value="">모든 항공사</option>
+                {airlinesQuery.data?.map((airline) => (
+                  <option key={airline.id} value={airline.id}>
+                    {airline.code} - {airline.name_ko}
                   </option>
                 ))}
               </select>
+
+              <select
+                value={selectedActionStatus}
+                onChange={(e) => {
+                  setSelectedActionStatus(e.target.value);
+                  setPage(1);
+                }}
+                className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
+              >
+                <option value="">모든 상태</option>
+                <option value="completed">완료</option>
+                <option value="in_progress">진행중</option>
+                <option value="pending">대기중</option>
+                <option value="no_action">미등록</option>
+              </select>
+
+              <button
+                onClick={() => {
+                  const excelRows = rows.map((callsign) => ({
+                    '호출부호 쌍': callsign.callsign_pair,
+                    '위험도': callsign.risk_level,
+                    '유사도': callsign.similarity || '-',
+                    '오류유형': callsign.error_type || '-',
+                    '발생횟수': callsign.occurrence_count || 0,
+                    '최근발생일': callsign.last_occurred_at
+                      ? new Date(callsign.last_occurred_at).toLocaleDateString('ko-KR')
+                      : '-',
+                    '자사(코드)': callsign.my_airline_code || '-',
+                    '자사 조치상태': getActionStatusMeta(callsign.my_action_status).label,
+                    '타사(코드)': callsign.other_airline_code || '-',
+                    '타사 조치상태': getActionStatusMeta(callsign.other_action_status).label,
+                    '전체 완료': callsign.both_completed ? '완료' : '미완료',
+                    '등록일': callsign.uploaded_at
+                      ? new Date(callsign.uploaded_at).toLocaleDateString('ko-KR')
+                      : '-',
+                  }));
+                  const ws = XLSX.utils.json_to_sheet(excelRows);
+                  const wb = XLSX.utils.book_new();
+                  XLSX.utils.book_append_sheet(wb, ws, '호출부호 현황');
+                  XLSX.writeFile(wb, `호출부호현황_${new Date().toLocaleDateString('ko-KR')}.xlsx`);
+                }}
+                disabled={rows.length === 0}
+                className="px-4 py-2.5 bg-emerald-600 text-white font-bold hover:opacity-90 disabled:opacity-50 rounded-none transition-all"
+              >
+                📊 Excel 저장
+              </button>
+            </div>
+
+            {/* 페이지당 선택 및 통계 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  페이지당
+                </span>
+                <select
+                  value={String(limit)}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
+                >
+                  {pageSizeOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}개
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
