@@ -414,7 +414,7 @@ export async function POST(request: NextRequest) {
                 const parts = dateStr.split('/');
                 if (parts.length === 3) {
                   // "MM/DD/YYYY" -> "YYYY-MM-DD"
-                  occurredDate = `?-?-?`;
+                  occurredDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
                 } else {
                   occurredDate = new Date().toISOString().split('T')[0];
                 }

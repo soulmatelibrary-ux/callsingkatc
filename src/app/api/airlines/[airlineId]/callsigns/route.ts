@@ -87,9 +87,6 @@ export async function GET(
        FROM callsigns
        WHERE (airline_code = ? OR other_airline_code = ?)
          AND status = 'in_progress'
-         AND NOT EXISTS (
-           SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
-         )
          ${riskLevelCondition}
        ORDER BY
          CASE
@@ -119,9 +116,6 @@ export async function GET(
        FROM callsigns
        WHERE (airline_code = ? OR other_airline_code = ?)
          AND status = 'in_progress'
-         AND NOT EXISTS (
-           SELECT 1 FROM actions a WHERE a.callsign_id = callsigns.id
-         )
          ${countRiskCondition}`,
       countParams
     );

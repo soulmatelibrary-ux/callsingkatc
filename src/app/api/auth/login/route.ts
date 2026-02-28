@@ -99,6 +99,9 @@ export async function POST(request: NextRequest) {
         }
       : null;
 
+    // 📌 비밀번호 강제 변경 기준: is_default_password 또는 password_change_required 중 하나라도 true
+    const needsPasswordChange = user.is_default_password === true || user.password_change_required === true;
+
     const sanitizedUser = {
       id: user.id,
       email: user.email,
@@ -108,7 +111,7 @@ export async function POST(request: NextRequest) {
       airline,
       is_default_password: user.is_default_password,
       password_change_required: user.password_change_required,
-      forceChangePassword: user.is_default_password === true,
+      forceChangePassword: needsPasswordChange,
     };
 
     // 응답 생성 (forceChangePassword 플래그 포함)
@@ -131,6 +134,7 @@ export async function POST(request: NextRequest) {
     });
 
     // user 쿠키 설정 (라우트 보호 및 세션 확인용)
+    // 📌 passwordChangeRequired 추가: 미들웨어에서 강제 리다이렉트 판단용
     const userCookieValue = encodeURIComponent(JSON.stringify({
       id: sanitizedUser.id,
       email: sanitizedUser.email,
@@ -138,6 +142,7 @@ export async function POST(request: NextRequest) {
       status: sanitizedUser.status,
       airline_id: sanitizedUser.airline_id,
       airline: sanitizedUser.airline,
+      passwordChangeRequired: needsPasswordChange,
     }));
     response.cookies.set('user', userCookieValue, {
       httpOnly: false, // 클라이언트에서 접근 가능

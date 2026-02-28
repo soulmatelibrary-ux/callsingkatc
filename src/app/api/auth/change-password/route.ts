@@ -131,6 +131,43 @@ export async function POST(request: NextRequest) {
       );
     });
 
+    // 📌 user 쿠키 갱신: passwordChangeRequired = false로 업데이트
+    // 클라이언트 쿠키를 직접 갱신하려면 user 정보를 다시 조회해야 함
+    const updatedUserResult = await query(
+      `SELECT id, email, status, role, airline_id
+       FROM users
+       WHERE id = ?`,
+      [userId]
+    );
+
+    if (updatedUserResult.rows.length > 0) {
+      const updatedUser = updatedUserResult.rows[0];
+      const userCookieValue = encodeURIComponent(JSON.stringify({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        status: updatedUser.status,
+        airline_id: updatedUser.airline_id,
+        passwordChangeRequired: false, // 📌 플래그 갱신
+      }));
+
+      const response = NextResponse.json(
+        { message: '비밀번호가 변경되었습니다.' },
+        { status: 200 }
+      );
+
+      // user 쿠키 갱신
+      response.cookies.set('user', userCookieValue, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60,
+        path: '/',
+      });
+
+      return response;
+    }
+
     return NextResponse.json(
       { message: '비밀번호가 변경되었습니다.' },
       { status: 200 }

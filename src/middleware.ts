@@ -85,10 +85,13 @@ export function middleware(request: NextRequest) {
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
   let userRole: string | null = null;
+  let needsPasswordChange = false;
   if (userCookie) {
     try {
       const parsed = JSON.parse(decodeURIComponent(userCookie));
       userRole = parsed?.role || null;
+      // 📌 passwordChangeRequired 플래그 확인
+      needsPasswordChange = parsed?.passwordChangeRequired === true;
     } catch (error) {
       console.warn('[Middleware] 사용자 쿠키 파싱 실패:', error);
     }
@@ -105,6 +108,17 @@ export function middleware(request: NextRequest) {
     return response;
   };
 
+  // 📌 강제 비밀번호 변경 필요 여부 체크
+  // - 로그인 상태 AND 비밀번호 변경 필요 AND 보호 라우트 AND change-password 경로 제외
+  const isChangePasswordRoute = pathname === '/change-password' || pathname.startsWith('/api/auth/change-password') || pathname.startsWith('/api/auth/logout') || pathname.startsWith('/api/auth/me');
+  const needsForcedPasswordChange = isLoggedIn && needsPasswordChange && isProtectedRoute && !isChangePasswordRoute;
+
+  // 0. 강제 비밀번호 변경 → /change-password로 리다이렉트 (우회 불가)
+  if (needsForcedPasswordChange) {
+    console.log('[Middleware] 리다이렉트: 강제 비밀번호 변경 필요 → /change-password?forced=true');
+    return finalizeResponse(NextResponse.redirect(new URL('/change-password?forced=true', request.url)));
+  }
+
   // 1. 로그인 안 된 상태 + 보호 라우트 → /으로 리다이렉트
   if (!isLoggedIn && isProtectedRoute) {
     console.log('[Middleware] 리다이렉트: 보호 라우트 - 인증 실패 → 홈으로 이동');
@@ -112,7 +126,8 @@ export function middleware(request: NextRequest) {
   }
 
   // 2. 로그인 상태 + 인증 라우트 → 역할별 기본 페이지로 리다이렉트
-  if (isLoggedIn && isAuthRoute) {
+  // (비밀번호 변경 필요한 경우는 제외)
+  if (isLoggedIn && isAuthRoute && !needsPasswordChange) {
     console.log('[Middleware] 리다이렉트: 인증 라우트 →', defaultRedirect);
     return finalizeResponse(NextResponse.redirect(new URL(defaultRedirect, request.url)));
   }

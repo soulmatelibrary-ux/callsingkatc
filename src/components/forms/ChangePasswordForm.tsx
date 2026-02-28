@@ -2,11 +2,13 @@
  * ChangePasswordForm 컴포넌트
  * - 현재 비밀번호 확인 후 새 비밀번호 변경
  * - 로그인된 사용자 전용
+ * - forced=true: 강제 변경 모드 (초기 로그인 또는 관리자 초기화)
  */
 
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,6 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { PasswordStrength } from '@/components/ui/PasswordStrength';
 import { AUTH_ERRORS, PASSWORD_REGEX, PASSWORD_RULE } from '@/lib/constants';
 import { changePasswordAPI } from '@/lib/api/auth';
+import { useAuthStore } from '@/store/authStore';
 
 const schema = z
   .object({
@@ -37,10 +40,17 @@ const schema = z
 
 type FormValues = z.infer<typeof schema>;
 
-export function ChangePasswordForm() {
+interface ChangePasswordFormProps {
+  forced?: boolean; // 강제 변경 모드 여부
+}
+
+export function ChangePasswordForm({ forced = false }: ChangePasswordFormProps) {
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const [isSuccess, setIsSuccess] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [watchedNewPassword, setWatchedNewPassword] = useState('');
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const {
     register,
@@ -60,6 +70,16 @@ export function ChangePasswordForm() {
       setIsSuccess(true);
       reset();
       setWatchedNewPassword('');
+
+      // 📌 강제 변경 모드: 비밀번호 변경 완료 후 역할별 페이지로 리다이렉트
+      if (forced) {
+        setIsRedirecting(true);
+        // 2초 후 리다이렉트 (성공 메시지 표시 후)
+        setTimeout(() => {
+          const targetUrl = user?.role === 'admin' ? '/admin' : '/airline';
+          router.push(targetUrl);
+        }, 2000);
+      }
     } catch (err: any) {
       const code = err?.response?.data?.error?.code;
       if (code === 'INVALID_PASSWORD') {
@@ -77,66 +97,100 @@ export function ChangePasswordForm() {
           role="status"
           className="px-3 py-2.5 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700"
         >
-          비밀번호가 성공적으로 변경되었습니다.
+          ✅ 비밀번호가 성공적으로 변경되었습니다.
+          {forced && (
+            <div className="text-xs mt-1 text-green-600">
+              {isRedirecting ? '페이지로 이동하는 중입니다...' : '잠시 후 자동으로 이동됩니다.'}
+            </div>
+          )}
         </div>
       )}
 
-      <Input
-        id="currentPassword"
-        type="password"
-        label="현재 비밀번호"
-        placeholder="현재 비밀번호 입력"
-        autoComplete="current-password"
-        required
-        error={errors.currentPassword?.message}
-        {...register('currentPassword')}
-      />
+      {/* 강제 변경 모드에서는 다른 페이지 이동 방지 */}
+      {!isSuccess && (
+        <>
+          <Input
+            id="currentPassword"
+            type="password"
+            label="현재 비밀번호"
+            placeholder="현재 비밀번호 입력"
+            autoComplete="current-password"
+            required
+            error={errors.currentPassword?.message}
+            disabled={isRedirecting}
+            {...register('currentPassword')}
+          />
 
-      <div>
-        <Input
-          id="newPassword"
-          type="password"
-          label="새 비밀번호"
-          placeholder="8자 이상, 대문자 + 숫자 포함"
-          autoComplete="new-password"
-          required
-          error={errors.newPassword?.message}
-          hint={!errors.newPassword ? PASSWORD_RULE : undefined}
-          {...newPasswordProps}
-          onChange={(e) => {
-            setWatchedNewPassword(e.target.value);
-            newPasswordProps.onChange(e);
-          }}
-        />
-        <PasswordStrength password={watchedNewPassword} />
-      </div>
+          <div>
+            <Input
+              id="newPassword"
+              type="password"
+              label="새 비밀번호"
+              placeholder="8자 이상, 대문자 + 숫자 포함"
+              autoComplete="new-password"
+              required
+              error={errors.newPassword?.message}
+              hint={!errors.newPassword ? PASSWORD_RULE : undefined}
+              disabled={isRedirecting}
+              {...newPasswordProps}
+              onChange={(e) => {
+                setWatchedNewPassword(e.target.value);
+                newPasswordProps.onChange(e);
+              }}
+            />
+            <PasswordStrength password={watchedNewPassword} />
+          </div>
 
-      <Input
-        id="newPasswordConfirm"
-        type="password"
-        label="새 비밀번호 확인"
-        placeholder="새 비밀번호 재입력"
-        autoComplete="new-password"
-        required
-        error={errors.newPasswordConfirm?.message}
-        {...register('newPasswordConfirm')}
-      />
+          <Input
+            id="newPasswordConfirm"
+            type="password"
+            label="새 비밀번호 확인"
+            placeholder="새 비밀번호 재입력"
+            autoComplete="new-password"
+            required
+            error={errors.newPasswordConfirm?.message}
+            disabled={isRedirecting}
+            {...register('newPasswordConfirm')}
+          />
 
-      {serverError && (
-        <div role="alert" className="px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
-          {serverError}
-        </div>
+          {serverError && (
+            <div role="alert" className="px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+              {serverError}
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            variant="primary"
+            fullWidth
+            size="lg"
+            isLoading={isSubmitting || isRedirecting}
+            disabled={isRedirecting}
+          >
+            비밀번호 변경
+          </Button>
+
+          {/* 강제 변경 모드에서는 로그아웃 버튼만 제공 */}
+          {forced && (
+            <div className="pt-2 border-t border-gray-200">
+              <Button
+                type="button"
+                variant="secondary"
+                fullWidth
+                size="lg"
+                onClick={() => {
+                  window.location.href = '/api/auth/logout';
+                }}
+              >
+                로그아웃
+              </Button>
+              <p className="text-xs text-gray-500 text-center mt-2">
+                비밀번호 변경 전까지 다른 페이지에 접근할 수 없습니다.
+              </p>
+            </div>
+          )}
+        </>
       )}
-
-      <Button
-        type="submit"
-        variant="primary"
-        fullWidth
-        size="lg"
-        isLoading={isSubmitting}
-      >
-        비밀번호 변경
-      </Button>
     </form>
   );
 }

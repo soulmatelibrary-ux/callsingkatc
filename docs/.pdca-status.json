@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-28T00:47:27.802Z",
+  "lastUpdated": "2026-02-28T00:49:23.068Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -43,7 +43,8 @@
     "tabs",
     "db",
     "queries",
-    "test-callsigns"
+    "test-callsigns",
+    "similarity_callsign"
   ],
   "primaryFeature": "katc1",
   "features": {
@@ -121,9 +122,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:41:49.609Z",
-        "lastUpdated": "2026-02-24T11:17:23.380Z"
+        "lastUpdated": "2026-02-28T00:48:59.647Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/forms/LoginForm.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/forms/ChangePasswordForm.tsx"
     },
     "admin": {
       "phase": "do",
@@ -160,7 +161,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:43:44.364Z",
-        "lastUpdated": "2026-02-27T13:45:32.850Z"
+        "lastUpdated": "2026-02-28T00:48:15.004Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/login/route.ts"
     },
@@ -199,7 +200,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:44:00.843Z",
-        "lastUpdated": "2026-02-27T13:45:12.677Z"
+        "lastUpdated": "2026-02-28T00:49:08.465Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/change-password/route.ts"
     },
@@ -251,7 +252,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:45:02.496Z",
-        "lastUpdated": "2026-02-28T00:39:42.874Z"
+        "lastUpdated": "2026-02-28T00:47:42.611Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/users/route.ts"
     },
@@ -290,9 +291,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:07.868Z",
-        "lastUpdated": "2026-02-20T05:52:26.881Z"
+        "lastUpdated": "2026-02-28T00:47:59.008Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/api/auth/refresh/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/refresh/route.ts"
     },
     "[id]": {
       "phase": "do",
@@ -303,9 +304,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-28T00:46:49.504Z"
+        "lastUpdated": "2026-02-28T00:48:44.667Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/file-uploads/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/users/[id]/route.ts"
     },
     "katc1-backend": {
       "phase": "do",
@@ -342,9 +343,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T11:18:22.152Z",
-        "lastUpdated": "2026-02-22T05:27:06.288Z"
+        "lastUpdated": "2026-02-28T00:48:06.975Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/app/admin/password-reset/page.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/users/[id]/password-reset/route.ts"
     },
     "airline": {
       "phase": "do",
@@ -394,7 +395,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T04:18:58.733Z",
-        "lastUpdated": "2026-02-28T00:45:02.392Z"
+        "lastUpdated": "2026-02-28T00:49:23.068Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/callsigns/route.ts"
     },
@@ -609,6 +610,19 @@
         "lastUpdated": "2026-02-27T13:53:43.712Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/test-callsigns/route.ts"
+    },
+    "similarity_callsign": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-02-28T00:48:23.166Z",
+        "lastUpdated": "2026-02-28T00:48:31.121Z"
+      },
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/middleware.ts"
     }
   },
   "pipeline": {
@@ -619,7 +633,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-28T00:47:27.802Z"
+    "lastActivity": "2026-02-28T00:49:23.068Z"
   },
   "history": [
     {
@@ -7507,6 +7521,120 @@
     {
       "timestamp": "2026-02-28T00:47:27.802Z",
       "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:32.528Z",
+      "feature": "users",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:38.624Z",
+      "feature": "users",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:42.611Z",
+      "feature": "users",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:56.429Z",
+      "feature": "password-reset",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:59.008Z",
+      "feature": "refresh",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:47:59.979Z",
+      "feature": "password-reset",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:48:06.975Z",
+      "feature": "password-reset",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:48:10.820Z",
+      "feature": "login",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:48:15.004Z",
+      "feature": "login",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:48:23.166Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:48:31.121Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:48:39.254Z",
+      "feature": "change-password",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:48:43.827Z",
+      "feature": "forms",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:48:44.667Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:48:49.791Z",
+      "feature": "forms",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:48:59.647Z",
+      "feature": "forms",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:49:08.465Z",
+      "feature": "change-password",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:49:19.722Z",
+      "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:49:23.068Z",
+      "feature": "callsigns",
       "phase": "do",
       "action": "updated"
     }

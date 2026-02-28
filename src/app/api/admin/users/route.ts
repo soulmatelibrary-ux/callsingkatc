@@ -126,15 +126,15 @@ export async function POST(request: NextRequest) {
     const { email, password, airlineId, airlineCode, role = 'user' } = await request.json();
 
     // 유효성 검사
-    if (!email || (!airlineId && !airlineCode)) {
+    if (!email || !password || (!airlineId && !airlineCode)) {
       return NextResponse.json(
-        { error: '이메일과 항공사는 필수입니다.' },
+        { error: '이메일, 비밀번호, 항공사는 필수입니다.' },
         { status: 400 }
       );
     }
 
-    // 비밀번호 입력 검증 (비밀번호를 입력한 경우)
-    if (password && !PASSWORD_REGEX.test(password)) {
+    // 비밀번호 규칙 검증 (필수)
+    if (!PASSWORD_REGEX.test(password)) {
       return NextResponse.json(
         { error: '비밀번호: 8자 이상, 대문자·소문자·숫자·특수문자 모두 포함 필요' },
         { status: 400 }
@@ -172,18 +172,12 @@ export async function POST(request: NextRequest) {
     // 실제 DB의 UUID id 사용
     const resolvedAirlineId: string = airlineCheck.rows[0].id;
 
-    // 비밀번호 처리
-    let passwordHash: string;
-    if (password) {
-      // 입력된 비밀번호 사용
-      passwordHash = await bcrypt.hash(password, 10);
-    } else {
-      // 임시 비밀번호 생성 (임의의 문자열)
-      const tempPassword = `Temp${Math.random().toString(36).substring(2, 8)}@`;
-      passwordHash = await bcrypt.hash(tempPassword, 10);
-    }
+    // 비밀번호 암호화 (필수)
+    const passwordHash = await bcrypt.hash(password, 10);
 
     // 사용자 생성 (트랜잭션)
+    // 📌 신규 생성 사용자는 항상 is_default_password=true, password_change_required=true로 설정
+    // 첫 로그인 시 무조건 비밀번호 변경 페이지로 강제 이동
     await transaction(async (trx) => {
       // 사용자 생성
       await trx(
@@ -191,7 +185,7 @@ export async function POST(request: NextRequest) {
            email, password_hash, airline_id, status, role,
            is_default_password, password_change_required
          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [email, passwordHash, resolvedAirlineId, 'active', role, password ? false : true, password ? false : true]
+        [email, passwordHash, resolvedAirlineId, 'active', role, true, true]
       );
     });
 
@@ -240,9 +234,7 @@ export async function POST(request: NextRequest) {
           password_change_required: result.password_change_required,
           createdAt: result.created_at,
         },
-        message: password
-          ? '사용자가 생성되었습니다.'
-          : '사용자가 생성되었습니다. 임시 비밀번호가 설정되었습니다.',
+        message: '사용자가 생성되었습니다. 첫 로그인 시 비밀번호 변경이 필요합니다.',
       },
       { status: 201 }
     );

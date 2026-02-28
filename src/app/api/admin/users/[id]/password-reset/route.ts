@@ -2,9 +2,9 @@
  * PUT /api/admin/users/[id]/password-reset
  * 관리자 - 특정 사용자 비밀번호 초기화
  *
- * - 임시 비밀번호를 생성하여 DB에 저장
+ * - 초기화 비밀번호: {항공사코드}1234! 형식
  * - password_change_required = true 설정
- * - 임시 비밀번호를 응답에 포함 (관리자가 사용자에게 전달)
+ * - 초기화된 비밀번호 규칙을 응답에 포함 (관리자가 사용자에게 전달)
  *
  * 권한: admin 전용
  */
@@ -22,34 +22,6 @@ interface Params {
   };
 }
 
-/** 임시 비밀번호 생성 */
-function generateTempPassword(): string {
-  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const lower = 'abcdefghijklmnopqrstuvwxyz';
-  const digits = '0123456789';
-  const special = '!@#$%^&*';
-
-  const getRandom = (chars: string) =>
-    chars[Math.floor(Math.random() * chars.length)];
-
-  const required = [
-    getRandom(upper),
-    getRandom(upper),
-    getRandom(lower),
-    getRandom(lower),
-    getRandom(digits),
-    getRandom(digits),
-    getRandom(special),
-    getRandom(special),
-  ];
-
-  const allChars = upper + lower + digits + special;
-  for (let i = 0; i < 4; i++) {
-    required.push(getRandom(allChars));
-  }
-
-  return required.sort(() => Math.random() - 0.5).join('');
-}
 
 export async function PUT(request: NextRequest, { params }: Params) {
   try {
@@ -74,9 +46,12 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     const userId = params.id;
 
-    // 대상 사용자 존재 여부 확인
+    // 대상 사용자와 항공사 정보 조회
     const userResult = await query(
-      'SELECT id, email, status, role FROM users WHERE id = ?',
+      `SELECT u.id, u.email, u.status, u.role, u.airline_id, a.code as airline_code
+       FROM users u
+       LEFT JOIN airlines a ON u.airline_id = a.id
+       WHERE u.id = ?`,
       [userId]
     );
 
@@ -97,9 +72,17 @@ export async function PUT(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 임시 비밀번호 생성
-    const tempPassword = generateTempPassword();
-    const passwordHash = await bcrypt.hash(tempPassword, 10);
+    // 항공사 코드 확인
+    if (!targetUser.airline_code) {
+      return NextResponse.json(
+        { error: '사용자의 항공사 정보를 찾을 수 없습니다.' },
+        { status: 400 }
+      );
+    }
+
+    // 📌 초기화 비밀번호: {항공사코드}1234! 형식
+    const resetPassword = `${targetUser.airline_code}1234!`;
+    const passwordHash = await bcrypt.hash(resetPassword, 10);
 
     // DB 업데이트
     await query(
@@ -115,7 +98,9 @@ export async function PUT(request: NextRequest, { params }: Params) {
     return NextResponse.json({
       message: '비밀번호가 초기화되었습니다.',
       email: targetUser.email,
-      tempPassword,
+      resetPasswordFormat: `{항공사코드}1234!`,
+      example: resetPassword,
+      hint: `사용자의 항공사코드: ${targetUser.airline_code}`,
     });
   } catch (error) {
     console.error('비밀번호 초기화 오류:', error);

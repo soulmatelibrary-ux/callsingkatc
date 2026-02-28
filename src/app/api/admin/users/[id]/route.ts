@@ -94,15 +94,16 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       params_array.push(resolvedAirlineId);
     }
 
-    // 항상 updated_at 업데이트
-    updates.push(`updated_at = CURRENT_TIMESTAMP`);
-
+    // 변경할 필드가 없으면 먼저 체크
     if (updates.length === 0) {
       return NextResponse.json(
         { error: '업데이트할 필드가 없습니다.' },
         { status: 400 }
       );
     }
+
+    // 항상 updated_at 업데이트
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
 
     // userId 추가
     params_array.push(userId);

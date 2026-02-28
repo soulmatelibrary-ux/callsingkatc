@@ -68,6 +68,14 @@ export async function POST(request: NextRequest) {
       status: user.status,
     });
 
+    // 정지된 사용자 거부
+    if (user.status === 'suspended') {
+      return NextResponse.json(
+        { error: '정지된 계정입니다.' },
+        { status: 403 }
+      );
+    }
+
     const airline = user.airline_code
       ? {
           id: user.airline_id,
