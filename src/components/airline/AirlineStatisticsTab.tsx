@@ -455,12 +455,12 @@ export function AirlineStatisticsTab({
 
                     </div>
 
-                    {/* Bottom Section: 2 Columns (Trends and Top 5) */}
+                    {/* Fifth Section: Trends & Detailed Lists */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                         {/* Monthly Trend Area Chart */}
-                        <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[380px]">
-                            <h4 className="text-base font-bold text-slate-800 mb-6">월별 발생 및 조치 트렌드 <span className="text-sm font-normal text-slate-400 ml-2">Monthly Trends</span></h4>
+                        <div className="lg:col-span-2 bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[360px]">
+                            <h4 className="text-base font-bold text-slate-800 mb-6">월별 조치 발생 추이 <span className="text-sm font-normal text-slate-400 ml-2">Monthly Trends</span></h4>
                             <div className="flex-1 w-full relative">
                                 {monthlyTrend.length > 0 ? (
                                     <ResponsiveContainer width="100%" height="100%">
@@ -487,7 +487,7 @@ export function AirlineStatisticsTab({
                                             />
                                             <Tooltip
                                                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)' }}
-                                                formatter={(value: any) => [`${value}건`, '발생/조치 건수']}
+                                                formatter={(value: any) => [`${value}건`, '발생 건수']}
                                                 labelStyle={{ color: '#0F172A', fontWeight: 'bold', marginBottom: '4px' }}
                                             />
                                             <Area
@@ -507,46 +507,47 @@ export function AirlineStatisticsTab({
                             </div>
                         </div>
 
-                        {/* Top 5 Frequent & Risk Level */}
-                        <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[380px]">
+                        {/* Top 5 & Risk Level */}
+                        <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[360px] gap-6">
 
-                            <div className="mb-6">
-                                <h4 className="text-base font-bold text-slate-800 mb-4">빈발 유사호출부호 <span className="text-xs font-normal text-slate-400 ml-1">Top 5</span></h4>
-                                <div className="flex flex-col gap-3">
+                            {/* Top 5 Callsigns */}
+                            <div className="flex-1">
+                                <h4 className="text-base font-bold text-slate-800 mb-4">빈발 호출부호 <span className="text-xs font-normal text-slate-400 ml-1">Top 5</span></h4>
+                                <div className="flex flex-col gap-2.5">
                                     {topCallsigns.length > 0 ? (
                                         topCallsigns.map((item, idx) => {
                                             const max = topCallsigns[0].count;
                                             const pct = Math.max((item.count / max) * 100, 10);
                                             return (
-                                                <div key={idx} className="flex flex-col gap-1.5">
-                                                    <div className="flex justify-between items-end">
-                                                        <span className="text-sm font-black text-slate-700 font-mono tracking-wider">{item.name}</span>
+                                                <div key={idx} className="flex flex-col gap-1">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-xs font-bold text-slate-700 font-mono">{item.name}</span>
                                                         <span className="text-xs font-bold text-indigo-600">{item.count}회</span>
                                                     </div>
-                                                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                                                         <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${pct}%` }}></div>
                                                     </div>
                                                 </div>
                                             )
                                         })
                                     ) : (
-                                        <div className="text-slate-400 text-sm py-4">데이터가 없습니다.</div>
+                                        <div className="text-slate-400 text-xs py-2">데이터 없음</div>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="mt-auto pt-6 border-t border-slate-100">
-                                <h4 className="text-sm font-bold text-slate-800 mb-3">위험도별 분포 <span className="text-xs font-normal text-slate-400 ml-1">Risk Levels</span></h4>
-                                <div className="flex gap-2 h-8 w-full rounded-lg overflow-hidden relative">
+                            {/* Risk Level Distribution */}
+                            <div className="border-t border-slate-100 pt-4">
+                                <h4 className="text-sm font-bold text-slate-800 mb-3">위험도 현황 <span className="text-xs font-normal text-slate-400 ml-1">Risk Levels</span></h4>
+                                <div className="flex gap-2 h-7 w-full rounded-lg overflow-hidden">
                                     {riskStats.length > 0 ? (
                                         riskStats.map((r, i) => {
                                             const total = riskStats.reduce((acc, curr) => acc + curr.value, 0);
                                             const pct = (r.value / total) * 100;
                                             return (
-                                                <div key={i} className="h-full flex items-center justify-center relative group" style={{ width: `${pct}%`, backgroundColor: r.color }}>
-                                                    {pct > 15 && <span className="text-[10px] font-bold text-white/90 truncate px-1">{r.value}</span>}
-                                                    {/* Basic css tooltip */}
-                                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
+                                                <div key={i} className="h-full flex items-center justify-center relative group transition-all hover:opacity-90" style={{ width: `${pct}%`, backgroundColor: r.color }}>
+                                                    {pct > 20 && <span className="text-[10px] font-bold text-white truncate px-1">{r.value}</span>}
+                                                    <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
                                                         {r.name}: {r.value}건
                                                     </div>
                                                 </div>
@@ -557,11 +558,11 @@ export function AirlineStatisticsTab({
                                     )}
                                 </div>
                                 {riskStats.length > 0 && (
-                                    <div className="flex justify-between mt-2 px-1">
+                                    <div className="flex gap-3 mt-2.5 px-1">
                                         {riskStats.map((r, i) => (
-                                            <div key={i} className="flex items-center gap-1">
-                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: r.color }}></div>
-                                                <span className="text-[10px] font-medium text-slate-500">{r.name}</span>
+                                            <div key={i} className="flex items-center gap-1.5">
+                                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: r.color }}></div>
+                                                <span className="text-[11px] font-medium text-slate-600">{r.name}</span>
                                             </div>
                                         ))}
                                     </div>
