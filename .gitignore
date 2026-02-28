@@ -14,10 +14,16 @@
 # production
 /build
 
+# bkit internal state & files
+.bkit/
+docs/.bkit-memory.json
+docs/.pdca-snapshots/
+docs/.pdca-status.json
+docs/03-analysis/
+
 # misc
 .DS_Store
 *.pem
-docs/
 
 # debug
 npm-debug.log*
@@ -26,7 +32,7 @@ yarn-error.log*
 
 # local env files
 .env*
-!.env.example.template
+!.env.example
 
 # vercel
 .vercel
