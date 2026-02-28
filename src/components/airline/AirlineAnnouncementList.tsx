@@ -143,7 +143,7 @@ export function AirlineAnnouncementList({
       </div>
 
       {/* 검색 및 필터 */}
-      <div className="space-y-4 pb-4 border-b border-gray-100">
+      <div className="space-y-3 pb-3 border-b border-gray-100">
         {showSearch && (
           <div className="flex gap-2">
             <input
@@ -269,7 +269,7 @@ export function AirlineAnnouncementList({
           공지사항이 없습니다.
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-1.5">
           {announcements.map((item) => {
             const levelMeta =
               ANNOUNCEMENT_LEVEL_META[
@@ -288,30 +288,32 @@ export function AirlineAnnouncementList({
                 <button
                   type="button"
                   onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                  className="w-full px-5 py-4 flex items-start gap-3 hover:bg-gray-50 transition text-left"
+                  className="w-full px-4 py-2.5 flex items-center gap-2 hover:bg-gray-50 transition text-left"
                 >
                   {/* 배지 */}
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-black ${levelMeta.badge}`}>
+                  <div className="flex gap-1.5 flex-shrink-0">
+                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${levelMeta.badge}`}>
                       {levelMeta.label}
                     </span>
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-black ${statusMeta.badge}`}>
+                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${statusMeta.badge}`}>
                       {statusMeta.label}
                     </span>
                   </div>
 
-                  {/* 제목과 확장 버튼 */}
+                  {/* 제목과 기간 */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-base font-black text-gray-900">
-                      {item.title}
-                    </h4>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formatAnnouncementPeriod(item.startDate, item.endDate)}
-                    </p>
+                    <div className="flex items-baseline gap-2">
+                      <h4 className="text-sm font-black text-gray-900">
+                        {item.title}
+                      </h4>
+                      <span className="text-xs text-gray-400 whitespace-nowrap">
+                        {formatAnnouncementPeriod(item.startDate, item.endDate)}
+                      </span>
+                    </div>
                   </div>
 
                   <ChevronDown
-                    className={`w-5 h-5 text-gray-400 flex-shrink-0 mt-1 transition-transform ${
+                    className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${
                       isExpanded ? 'rotate-180' : ''
                     }`}
                   />
@@ -319,8 +321,8 @@ export function AirlineAnnouncementList({
 
                 {/* 내용 - 펼쳤을 때만 표시 */}
                 {isExpanded && (
-                  <div className="px-5 py-4 bg-gray-50 border-t border-gray-100">
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap mb-4">
+                  <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">
                       {item.content}
                     </p>
                     <div className="flex justify-between items-center text-xs text-gray-500">
@@ -335,7 +337,7 @@ export function AirlineAnnouncementList({
                             handleMarkAsRead(item.id);
                           }}
                           disabled={markingAsRead === item.id}
-                          className="px-3 py-1 bg-emerald-500 text-white text-xs font-semibold rounded hover:bg-emerald-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                          className="px-2.5 py-1 bg-emerald-500 text-white text-xs font-semibold rounded hover:bg-emerald-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
                         >
                           {markingAsRead === item.id ? '처리 중...' : '✓ 확인했음'}
                         </button>
