@@ -65,8 +65,9 @@ export async function GET(
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 가상 항목(조치 미등록)은 제외 - 조치대상 탭에서만 관리
-    const allowVirtualEntries = false;
+    // 가상 항목(조치 미등록)은 포함 - callsigns만 있고 actions 없는 항목
+    // "전체" 또는 "진행중" 필터에서 포함 (완료 필터에서는 제외)
+    const allowVirtualEntries = !status || status === 'in_progress';
 
     const actionConditions: string[] = ['a.airline_id = ?'];
     const actionParams: any[] = [airlineId];
@@ -348,10 +349,10 @@ export async function POST(
 
     const airlineCode = airlineCheck.rows[0].code;
 
-    // 호출부호 존재 및 항공사 코드 일치 확인
+    // 호출부호 존재 및 항공사 코드 일치 확인 + 상세 정보 조회
     // (내 항공사이거나 상대 항공사인 경우 모두 허용)
     const callsignCheck = await query(
-      'SELECT id FROM callsigns WHERE id = ? AND (airline_code = ? OR other_airline_code = ?)',
+      'SELECT id, airline_code, other_airline_code FROM callsigns WHERE id = ? AND (airline_code = ? OR other_airline_code = ?)',
       [callsignId, airlineCode, airlineCode]
     );
 
@@ -360,6 +361,32 @@ export async function POST(
         { error: '호출부호를 찾을 수 없거나 항공사와 일치하지 않습니다.' },
         { status: 404 }
       );
+    }
+
+    const callsignData = callsignCheck.rows[0];
+    // 상대 항공사 코드 결정 (현재 항공사와 다른 쪽)
+    const otherAirlineCode = callsignData.airline_code === airlineCode
+      ? callsignData.other_airline_code
+      : callsignData.airline_code;
+
+    // 상대 항공사 ID 조회
+    const otherAirlineResult = await query(
+      'SELECT id FROM airlines WHERE code = ?',
+      [otherAirlineCode]
+    );
+
+    let otherAirlineId: string | null = null;
+    if (otherAirlineResult.rows.length > 0) {
+      otherAirlineId = otherAirlineResult.rows[0].id;
+
+      // 상대 항공사가 이 호출부호에 대한 조치를 이미 등록했는지 확인
+      const otherActionCheck = await query(
+        'SELECT COUNT(*) as count FROM actions WHERE callsign_id = ? AND airline_id = ?',
+        [callsignId, otherAirlineId]
+      );
+      var otherActionExists = otherActionCheck.rows[0].count > 0;
+    } else {
+      var otherActionExists = false;
     }
 
     // completedAt이 없으면 현재 시각 사용
@@ -378,12 +405,22 @@ export async function POST(
         [airlineId, callsignId, actionType, description || null, managerName || null, plannedDueDate || null, completedTimestamp, actionStatus, payload.userId]
       );
 
-      // 조치 상태에 따라 호출부호 상태 업데이트
-      // - 조치가 완료(completed)면 호출부호도 완료로 변경
-      // - 그 외(pending, in_progress)는 호출부호 상태 유지
-      if (actionStatus === 'completed') {
-        await trx('UPDATE callsigns SET status = ? WHERE id = ?', ['completed', callsignId]);
+      // 호출부호 상태 업데이트 로직
+      // - 상호 항공사 여부 확인 후 결정
+      // - 둘 다 조치가 있으면 'completed', 하나만 있으면 'in_progress' 유지
+      let newCallsignStatus = 'in_progress';
+
+      if (otherActionExists) {
+        // 상대 항공사가 이미 조치를 등록했으므로, 이제 둘 다 조치가 있음
+        // → callsigns.status = 'completed'
+        newCallsignStatus = 'completed';
+      } else {
+        // 상대 항공사가 아직 조치를 등록하지 않음
+        // → callsigns.status = 'in_progress' (유지)
+        newCallsignStatus = 'in_progress';
       }
+
+      await trx('UPDATE callsigns SET status = ? WHERE id = ?', [newCallsignStatus, callsignId]);
     });
 
     // 생성된 조치 조회

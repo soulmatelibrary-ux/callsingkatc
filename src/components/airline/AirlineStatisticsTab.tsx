@@ -153,41 +153,6 @@ export function AirlineStatisticsTab({
         { name: '완료', value: statusCounts.completed, color: COLORS.emerald },
     ].filter(item => item.value > 0);
 
-    // 응답 시간 분포 (평균 처리일수 기반 추정)
-    // 실제로는 각 조치의 등록일~완료일 차이를 계산해야 함
-    const responseTimeDistribution = useMemo(() => {
-        const avg = avgCompletionDays || 0;
-
-        // 평균값 기반으로 추정 분포 생성
-        // 실제 환경에서는 API에서 직접 계산해서 전달받아야 함
-        if (totalActions === 0) return [];
-
-        const dist = [
-            {
-                range: '24시간 내',
-                count: Math.round(totalActions * 0.4),
-                percentage: 40
-            },
-            {
-                range: '1~3일',
-                count: Math.round(totalActions * 0.35),
-                percentage: 35
-            },
-            {
-                range: '3~7일',
-                count: Math.round(totalActions * 0.2),
-                percentage: 20
-            },
-            {
-                range: '7일 이상',
-                count: Math.round(totalActions * 0.05),
-                percentage: 5
-            },
-        ].filter(item => item.count > 0);
-
-        return dist;
-    }, [totalActions, avgCompletionDays]);
-
     const formatDonutLabel = ({ percent }: { percent?: number }) => {
         if (!percent || percent === 0) return '';
         return `${(percent * 100).toFixed(0)}%`;
