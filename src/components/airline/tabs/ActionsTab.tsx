@@ -131,7 +131,7 @@ export function ActionsTab({
         </div>
       </div>
 
-      {/* 상태 필터 탭 */}
+      {/* 상태 필터 탭 - 미조치는 조치대상 탭에서만 관리 */}
       <div className="flex flex-wrap items-center gap-2 mb-8 bg-white/50 backdrop-blur-sm rounded-none p-1.5 shadow-sm border border-gray-100">
         <button
           onClick={() => onStatusFilterChange('all')}
@@ -142,16 +142,6 @@ export function ActionsTab({
           }`}
         >
           전체
-        </button>
-        <button
-          onClick={() => onStatusFilterChange('pending')}
-          className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${
-            actionStatusFilter === 'pending'
-              ? 'bg-orange-600 text-white shadow-none'
-              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          미조치
         </button>
         <button
           onClick={() => onStatusFilterChange('in_progress')}

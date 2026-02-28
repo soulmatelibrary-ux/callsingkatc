@@ -17,7 +17,7 @@ interface IncidentFiltersProps {
   onLimitChange: (limit: number) => void;
   onStartDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onEndDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onApplyQuickRange: (type: 'today' | '1m') => void;
+  onApplyQuickRange: (type: 'today' | '1w' | '2w' | '1m') => void;
   onExport: () => void;
 }
 
@@ -108,7 +108,7 @@ export function IncidentFilters({
 
       {/* Quick Range 버튼 */}
       <div className="flex rounded-none border border-gray-200 overflow-hidden flex-shrink-0">
-        {(['search', 'today', '1m'] as const).map((range) => (
+        {(['search', 'today', '1w', '2w', '1m'] as const).map((range) => (
           <button
             key={range}
             type="button"
@@ -116,7 +116,7 @@ export function IncidentFilters({
               if (range === 'search') {
                 onSearchSubmit();
               } else {
-                onApplyQuickRange(range as '1m' | 'today');
+                onApplyQuickRange(range as 'today' | '1w' | '2w' | '1m');
               }
             }}
             className={`px-3 py-2 text-xs font-black tracking-tight transition-all border-r border-gray-200 last:border-r-0 ${
@@ -127,7 +127,7 @@ export function IncidentFilters({
                 : 'bg-white text-gray-500 hover:bg-gray-900 hover:text-white'
             }`}
           >
-            {range === 'search' ? '검색' : range === 'today' ? '오늘' : '1개월'}
+            {range === 'search' ? '검색' : range === 'today' ? '오늘' : range === '1w' ? '1주' : range === '2w' ? '2주' : '1개월'}
           </button>
         ))}
       </div>

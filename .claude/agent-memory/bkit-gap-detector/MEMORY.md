@@ -24,6 +24,10 @@
 - v1.0 (2026-02-27): 86% FAIL, 66 $N across 12 files
 
 ## Phase Analysis History (latest first)
+- Admin Recommended Improvements v2.0 FINAL: 96% PASS (summary usage fixed, tempPassword lowercase fixed, ActionListResponse type fixed)
+- Admin Recommended Improvements v1.0: 91% PASS (server search OK, summary OK, crypto OK, lowercase missing in tempPassword)
+- Action Status Tracking v2.0 FINAL: 91% PASS (6/7 type fields added, uploaded_at fixed, 1 my_airline_code type remaining)
+- Action Status Tracking v1.0: 71% FAIL (7 missing type fields, uploaded_at SELECT missing, responsible_staff column missing)
 - Airline Detail Analysis Integration v1.0: 94% PASS (clean tab removal, collapsible integration, 2 .bak files to delete)
 - Full System v4.0: 84% WARNING (CRITICAL: deletedAction ref error, 20+ console.log, announcement level mismatch)
 - Password Reset & Force Change v2.0 FINAL: 93% PASS (all 4 fixes verified)
@@ -78,6 +82,8 @@
 8. Match Rate: 84% WARNING (below 90% threshold)
 
 ## Analysis Reports
+- `features/admin-recommended-improvements.analysis.md` - Admin Improvements v2.0 FINAL (96% PASS)
+- `action-status-tracking.analysis.md` - Action Status Tracking v2.0 FINAL (91% PASS)
 - `features/airline-detail-analysis-integration.analysis.md` - Detail Analysis Integration v1.0 (94% PASS)
 - `katc1-full-system-v4.analysis.md` - Full System v4.0 (84% WARNING)
 - `password-reset-force-change.analysis.md` - Password Reset v2.0 (93% PASS)

@@ -3,7 +3,7 @@
  */
 
 // 탭 타입
-export type AirlineTabType = 'incidents' | 'actions' | 'statistics' | 'announcements';
+export type AirlineTabType = 'incidents' | 'actions' | 'statistics';
 
 // 오류 유형
 export type ErrorType = '관제사 오류' | '조종사 오류' | '오류 미발생';
@@ -42,6 +42,7 @@ export interface Incident {
   lastDate: string | null;
   dates: string[];        // 발생 이력 날짜 배열
   // 조치 상태
+  actionId?: string | null;  // 실제 Action 레코드 ID (기존 조치 조회용)
   actionStatus?: 'no_action' | 'pending' | 'in_progress' | 'completed';
   actionType?: string | null;
   actionCompletedAt?: string | null;

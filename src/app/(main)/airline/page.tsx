@@ -162,9 +162,9 @@ export default function AirlinePage() {
     limit: 100,
   });
 
-  // 상태 필터 변경 시 캐시 초기화
+  // 상태 필터 변경 시 캐시 무효화
   useEffect(() => {
-    queryClient.removeQueries({ queryKey: ['airline-actions'], exact: false });
+    queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
     setActionPage(1);
   }, [actionStatusFilter, queryClient, airlineId]);
 
@@ -201,6 +201,7 @@ export default function AirlinePage() {
       lastDate: cs.last_occurred_at ? new Date(cs.last_occurred_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       dates: [],
       // 조치 상태
+      actionId: cs.action_id || cs.actionId || null,
       actionStatus: cs.action_status || cs.actionStatus || 'no_action',
       actionType: cs.action_type || cs.actionType || null,
       actionCompletedAt: cs.action_completed_at || cs.actionCompletedAt || null,
@@ -299,6 +300,15 @@ export default function AirlinePage() {
     queryClient.invalidateQueries({ queryKey: ['airline-callsigns'] });
     queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
   }, [queryClient]);
+
+  const handleOpenActionDetail = useCallback((actionId: string) => {
+    if (!actionsData) return;
+    const action = actionsData.data.find((a) => a.id === actionId);
+    if (action) {
+      setSelectedAction(action);
+      setIsActionDetailModalOpen(true);
+    }
+  }, [actionsData]);
 
   const handleIncidentsSearchSubmit = useCallback(() => {
     setIncidentsSearch(incidentsSearchInput);
@@ -403,6 +413,7 @@ export default function AirlinePage() {
                 onApplyQuickRange={incidentsDateFilter.applyQuickRange}
                 onErrorTypeFilterChange={setErrorTypeFilter}
                 onOpenActionModal={handleOpenActionModal}
+                onOpenActionDetail={handleOpenActionDetail}
                 onExport={handleExportIncidents}
               />
             )}

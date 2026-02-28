@@ -35,6 +35,7 @@ interface IncidentsTabProps {
   onApplyQuickRange: (type: 'today' | '1w' | '2w' | '1m') => void;
   onErrorTypeFilterChange: (filter: 'all' | ErrorType) => void;
   onOpenActionModal: (incident: Incident) => void;
+  onOpenActionDetail: (actionId: string) => void;
   onExport: () => void;
 }
 
@@ -59,6 +60,7 @@ export function IncidentsTab({
   onApplyQuickRange,
   onErrorTypeFilterChange,
   onOpenActionModal,
+  onOpenActionDetail,
   onExport,
 }: IncidentsTabProps) {
   // 분석 섹션 표시 토글
@@ -157,6 +159,7 @@ export function IncidentsTab({
         allFilteredCount={allFilteredIncidents.length}
         onPageChange={onPageChange}
         onOpenActionModal={onOpenActionModal}
+        onOpenActionDetail={onOpenActionDetail}
       />
     </>
   );

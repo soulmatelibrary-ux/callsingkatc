@@ -65,7 +65,8 @@ export async function GET(
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    const allowVirtualEntries = !status || ['in_progress', 'pending'].includes(status);
+    // 가상 항목(조치 미등록)은 제외 - 조치대상 탭에서만 관리
+    const allowVirtualEntries = false;
 
     const actionConditions: string[] = ['a.airline_id = ?'];
     const actionParams: any[] = [airlineId];

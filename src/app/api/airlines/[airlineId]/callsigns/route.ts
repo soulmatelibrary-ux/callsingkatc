@@ -123,7 +123,7 @@ export async function GET(
     if (callsignIds.length > 0) {
       const placeholders = callsignIds.map(() => '?').join(',');
       const actionsResult = await query(
-        `SELECT callsign_id, status, action_type, completed_at
+        `SELECT id, callsign_id, status, action_type, completed_at
          FROM actions
          WHERE callsign_id IN (${placeholders})
            AND airline_id = ?
@@ -181,6 +181,7 @@ export async function GET(
           created_at: callsign.created_at,
           updated_at: callsign.updated_at,
           // 조치 상태 추가
+          action_id: latestAction?.id || null,
           action_status: latestAction?.status || 'no_action',
           action_type: latestAction?.action_type || null,
           action_completed_at: latestAction?.completed_at || null,
@@ -201,6 +202,7 @@ export async function GET(
           uploadedAt: callsign.uploaded_at,
           createdAt: callsign.created_at,
           updatedAt: callsign.updated_at,
+          actionId: latestAction?.id || null,
           actionStatus: latestAction?.status || 'no_action',
           actionType: latestAction?.action_type || null,
           actionCompletedAt: latestAction?.completed_at || null,

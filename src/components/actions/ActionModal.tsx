@@ -48,6 +48,7 @@ export function ActionModal({
   const [processedDate, setProcessedDate] = useState<string>(
     initialData?.processedDate ||
     initialData?.processed_at ||
+    initialData?.completedDate ||
     new Date().toISOString().split('T')[0]
   );
   const [status, setStatus] = useState<'in_progress' | 'completed'>(

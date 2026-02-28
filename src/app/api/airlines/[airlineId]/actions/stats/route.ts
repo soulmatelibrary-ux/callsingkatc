@@ -77,7 +77,7 @@ export async function GET(
     };
 
     const total = summaryRow.total_actions || 0;
-    const waitingCount = summaryRow.pending_count || 0;
+    const pendingCount = summaryRow.pending_count || 0;
     const inProgressCount = summaryRow.in_progress_count || 0;
     const completedCount = summaryRow.completed_count || 0;
 
@@ -132,7 +132,7 @@ export async function GET(
       completionRate,
       averageCompletionDays,
       statusCounts: {
-        waiting: waitingCount,
+        waiting: pendingCount,
         in_progress: inProgressCount,
         completed: completedCount,
       },

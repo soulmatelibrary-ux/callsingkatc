@@ -68,6 +68,7 @@ export interface Callsign {
   updated_at: string;
 
   // 조치 상태 정보 (단일 항공사 - 사용자 API 호환성)
+  action_id?: string | null;
   action_status?: 'no_action' | 'pending' | 'in_progress' | 'completed';
   action_type?: string | null;
   action_completed_at?: string | null;
@@ -105,6 +106,7 @@ export interface Callsign {
   uploadedAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  actionId?: string | null;
   actionStatus?: 'no_action' | 'pending' | 'in_progress' | 'completed';
   actionType?: string | null;
   actionCompletedAt?: string | null;
@@ -241,6 +243,11 @@ export interface ActionListResponse {
     limit: number;
     total: number;
     totalPages: number;
+  };
+  summary?: {
+    pending: number;
+    in_progress: number;
+    completed: number;
   };
 }
 

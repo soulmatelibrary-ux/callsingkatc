@@ -14,6 +14,7 @@ interface IncidentTableProps {
 
   onPageChange: (page: number) => void;
   onOpenActionModal: (incident: Incident) => void;
+  onOpenActionDetail: (actionId: string) => void;
 }
 
 /**
@@ -106,6 +107,7 @@ export function IncidentTable({
   allFilteredCount,
   onPageChange,
   onOpenActionModal,
+  onOpenActionDetail,
 }: IncidentTableProps) {
   const formatDisplayDate = useCallback((value?: string | null) => {
     if (!value) return '-';
@@ -199,7 +201,15 @@ export function IncidentTable({
                       </span>
                     )}
                     <button
-                      onClick={() => onOpenActionModal(incident)}
+                      onClick={() => {
+                        if (incident.actionStatus === 'completed' && incident.actionId) {
+                          // 조치 완료: 기존 조치 상세 모달 열기
+                          onOpenActionDetail(incident.actionId);
+                        } else {
+                          // 미조치/진행중: 신규 등록 모달 열기
+                          onOpenActionModal(incident);
+                        }
+                      }}
                       className={`flex-shrink-0 px-3 py-1.5 text-white text-[10px] font-black rounded-none shadow-none transition-all uppercase tracking-widest whitespace-nowrap ${
                         incident.actionStatus === 'completed'
                           ? 'bg-emerald-600 hover:bg-emerald-700'
