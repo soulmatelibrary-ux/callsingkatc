@@ -235,7 +235,7 @@ export function OverviewTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {rows.map((callsign: any) => (
+                {rows.map((callsign) => (
                   <tr key={callsign.id} className="group hover:bg-primary/[0.02] transition-all">
                     {/* 호출부호 */}
                     <td className="px-6 py-5 font-medium text-gray-700 whitespace-nowrap">{callsign.callsign_pair}</td>

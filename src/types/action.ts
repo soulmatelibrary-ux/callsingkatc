@@ -74,6 +74,7 @@ export interface Callsign {
 
   // 양쪽 항공사 조치 상태 정보 (관리자 API)
   my_airline_id?: string;
+  my_airline_code?: string; // 자사 항공사 코드 (airline_code와 동일, 명시성을 위해 추가)
   my_action_status?: 'no_action' | 'pending' | 'in_progress' | 'completed';
   my_action_type?: string | null;
   other_action_status?: 'no_action' | 'pending' | 'in_progress' | 'completed';
