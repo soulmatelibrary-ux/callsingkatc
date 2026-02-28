@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
       OR INSTR(a.target_airlines, ?) > 0
     )`;
 
-    const queryParams: any[] = [user.id, user.airline_code];
+    const queryParams: any[] = [user.airline_code];
 
     // 6. 필터 적용
     if (level && ['warning', 'info', 'success'].includes(level)) {
@@ -130,19 +130,20 @@ export async function GET(request: NextRequest) {
     // 제목/내용 검색
     if (search) {
       whereClause += ` AND (a.title LIKE ? OR a.content LIKE ?)`;
-      queryParams.push(`%?%`, `%?%`);
+      queryParams.push(`%${search}%`, `%${search}%`);
     }
 
     // 7. COUNT 쿼리 실행 (subquery 안전함)
+    const countParams: any[] = [...queryParams];
     const countResult = await query(
       `
       SELECT COUNT(*) as count
       FROM announcements a
       LEFT JOIN announcement_views av
         ON a.id = av.announcement_id AND av.user_id = ?
-      WHERE ?
+      WHERE ${whereClause}
       `,
-      queryParams
+      [payload.userId, ...countParams]
     );
     const total = parseInt(countResult.rows[0].count, 10);
 
@@ -161,13 +162,13 @@ export async function GET(request: NextRequest) {
       FROM announcements a
       LEFT JOIN announcement_views av
         ON a.id = av.announcement_id AND av.user_id = ?
-      WHERE ?
+      WHERE ${whereClause}
     `;
 
     sql += ` ORDER BY a.start_date DESC LIMIT ? OFFSET ?`;
     queryParams.push(limit, offset);
 
-    const result = await query(sql, queryParams);
+    const result = await query(sql, [payload.userId, ...queryParams]);
 
     return NextResponse.json({
       announcements: result.rows,

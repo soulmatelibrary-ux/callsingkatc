@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-27T13:54:09.289Z",
+  "lastUpdated": "2026-02-28T00:33:58.627Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -303,9 +303,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-27T13:54:01.903Z"
+        "lastUpdated": "2026-02-28T00:33:31.876Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/actions/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/announcements/[id]/route.ts"
     },
     "katc1-backend": {
       "phase": "do",
@@ -462,9 +462,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:06.344Z",
-        "lastUpdated": "2026-02-27T13:54:09.289Z"
+        "lastUpdated": "2026-02-28T00:33:58.627Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/announcements/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/announcements/route.ts"
     },
     "history": {
       "phase": "do",
@@ -475,7 +475,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:17.641Z",
-        "lastUpdated": "2026-02-27T13:50:46.654Z"
+        "lastUpdated": "2026-02-28T00:33:14.559Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/announcements/history/route.ts"
     },
@@ -619,7 +619,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-27T13:54:09.289Z"
+    "lastActivity": "2026-02-28T00:33:58.627Z"
   },
   "history": [
     {
@@ -7296,6 +7296,60 @@
     },
     {
       "timestamp": "2026-02-27T13:54:09.289Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:31:53.056Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:32:15.564Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:32:36.487Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:33:14.559Z",
+      "feature": "history",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:33:18.354Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:33:23.259Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:33:31.876Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:33:46.522Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:33:58.627Z",
       "feature": "announcements",
       "phase": "do",
       "action": "updated"

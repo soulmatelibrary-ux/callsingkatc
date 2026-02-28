@@ -110,12 +110,12 @@ export async function GET(request: NextRequest) {
     // 제목/내용 검색
     if (search) {
       whereClause += ` AND (a.title LIKE ? OR a.content LIKE ?)`;
-      queryParams.push(`%?%`, `%?%`);
+      queryParams.push(`%${search}%`, `%${search}%`);
     }
 
     // 5. COUNT 쿼리 실행 (subquery 안전함)
     const countResult = await query(
-      `SELECT COUNT(*) as count FROM announcements a ?`,
+      `SELECT COUNT(*) as count FROM announcements a ${whereClause}`,
       queryParams
     );
     const total = parseInt(countResult.rows[0].count, 10);
@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
         (SELECT COUNT(*) FROM announcement_views WHERE announcement_id = a.id) as "viewCount"
       FROM announcements a
       LEFT JOIN users u ON a.created_by = u.id
-      ?
+      ${whereClause}
     `;
 
     sql += ` ORDER BY a.start_date DESC LIMIT ? OFFSET ?`;

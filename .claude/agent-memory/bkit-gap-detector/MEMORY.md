@@ -7,45 +7,54 @@
 - **DB**: `src/lib/db/sqlite-schema.ts` (11 tables, runtime init), WAL mode, foreign_keys ON
 - **Airlines**: 11 (KAL, AAR, JJA, JNA, TWB, ABL, ASV, EOK, FGW, APZ, ESR)
 
-## SQLite Migration v2.0 (2026-02-27 Post-Cleanup)
-- **Overall: 87%** (FAIL, below 90% threshold)
-- Auth API: 98% PASS, Schema: 98% PASS, Migration: 80%, API Endpoints: 82%
-- Cleanup resolved: ILIKE (0), ::date (0), isSQLite (0), bulk $N reduced 73%
-- **8 files still have PostgreSQL syntax** (concentrated in announcements + stats):
-  - `callsigns/stats` ($N), `airlines/[id]/callsigns` ($N+NULLS LAST)
-  - `announcements/` (ANY/string_to_array), `announcements/[id]` (::int+ANY+param count)
-  - `announcements/history` ($N+INTERVAL+::int), `admin/announcements` GET ($N+INTERVAL+::int)
-  - `admin/stats` (FILTER clause), `admin/file-uploads` ($N in count)
-- Fix estimate: 8 files -> 93%+ PASS
-- See: [sqlite-cleanup-v2 detail file](sqlite-cleanup-v2-detail.md)
+## SQLite Migration v3.0 FINAL (2026-02-27 Post-Fix)
+- **Overall: 92% PASS** (above 90% threshold)
+- Auth API: 98%, Schema: 98%, Migration: 93%, API Endpoints: 90%, Bug Fixes: 83%
+- $N params: 0 in source (was 66 in v1.0, 18 in v2.0)
+- ILIKE/::type/INTERVAL(SQL)/NULLS LAST/FILTER: all 0
+- **1 file still has PostgreSQL syntax**: `announcements/[id]/route.ts:80` (ANY+string_to_array)
+- **1 syntax error introduced**: `actions/[id]/route.ts:291` (missing comma)
+- Dynamic WHERE/SET `?` pattern affects ~7 files (structural, not PG-specific)
+- Search `%?%` literal bug in 4 files (matches "?" not search term)
+- `result.rows` after INSERT/UPDATE/DELETE in 6 files (returns undefined)
+- See: [v3 analysis](../docs/03-analysis/katc1-sqlite-final-v3.analysis.md)
 
-## Prior SQLite Migration v1.0 (2026-02-27 Pre-Cleanup)
-- Overall: 86%, Auth: 95%, Migration: 62% (66 $N across 12 files)
+## Prior Versions
+- v2.0 (2026-02-27): 87% FAIL, 8 files with PG syntax
+- v1.0 (2026-02-27): 86% FAIL, 66 $N across 12 files
 
 ## Phase Analysis History (latest first)
+- SQLite Migration v3.0 FINAL: 92% PASS
+- SQLite Migration v2.0: 87% FAIL
+- SQLite Migration v1.0: 86% FAIL
 - Phase 6 callsign-management v3.0: 87%
 - Phase 5 announcement-system: 94%
 - Phase 4 airline-data-action v2.0: 75%
 - v5.0 full system: 65%, v4.0 auth-only: 92%
 
-## Known Persistent Bugs
-1. HIGH: `actions/[id]/route.ts:286` hardcodes status:'completed' in PATCH response
-2. HIGH: `actions/[id]/route.ts:260` checks result.rows after UPDATE (SQLite returns no rows)
-3. MEDIUM: PATCH status:'in_progress' deletes action row entirely
-4. LOW: Airline actions query returns 'in_progress' for NULL action rows
-5. BUG: `airlines/test-callsigns/route.ts` - 2 ? placeholders but 1 param passed
+## Known Remaining Issues (v3.0)
+1. CRITICAL: `actions/[id]/route.ts:291` missing comma (won't compile)
+2. CRITICAL: `announcements/[id]/route.ts:80` PostgreSQL ANY(string_to_array) + param count mismatch
+3. MEDIUM: ~7 files use `?` as dynamic SQL fragment (WHERE ?, SET ?)
+4. MEDIUM: 4 files have `%?%` search bug (matches literal "?" not search term)
+5. MEDIUM: 6 files access `result.rows` after INSERT/UPDATE/DELETE (undefined)
+6. LOW: `42703` PG error code checks in 2 airline route files (dead code)
+7. LOW: `.bak` file in source tree
+
+## Resolved Bugs (from v2.0)
+- Bug #1 (hardcoded status): FIXED (but syntax error introduced)
+- Bug #2 (result.rows after UPDATE): FIXED (uses changes + separate SELECT)
+- Bug #3 (in_progress deletes row): INTENTIONAL design
+- Bug #5 (test-callsigns param count): FIXED (2 params now)
 
 ## Core Infrastructure
-- `src/lib/db/sqlite.ts` - better-sqlite3 driver (clean)
+- `src/lib/db/sqlite.ts` - better-sqlite3 driver (clean, SELECT=rows, else=changes)
 - `src/lib/db/queries/auth.ts` - 4 auth queries (all ? params)
 - `src/lib/jwt.ts` - JWT gen/verify (1h access, 7d refresh)
 - `src/lib/db/sqlite-schema.ts` - 11 tables, 39 indexes, sample data
 
 ## Analysis Reports
-- `katc1-sqlite-cleanup-v2.analysis.md` - Post-cleanup (87%, 8 files remaining)
-- `katc1-auth-sqlite-migration.analysis.md` - Pre-cleanup (86%)
-- `callsign-management-v1.analysis.md` - Phase 6 v3.0 (87%)
-- `announcement-system.analysis.md` - Phase 5 (94%)
-- `airline-data-action-management.analysis.md` - Phase 4 v2.0 (75%)
-- `katc1-full-gap-v5.md` - v5.0 full system (65%)
-- `katc1-auth-gap.md` - v4.0 auth-focused (92%)
+- `katc1-sqlite-final-v3.analysis.md` - v3.0 FINAL (92% PASS)
+- `katc1-sqlite-cleanup-v2.analysis.md` - v2.0 (87% FAIL)
+- `katc1-auth-sqlite-migration.analysis.md` - v1.0 (86% FAIL)
+- Previous phase reports: see docs/03-analysis/

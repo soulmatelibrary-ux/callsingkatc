@@ -288,7 +288,7 @@ export async function PATCH(
       description: updatedAction.description,
       manager_name: updatedAction.manager_name,
       planned_due_date: updatedAction.planned_due_date,
-      status: updatedAction.status
+      status: updatedAction.status,
       result_detail: updatedAction.result_detail,
       completed_at: updatedAction.completed_at,
       registered_by: updatedAction.registered_by,
