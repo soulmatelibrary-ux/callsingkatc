@@ -20,8 +20,10 @@ Plan 문서의 요구사항을 기술적으로 구현하기 위한 상세 설계
 │                      프론트엔드 계층                          │
 ├─────────────────────────────────────────────────────────────┤
 │  • /airline (항공사 페이지)                                   │
-│    - CallSignList (호출부호 조회)                            │
-│    - ActionHistory (조치 이력)                               │
+│    - IncidentsTab (발생현황 + 세부오류분석)                  │
+│    - ActionsTab (조치 이력)                                   │
+│    - AirlineStatisticsTab (통계)                             │
+│    - AnnouncementsTab (공지사항)                             │
 │    - ActionRegistration (조치 등록 모달)                     │
 │                                                              │
 │  • /admin (관리자 페이지)                                    │
@@ -585,25 +587,36 @@ F: 상태 | G: 조치결과 | H: 완료일자 | I: 등록자 | J: 등록일자
 ### 항공사 페이지 (`/(main)/airline`)
 
 ```
-src/app/airline/page.tsx
+src/app/(main)/airline/page.tsx
 ├── Header (기존)
-├── TabNav (항공사, 호출부호, 조치)
+├── Sidebar
+│   └── TabNav (발생현황, 조치이력, 통계, 공지사항)
 │
 └── Tabs
-    ├── AirlineTab
-    │   └── AirlineProfile
+    ├── IncidentsTab (발생현황)
+    │   ├── 요약 카드 (Total Cases, 오류 유형별 통계)
+    │   ├── DetailAnalysisSection (세부오류분석 - Collapsible)
+    │   │   ├── 오류분포 바 차트
+    │   │   └── 분석 인사이트
+    │   ├── FilterBar (검색, 필터, 날짜범위)
+    │   ├── IncidentsTable
+    │   └── Pagination
     │
-    ├── CallSignTab
-    │   ├── CallSignFilter
-    │   ├── CallSignTable
-    │   └── CallSignPagination
+    ├── ActionsTab (조치이력)
+    │   ├── ActionFilter
+    │   ├── ActionTable
+    │   ├── Pagination
+    │   └── ActionRegistrationModal
     │
-    └── ActionHistoryTab
-        ├── ActionFilter
-        ├── ActionTable
-        ├── ActionPagination
-        ├── ActionRegistrationModal
-        └── ActionStatusBadge
+    ├── AirlineStatisticsTab (통계)
+    │   ├── DateRangeFilter
+    │   ├── AnalyticsCharts (recharts 기반)
+    │   └── StatisticsSummary
+    │
+    └── AnnouncementsTab (공지사항)
+        ├── ActiveAnnouncements
+        ├── AnnouncementHistory
+        └── AnnouncementBadges
 ```
 
 **주요 컴포넌트**:
@@ -1007,8 +1020,10 @@ export function handleApiError(error: AppError): NextResponse {
 - [ ] /api/admin/actions/export (GET)
 
 ### 프론트엔드
-- [ ] 항공사 페이지 - CallSign 탭
-- [ ] 항공사 페이지 - Action 탭
+- [x] 항공사 페이지 - IncidentsTab (발생현황 + 세부오류분석)
+- [x] 항공사 페이지 - ActionsTab (조치이력)
+- [x] 항공사 페이지 - AirlineStatisticsTab (통계)
+- [x] 항공사 페이지 - AnnouncementsTab (공지사항)
 - [ ] 관리자 페이지 - Action 대시보드
 - [ ] 관리자 페이지 - Excel 업로드
 - [ ] 관리자 페이지 - Upload 이력
