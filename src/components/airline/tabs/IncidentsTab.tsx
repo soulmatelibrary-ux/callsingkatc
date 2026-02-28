@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo, useCallback, useState } from 'react';
-import * as XLSX from 'xlsx';
 import {
   Incident,
   ErrorTypeStat,
@@ -11,8 +10,6 @@ import {
   ERROR_TYPE_CONFIG,
   ErrorType,
 } from '@/types/airline';
-import { Callsign } from '@/types/action';
-import { formatDateInput } from '@/hooks/useDateRangeFilter';
 
 interface IncidentsTabProps {
   incidents: Incident[];

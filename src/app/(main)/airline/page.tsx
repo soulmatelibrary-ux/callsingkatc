@@ -227,8 +227,7 @@ export default function AirlinePage() {
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Incidents');
       const fileName = `callsign_incidents_${airlineCode || 'airline'}_${formatDateInput(new Date())}.xlsx`;
       XLSX.writeFile(workbook, fileName);
-    } catch (error) {
-      console.error('Excel 내보내기 실패:', error);
+    } catch {
       window.alert('엑셀 파일 생성 중 문제가 발생했습니다.');
     } finally {
       setIsExporting(false);
@@ -297,11 +296,11 @@ export default function AirlinePage() {
     );
   }
 
-  const navItems = [
-    { id: 'incidents' as const, label: '발생현황', icon: BarChart3, color: 'primary' },
-    { id: 'actions' as const, label: '조치이력', icon: ClipboardList, color: 'info' },
-    { id: 'statistics' as const, label: '통계', icon: TrendingUp, color: 'success' },
-    { id: 'announcements' as const, label: '공지사항', icon: Megaphone, color: 'orange' },
+  const navItems: Array<{ id: AirlineTabType; label: string; icon: any; color: 'primary' | 'info' | 'success' | 'orange' }> = [
+    { id: 'incidents', label: '발생현황', icon: BarChart3, color: 'primary' },
+    { id: 'actions', label: '조치이력', icon: ClipboardList, color: 'info' },
+    { id: 'statistics', label: '통계', icon: TrendingUp, color: 'success' },
+    { id: 'announcements', label: '공지사항', icon: Megaphone, color: 'orange' },
   ];
 
   return (
@@ -328,7 +327,7 @@ export default function AirlinePage() {
                       : 'text-gray-500 hover:bg-gray-50 border-transparent hover:border-gray-200'
                   }`}
                 >
-                  <NanoIcon icon={item.icon} color={item.color as any} size="sm" isActive={isActive} />
+                  <NanoIcon icon={item.icon} color={item.color} size="sm" isActive={isActive} />
                   <span className={`transition-all duration-300 ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
                     {item.label}
                   </span>

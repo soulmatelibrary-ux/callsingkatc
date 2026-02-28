@@ -1,25 +1,14 @@
 {
   "version": "1.0",
-  "enabled": true,
+  "enabled": false,
   "teamName": "",
   "feature": "katc1",
   "pdcaPhase": "do",
   "orchestrationPattern": "leader",
   "ctoAgent": "opus",
   "startedAt": "2026-02-28T02:20:35.856Z",
-  "lastUpdated": "2026-02-28T02:20:35.856Z",
-  "teammates": [
-    {
-      "name": "aeb18b16a3c8da0b8",
-      "role": "bkit:code-analyzer",
-      "model": "sonnet",
-      "status": "spawning",
-      "currentTask": null,
-      "taskId": null,
-      "startedAt": "2026-02-28T02:20:35.856Z",
-      "lastActivityAt": "2026-02-28T02:20:35.856Z"
-    }
-  ],
+  "lastUpdated": "2026-02-28T02:22:30.021Z",
+  "teammates": [],
   "progress": {
     "totalTasks": 0,
     "completedTasks": 0,

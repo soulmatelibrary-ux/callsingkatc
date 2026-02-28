@@ -82,15 +82,15 @@ export function AnnouncementsTab({
         ))}
       </div>
 
-      {/* 공지사항 이력 */}
+      {/* 공지사항 전체 */}
       <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
         <AirlineAnnouncementList
-          title="확인할 공지사항"
-          showSearch={false}
-          showLevelFilter={false}
-          showStatusFilter={false}
-          onViewAll={() => router.push('/airline/announcements')}
-          defaultLimit={5}
+          title="공지사항"
+          subtitle="전체 공지사항을 확인하세요"
+          showSearch={true}
+          showLevelFilter={true}
+          showStatusFilter={true}
+          defaultLimit={10}
           initialStatus="all"
         />
       </div>
