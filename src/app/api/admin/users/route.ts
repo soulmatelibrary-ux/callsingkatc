@@ -172,25 +172,38 @@ export async function POST(request: NextRequest) {
     const resolvedAirlineId: string = airlineCheck.rows[0].id;
 
     // 비밀번호 암호화 (필수)
-    const passwordHash = await bcrypt.hash(password, 10);
+    let passwordHash: string;
+    try {
+      passwordHash = await bcrypt.hash(password, 10);
+    } catch (hashError) {
+      console.error('[USER_CREATE] 비밀번호 암호화 실패:', hashError);
+      return NextResponse.json(
+        { error: '비밀번호 처리 중 오류가 발생했습니다.' },
+        { status: 500 }
+      );
+    }
 
-    // 사용자 생성 (트랜잭션)
+    // 사용자 생성 (직접 쿼리)
     // 📌 신규 생성 사용자는 항상 is_default_password=true, password_change_required=true로 설정
     // 첫 로그인 시 무조건 비밀번호 변경 페이지로 강제 이동
     try {
-      await transaction(async (trx) => {
-        // 사용자 생성
-        await trx(
-          `INSERT INTO users (
-             email, password_hash, airline_id, status, role,
-             is_default_password, password_change_required
-           ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [email, passwordHash, resolvedAirlineId, 'active', role, true, true]
-        );
+      await query(
+        `INSERT INTO users (
+           email, password_hash, airline_id, status, role,
+           is_default_password, password_change_required, created_at, updated_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        [email, passwordHash, resolvedAirlineId, 'active', role, 1, 1]
+      );
+    } catch (insertError: any) {
+      console.error('[USER_CREATE] 사용자 INSERT 실패:', {
+        email,
+        airlineId: resolvedAirlineId,
+        error: insertError.message
       });
-    } catch (txError) {
-      console.error('[USER_CREATE_TRX] 트랜잭션 오류:', txError);
-      throw txError;
+      return NextResponse.json(
+        { error: '사용자 생성 중 오류가 발생했습니다.' },
+        { status: 500 }
+      );
     }
 
     // 생성된 사용자 조회
