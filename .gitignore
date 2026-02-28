@@ -25,6 +25,10 @@ docs/03-analysis/
 .DS_Store
 *.pem
 
+# Excel files (local use only)
+*.xlsx
+*.xls
+
 # debug
 npm-debug.log*
 yarn-debug.log*
