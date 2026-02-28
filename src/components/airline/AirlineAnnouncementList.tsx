@@ -53,7 +53,7 @@ export function AirlineAnnouncementList({
   const filters = useMemo(
     () => ({
       level: levelFilter !== 'all' ? levelFilter : undefined,
-      status: statusFilter !== 'all' ? statusFilter : 'all',
+      status: (statusFilter !== 'all' ? statusFilter : 'all') as 'active' | 'expired' | 'all',
       search: search || undefined,
       page: currentPage,
       limit: defaultLimit,
@@ -116,9 +116,8 @@ export function AirlineAnnouncementList({
   };
 
   // 데이터 처리
-  const announcements = (data?.data || []) as AnnouncementWithStatus[];
-  const pagination = data?.pagination;
-  const totalPages = pagination?.totalPages || 1;
+  const announcements = (data?.announcements || []) as AnnouncementWithStatus[];
+  const totalPages = data ? Math.ceil(data.total / (data.limit || defaultLimit)) : 1;
 
   return (
     <div className="space-y-4">

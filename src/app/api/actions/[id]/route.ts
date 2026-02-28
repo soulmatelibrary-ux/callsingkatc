@@ -182,7 +182,7 @@ export async function PATCH(
       });
 
       // 삭제된 action 데이터 반환 (mutation 성공 처리)
-      return NextResponse.json(deletedAction.rows[0], { status: 200 });
+      return NextResponse.json(existingAction.rows[0], { status: 200 });
     }
 
     // 업데이트 필드 구성 (completed 또는 다른 상태 업데이트)
