@@ -55,9 +55,9 @@ export async function GET(request: NextRequest) {
     const validRiskLevels = ['매우높음', '높음', '낮음'];
     const filteredRiskLevel = riskLevel && validRiskLevels.includes(riskLevel) ? riskLevel : null;
 
-    // airlineId UUID 형식 검증
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (airlineId && !uuidRegex.test(airlineId)) {
+    // airlineId 형식 검증 (16진수 문자열, 하이픈 있거나 없음)
+    const hexRegex = /^[0-9a-f]{32}$|^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (airlineId && !hexRegex.test(airlineId)) {
       return NextResponse.json(
         { error: '유효하지 않은 항공사 ID입니다.' },
         { status: 400 }
