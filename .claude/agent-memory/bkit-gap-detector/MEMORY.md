@@ -24,6 +24,7 @@
 - v1.0 (2026-02-27): 86% FAIL, 66 $N across 12 files
 
 ## Phase Analysis History (latest first)
+- OverviewTab Filters + Excel v1.0: 96% PASS (airlineId/myActionStatus filters, summary card, Excel export, all security checks pass)
 - Airline Page Medium Fix v1.0: 96% PASS (M1 actionId flow verified, M2 statusCounts.waiting verified, 1 HIGH: AirlineTabType missing 'announcements')
 - Admin Recommended Improvements v2.0 FINAL: 96% PASS (summary usage fixed, tempPassword lowercase fixed, ActionListResponse type fixed)
 - Admin Recommended Improvements v1.0: 91% PASS (server search OK, summary OK, crypto OK, lowercase missing in tempPassword)
@@ -83,6 +84,7 @@
 8. Match Rate: 84% WARNING (below 90% threshold)
 
 ## Analysis Reports
+- `features/overview-tab-filters-excel.analysis.md` - OverviewTab Filters + Excel v1.0 (96% PASS)
 - `features/airline-page-medium-fix.analysis.md` - Airline Page Medium Fix v1.0 (96% PASS)
 - `features/admin-recommended-improvements.analysis.md` - Admin Improvements v2.0 FINAL (96% PASS)
 - `action-status-tracking.analysis.md` - Action Status Tracking v2.0 FINAL (91% PASS)

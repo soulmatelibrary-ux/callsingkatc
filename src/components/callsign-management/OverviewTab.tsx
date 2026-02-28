@@ -6,7 +6,6 @@ import { useCallsignsWithActions } from '@/hooks/useActions';
 import { useAirlines } from '@/hooks/useAirlines';
 import { useAuthStore } from '@/store/authStore';
 import { StatCard } from './StatCard';
-import * as XLSX from 'xlsx';
 
 interface StatsResponse {
   total: number;
@@ -223,12 +222,11 @@ export function OverviewTab() {
                 <option value="">모든 상태</option>
                 <option value="completed">완료</option>
                 <option value="in_progress">진행중</option>
-                <option value="pending">대기중</option>
-                <option value="no_action">미등록</option>
               </select>
 
               <button
-                onClick={() => {
+                onClick={async () => {
+                  const XLSX = await import('xlsx');
                   const excelRows = rows.map((callsign) => ({
                     '호출부호 쌍': callsign.callsign_pair,
                     '위험도': callsign.risk_level,
