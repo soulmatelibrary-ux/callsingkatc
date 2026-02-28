@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-28T12:57:00.402Z",
+  "lastUpdated": "2026-02-28T11:56:00.548Z",
   "activeFeatures": [
     "actions",
     "callsign-management",
@@ -52,9 +52,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:39:47.747Z",
-        "lastUpdated": "2026-02-28T12:19:56.759Z"
+        "lastUpdated": "2026-02-28T10:15:30.651Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/next.config.js"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/types/airline.ts"
     },
     "callsigns-with-actions": {
       "phase": "do",
@@ -104,9 +104,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:47:57.840Z",
-        "lastUpdated": "2026-02-28T12:57:00.402Z"
+        "lastUpdated": "2026-02-28T10:30:21.180Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/(main)/airline/page.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/airline/AirlineAnnouncementList.tsx"
     },
     "tabs": {
       "phase": "do",
@@ -182,7 +182,7 @@
   "session": {
     "startedAt": "2026-02-28T05:13:16.433Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-28T12:57:00.402Z"
+    "lastActivity": "2026-02-28T11:56:00.548Z"
   },
   "history": [
     {
@@ -740,30 +740,6 @@
     {
       "timestamp": "2026-02-28T11:56:00.548Z",
       "feature": "tabs",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-28T12:11:50.990Z",
-      "feature": "similarity_callsign",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-28T12:19:56.759Z",
-      "feature": "similarity_callsign",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-28T12:56:54.776Z",
-      "feature": "airline",
-      "phase": "do",
-      "action": "updated"
-    },
-    {
-      "timestamp": "2026-02-28T12:57:00.402Z",
-      "feature": "airline",
       "phase": "do",
       "action": "updated"
     }
