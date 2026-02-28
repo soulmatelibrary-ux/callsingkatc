@@ -177,16 +177,21 @@ export async function POST(request: NextRequest) {
     // 사용자 생성 (트랜잭션)
     // 📌 신규 생성 사용자는 항상 is_default_password=true, password_change_required=true로 설정
     // 첫 로그인 시 무조건 비밀번호 변경 페이지로 강제 이동
-    await transaction(async (trx) => {
-      // 사용자 생성
-      await trx(
-        `INSERT INTO users (
-           email, password_hash, airline_id, status, role,
-           is_default_password, password_change_required
-         ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [email, passwordHash, resolvedAirlineId, 'active', role, true, true]
-      );
-    });
+    try {
+      await transaction(async (trx) => {
+        // 사용자 생성
+        await trx(
+          `INSERT INTO users (
+             email, password_hash, airline_id, status, role,
+             is_default_password, password_change_required
+           ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [email, passwordHash, resolvedAirlineId, 'active', role, true, true]
+        );
+      });
+    } catch (txError) {
+      console.error('[USER_CREATE_TRX] 트랜잭션 오류:', txError);
+      throw txError;
+    }
 
     // 생성된 사용자 조회
     const userResult = await query(
