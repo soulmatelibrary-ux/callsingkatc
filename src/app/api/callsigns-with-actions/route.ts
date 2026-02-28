@@ -87,12 +87,13 @@ export async function GET(request: NextRequest) {
       conditions += ` AND airline_id = ?`;
     }
 
-    // 호출부호 목록 조회 (LIMIT/OFFSET 없음 - 필터 후 Node.js에서 처리)
+    // 호출부호 목록 조회 (callsigns 테이블에서 조치 상태 직접 조회)
     const callsignsResult = await query(
       `SELECT id, airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
               other_airline_code, error_type, sub_error, risk_level, similarity,
               occurrence_count, first_occurred_at, last_occurred_at,
-              file_upload_id, uploaded_at, status, created_at, updated_at
+              file_upload_id, uploaded_at, status, created_at, updated_at,
+              my_action_status, other_action_status
        FROM callsigns
        ${conditions}
        ORDER BY
@@ -107,112 +108,17 @@ export async function GET(request: NextRequest) {
       sqlParams
     );
 
-    // 각 호출부호의 양쪽 항공사 조치 상태 조회
-    const callsignIds = callsignsResult.rows.map((cs: any) => cs.id);
-    let actionStatusMap: {
-      [key: string]: {
-        myAirlineId: string;
-        myAirlineCode: string;
-        myActionStatus: string;
-        myActionType: string | null;
-        otherAirlineCode: string;
-        otherActionStatus: string;
-        otherActionType: string | null;
-      };
-    } = {};
+    // myActionStatus 필터 적용 (callsigns.my_action_status 직접 사용)
+    let filteredRows = callsignsResult.rows;
 
-    if (callsignIds.length > 0) {
-      const placeholders = callsignIds.map(() => '?').join(',');
-      const actionsResult = await query(
-        `SELECT a.callsign_id, a.airline_id, al.code, a.status, a.action_type
-         FROM actions a
-         LEFT JOIN airlines al ON a.airline_id = al.id
-         WHERE a.callsign_id IN (${placeholders})
-         ORDER BY a.registered_at DESC`,
-        callsignIds
-      );
-
-      // 호출부호별 양쪽 항공사의 조치 상태 저장
-      for (const action of actionsResult.rows) {
-        const callsignId = action.callsign_id;
-        if (!actionStatusMap[callsignId]) {
-          actionStatusMap[callsignId] = {
-            myAirlineId: '',
-            myAirlineCode: '',
-            myActionStatus: 'no_action',
-            myActionType: null,
-            otherAirlineCode: '',
-            otherActionStatus: 'no_action',
-            otherActionType: null,
-          };
-        }
-
-        const callsign = callsignsResult.rows.find((cs: any) => cs.id === callsignId);
-        if (!callsign) continue;
-
-        // 자사 항공사 조치
-        if (action.code === callsign.airline_code) {
-          actionStatusMap[callsignId].myAirlineId = callsign.airline_id;
-          actionStatusMap[callsignId].myAirlineCode = callsign.airline_code;
-          actionStatusMap[callsignId].myActionStatus = action.status || 'no_action';
-          actionStatusMap[callsignId].myActionType = action.action_type;
-        }
-        // 타사 항공사 조치
-        else if (action.code === callsign.other_airline_code) {
-          actionStatusMap[callsignId].otherAirlineCode = callsign.other_airline_code;
-          actionStatusMap[callsignId].otherActionStatus = action.status || 'no_action';
-          actionStatusMap[callsignId].otherActionType = action.action_type;
-        }
-      }
-
-      // 기본값 설정 (조치 없는 항공사 정보 채우기)
-      for (const callsign of callsignsResult.rows) {
-        if (!actionStatusMap[callsign.id]) {
-          actionStatusMap[callsign.id] = {
-            myAirlineId: callsign.airline_id,
-            myAirlineCode: callsign.airline_code,
-            myActionStatus: 'no_action',
-            myActionType: null,
-            otherAirlineCode: callsign.other_airline_code,
-            otherActionStatus: 'no_action',
-            otherActionType: null,
-          };
-        } else {
-          // 이미 조치가 있는 경우에도 항공사 정보 채우기
-          if (!actionStatusMap[callsign.id].myAirlineId) {
-            actionStatusMap[callsign.id].myAirlineId = callsign.airline_id;
-            actionStatusMap[callsign.id].myAirlineCode = callsign.airline_code;
-          }
-          if (!actionStatusMap[callsign.id].otherAirlineCode) {
-            actionStatusMap[callsign.id].otherAirlineCode = callsign.other_airline_code;
-          }
-        }
-      }
-    }
-
-    // myActionStatus 필터 적용 (Node.js 레벨)
-    let filteredRows = callsignsResult.rows.map((callsign: any) => {
-      const actionStatus = actionStatusMap[callsign.id] || {
-        myAirlineId: callsign.airline_id,
-        myAirlineCode: callsign.airline_code,
-        myActionStatus: 'no_action',
-        myActionType: null,
-        otherAirlineCode: callsign.other_airline_code,
-        otherActionStatus: 'no_action',
-        otherActionType: null,
-      };
-      return { callsign, actionStatus };
-    });
-
-    // myActionStatus 필터: 진행중(no_action) vs 완료(any action exists)
     if (myActionStatus) {
-      filteredRows = filteredRows.filter((row) => {
+      filteredRows = filteredRows.filter((row: any) => {
         if (myActionStatus === 'in_progress') {
           // 진행중: 조치 없음 (no_action)
-          return row.actionStatus.myActionStatus === 'no_action';
+          return row.my_action_status === 'no_action';
         } else if (myActionStatus === 'completed') {
           // 완료: 조치 있음 (no_action 제외한 모든 상태)
-          return row.actionStatus.myActionStatus !== 'no_action';
+          return row.my_action_status !== 'no_action';
         }
         return true;
       });
@@ -221,8 +127,8 @@ export async function GET(request: NextRequest) {
     // summary 계산 (필터링 후)
     const summary = {
       total: filteredRows.length,
-      completed: filteredRows.filter((r) => r.actionStatus.myActionStatus !== 'no_action').length,
-      in_progress: filteredRows.filter((r) => r.actionStatus.myActionStatus === 'no_action').length,
+      completed: filteredRows.filter((r: any) => r.my_action_status !== 'no_action').length,
+      in_progress: filteredRows.filter((r: any) => r.my_action_status === 'no_action').length,
     };
 
     // 페이지네이션 처리
@@ -233,7 +139,7 @@ export async function GET(request: NextRequest) {
     // 전체 개수는 필터링 후 계산 (아래에서 처리)
 
     return NextResponse.json({
-      data: paginatedRows.map(({ callsign, actionStatus }: any) => ({
+      data: paginatedRows.map((callsign: any) => ({
         id: callsign.id,
         airline_id: callsign.airline_id,
         airline_code: callsign.airline_code,
@@ -253,15 +159,13 @@ export async function GET(request: NextRequest) {
         status: callsign.status,
         created_at: callsign.created_at,
         updated_at: callsign.updated_at,
-        // 양쪽 항공사 조치 상태
-        my_airline_id: actionStatus.myAirlineId,
-        my_airline_code: actionStatus.myAirlineCode,
-        my_action_status: actionStatus.myActionStatus,
-        my_action_type: actionStatus.myActionType,
-        other_action_status: actionStatus.otherActionStatus,
-        other_action_type: actionStatus.otherActionType,
-        // 전체 완료 여부 (양쪽 모두 completed)
-        both_completed: actionStatus.myActionStatus === 'completed' && actionStatus.otherActionStatus === 'completed',
+        // 양쪽 항공사 조치 상태 (callsigns 테이블에서 직접 조회)
+        my_airline_id: callsign.airline_id,
+        my_airline_code: callsign.airline_code,
+        my_action_status: callsign.my_action_status || 'no_action',
+        other_action_status: callsign.other_action_status || 'no_action',
+        // 전체 완료 여부 (양쪽 모두 completed 아님 - 자사만 확인)
+        both_completed: callsign.my_action_status === 'completed',
       })),
       pagination: {
         page,
