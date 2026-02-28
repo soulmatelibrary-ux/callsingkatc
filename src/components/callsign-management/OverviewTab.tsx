@@ -18,6 +18,9 @@ export function OverviewTab() {
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>('');
   const [selectedAirlineId, setSelectedAirlineId] = useState<string>('');
   const [selectedActionStatus, setSelectedActionStatus] = useState<string>('');
+  const [selectedActionType, setSelectedActionType] = useState<string>('');
+  const [completedDateFrom, setCompletedDateFrom] = useState<string>('');
+  const [completedDateTo, setCompletedDateTo] = useState<string>('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const pageSizeOptions = [10, 30, 50, 100];
@@ -28,6 +31,9 @@ export function OverviewTab() {
     riskLevel: selectedRiskLevel || undefined,
     airlineId: selectedAirlineId || undefined,
     myActionStatus: selectedActionStatus || undefined,
+    actionType: selectedActionType || undefined,
+    completedDateFrom: completedDateFrom || undefined,
+    completedDateTo: completedDateTo || undefined,
     page,
     limit,
   });
@@ -124,6 +130,9 @@ export function OverviewTab() {
     setSelectedRiskLevel('');
     setSelectedAirlineId('');
     setSelectedActionStatus('');
+    setSelectedActionType('');
+    setCompletedDateFrom('');
+    setCompletedDateTo('');
     setPage(1);
   };
 
@@ -177,8 +186,8 @@ export function OverviewTab() {
         {/* 필터 */}
         <div className="px-8 py-6 border-b border-gray-50 bg-gray-50/50">
           <div className="flex flex-col gap-4">
-            {/* 필터 드롭다운 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+            {/* 필터 드롭다운 - 첫 번째 행 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 w-full">
               <select
                 value={selectedRiskLevel}
                 onChange={(e) => {
@@ -187,7 +196,7 @@ export function OverviewTab() {
                 }}
                 className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
               >
-                <option value="">위험도 선택</option>
+                <option value="">위험도</option>
                 <option value="매우높음">매우높음</option>
                 <option value="높음">높음</option>
                 <option value="낮음">낮음</option>
@@ -201,7 +210,7 @@ export function OverviewTab() {
                 }}
                 className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
               >
-                <option value="">모든 항공사</option>
+                <option value="">항공사</option>
                 {airlinesQuery.data?.map((airline) => (
                   <option key={airline.id} value={airline.id}>
                     {airline.code} - {airline.name_ko}
@@ -217,11 +226,59 @@ export function OverviewTab() {
                 }}
                 className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
               >
-                <option value="">모든 상태</option>
+                <option value="">조치상태</option>
                 <option value="completed">완료</option>
                 <option value="in_progress">진행중</option>
               </select>
 
+              <select
+                value={selectedActionType}
+                onChange={(e) => {
+                  setSelectedActionType(e.target.value);
+                  setPage(1);
+                }}
+                className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
+              >
+                <option value="">조치유형</option>
+                <option value="편명 변경">편명 변경</option>
+                <option value="브리핑 시행">브리핑 시행</option>
+                <option value="모니터링 강화">모니터링 강화</option>
+                <option value="절차 개선">절차 개선</option>
+                <option value="시스템 개선">시스템 개선</option>
+                <option value="기타">기타</option>
+              </select>
+
+              <input
+                type="date"
+                value={completedDateFrom}
+                onChange={(e) => {
+                  setCompletedDateFrom(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="시작일"
+                className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
+              />
+
+              <input
+                type="date"
+                value={completedDateTo}
+                onChange={(e) => {
+                  setCompletedDateTo(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="종료일"
+                className="px-4 py-2.5 border border-gray-200 bg-white rounded-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-bold shadow-sm transition-all"
+              />
+            </div>
+
+            {/* Excel 저장 및 초기화 버튼 */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleReset}
+                className="px-4 py-2 bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 rounded-none transition-all"
+              >
+                초기화
+              </button>
               <button
                 onClick={async () => {
                   const XLSX = await import('xlsx');
@@ -233,6 +290,10 @@ export function OverviewTab() {
                     '발생횟수': callsign.occurrence_count || 0,
                     '최근발생일': callsign.last_occurred_at
                       ? new Date(callsign.last_occurred_at).toLocaleDateString('ko-KR')
+                      : '-',
+                    '조치유형': callsign.action_type || '-',
+                    '처리일자': callsign.completed_at
+                      ? new Date(callsign.completed_at).toLocaleDateString('ko-KR')
                       : '-',
                     '자사(코드)': callsign.my_airline_code || '-',
                     '자사 조치상태': getActionStatusMeta(callsign.my_action_status).label,
@@ -249,7 +310,7 @@ export function OverviewTab() {
                   XLSX.writeFile(wb, `호출부호현황_${new Date().toLocaleDateString('ko-KR')}.xlsx`);
                 }}
                 disabled={rows.length === 0}
-                className="px-4 py-2.5 bg-emerald-600 text-white font-bold hover:opacity-90 disabled:opacity-50 rounded-none transition-all"
+                className="px-4 py-2 bg-emerald-600 text-white font-bold hover:opacity-90 disabled:opacity-50 rounded-none transition-all"
               >
                 📊 Excel 저장
               </button>
@@ -303,6 +364,12 @@ export function OverviewTab() {
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
                     최근발생일
+                  </th>
+                  <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                    조치유형
+                  </th>
+                  <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                    처리일자
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
                     자사 조치상태
@@ -364,6 +431,21 @@ export function OverviewTab() {
                     <td className="px-6 py-5 text-gray-500 font-medium whitespace-nowrap">
                       {callsign.last_occurred_at
                         ? new Date(callsign.last_occurred_at).toLocaleDateString('ko-KR', {
+                          month: 'short',
+                          day: 'numeric',
+                        })
+                        : '-'}
+                    </td>
+
+                    {/* 조치유형 */}
+                    <td className="px-6 py-5 text-gray-600 font-medium whitespace-nowrap text-[12px]">
+                      {callsign.action_type || '-'}
+                    </td>
+
+                    {/* 처리일자 */}
+                    <td className="px-6 py-5 text-gray-500 font-medium whitespace-nowrap">
+                      {callsign.completed_at
+                        ? new Date(callsign.completed_at).toLocaleDateString('ko-KR', {
                           month: 'short',
                           day: 'numeric',
                         })

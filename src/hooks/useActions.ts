@@ -459,6 +459,9 @@ export function useCallsignsWithActions(
     riskLevel?: string;
     airlineId?: string;
     myActionStatus?: string;
+    actionType?: string;
+    completedDateFrom?: string;
+    completedDateTo?: string;
     page?: number;
     limit?: number;
   },
@@ -469,7 +472,7 @@ export function useCallsignsWithActions(
   const limit = filters?.limit || 20;
 
   return useQuery({
-    queryKey: ['callsigns-with-actions', filters?.riskLevel, filters?.airlineId, filters?.myActionStatus, page, limit],
+    queryKey: ['callsigns-with-actions', filters?.riskLevel, filters?.airlineId, filters?.myActionStatus, filters?.actionType, filters?.completedDateFrom, filters?.completedDateTo, page, limit],
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('인증 토큰이 없습니다.');
@@ -479,6 +482,9 @@ export function useCallsignsWithActions(
       if (filters?.riskLevel) params.append('riskLevel', filters.riskLevel);
       if (filters?.airlineId) params.append('airlineId', filters.airlineId);
       if (filters?.myActionStatus) params.append('myActionStatus', filters.myActionStatus);
+      if (filters?.actionType) params.append('actionType', filters.actionType);
+      if (filters?.completedDateFrom) params.append('completedDateFrom', filters.completedDateFrom);
+      if (filters?.completedDateTo) params.append('completedDateTo', filters.completedDateTo);
       params.append('page', String(page));
       params.append('limit', String(limit));
 
