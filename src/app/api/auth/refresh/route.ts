@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       airline,
       is_default_password: user.is_default_password,
       password_change_required: user.password_change_required,
-      forceChangePassword: user.is_default_password === true,
+      forceChangePassword: !!user.is_default_password || !!user.password_change_required,
     };
 
     // 응답 생성 (user 쿠키 저장 제거)
