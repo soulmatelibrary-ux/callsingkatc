@@ -58,7 +58,7 @@ export function IncidentFilters({
         </div>
         <input
           type="text"
-          placeholder="호출부호 쌍을 검색하세요 (예: KAL123)"
+          placeholder="호출부호 쌍을 검색하세요"
           value={incidentsSearchInput}
           onChange={(e) => onSearchInputChange(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') onSearchSubmit(); }}

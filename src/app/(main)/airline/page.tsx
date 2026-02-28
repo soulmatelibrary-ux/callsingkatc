@@ -255,7 +255,6 @@ export default function AirlinePage() {
         '최초 발생일': incident.firstDate || '',
         '최근 발생일': incident.lastDate || '',
       }));
-
       const worksheet = XLSX.utils.json_to_sheet(rows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Incidents');
@@ -272,6 +271,14 @@ export default function AirlinePage() {
     setSelectedIncident(incident);
     setIsActionModalOpen(true);
   }, []);
+
+  const handleCreateActionFromCallsign = useCallback((callsignId?: string) => {
+    if (!callsignId) return;
+    const targetIncident = incidents.find((incident) => incident.id === callsignId);
+    if (targetIncident) {
+      handleOpenActionModal(targetIncident);
+    }
+  }, [incidents, handleOpenActionModal]);
 
   const handleCloseActionModal = useCallback(() => {
     setIsActionModalOpen(false);
@@ -331,8 +338,8 @@ export default function AirlinePage() {
   }
 
   const navItems: Array<{ id: AirlineTabType; label: string; icon: any; color: 'primary' | 'info' | 'success' | 'orange' }> = [
-    { id: 'incidents', label: '발생현황', icon: BarChart3, color: 'primary' },
-    { id: 'actions', label: '조치이력', icon: ClipboardList, color: 'info' },
+    { id: 'incidents', label: '조치대상', icon: BarChart3, color: 'primary' },
+    { id: 'actions', label: '검출이력', icon: ClipboardList, color: 'info' },
     { id: 'statistics', label: '통계', icon: TrendingUp, color: 'success' },
     { id: 'announcements', label: '공지사항', icon: Megaphone, color: 'orange' },
   ];
@@ -415,6 +422,7 @@ export default function AirlinePage() {
                 onSearchInputChange={setActionSearchInput}
                 onSearchSubmit={handleSearchSubmit}
                 onStatusFilterChange={setActionStatusFilter}
+                onCreateAction={handleCreateActionFromCallsign}
                 onActionClick={(action) => {
                   setSelectedAction(action);
                   setIsActionDetailModalOpen(true);

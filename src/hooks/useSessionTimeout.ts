@@ -4,7 +4,7 @@
  * - 마우스, 키보드, 터치 활동 감지 시 타이머 리셋
  */
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 
@@ -16,7 +16,7 @@ export function useSessionTimeout() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 타이머 시작/리셋
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     // 기존 타이머 취소
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -33,7 +33,7 @@ export function useSessionTimeout() {
       await logout();
       router.push('/');
     }, SESSION_TIMEOUT_MS);
-  };
+  }, [isAuthenticated, logout, router]);
 
   useEffect(() => {
     // 초기 타이머 시작
@@ -60,5 +60,5 @@ export function useSessionTimeout() {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [resetTimer, isAuthenticated, logout, router]);
+  }, [resetTimer]);
 }

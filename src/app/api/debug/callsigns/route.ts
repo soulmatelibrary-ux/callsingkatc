@@ -15,12 +15,12 @@ export async function GET(request: NextRequest) {
     const callsigns = await query('SELECT COUNT(*) as total FROM callsigns');
     
     // 3. KAL 관련 호출부호
-    const kalCallsigns = await query(
+      const kalCallsigns = await query(
       `SELECT id, airline_code, other_airline_code, callsign_pair
        FROM callsigns
        WHERE airline_code = ? OR other_airline_code = ?
        LIMIT 5`,
-      ['KAL']
+        ['KAL', 'KAL']
     );
 
     return NextResponse.json({

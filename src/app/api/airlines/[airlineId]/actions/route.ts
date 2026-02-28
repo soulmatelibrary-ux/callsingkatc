@@ -65,8 +65,37 @@ export async function GET(
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
     const offset = (page - 1) * limit;
 
-    // 기본 쿼리 (조치 기준으로 조회)
-    let sql = `
+    const allowVirtualEntries = !status || ['in_progress', 'pending'].includes(status);
+
+    const actionConditions: string[] = ['a.airline_id = ?'];
+    const actionParams: any[] = [airlineId];
+
+    if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
+      actionConditions.push('a.status = ?');
+      actionParams.push(status);
+    }
+
+    if (search && search.trim()) {
+      const searchValue = `%${search}%`;
+      actionConditions.push(`(
+        cs.callsign_pair LIKE ?
+        OR a.action_type LIKE ?
+        OR a.manager_name LIKE ?
+      )`);
+      actionParams.push(searchValue, searchValue, searchValue);
+    }
+
+    if (dateFrom) {
+      actionConditions.push('a.registered_at >= ?');
+      actionParams.push(dateFrom);
+    }
+
+    if (dateTo) {
+      actionConditions.push('a.registered_at <= ?');
+      actionParams.push(dateTo);
+    }
+
+    const actionSql = `
       SELECT
         a.id, a.airline_id, a.callsign_id, a.action_type, a.description,
         a.manager_name, a.manager_email, a.planned_due_date,
@@ -87,86 +116,101 @@ export async function GET(
         cs.sub_error,
         cs.similarity,
         cs.created_at as callsign_created_at,
-        cs.last_occurred_at
+        cs.last_occurred_at,
+        0 as is_virtual
       FROM actions a
       LEFT JOIN airlines al ON a.airline_id = al.id
       LEFT JOIN callsigns cs ON a.callsign_id = cs.id
-      WHERE a.airline_id = ?
+      WHERE ${actionConditions.join(' AND ')}
     `;
-    const queryParams: any[] = [airlineId];
 
-    // 필터 조건: 실제 status 값으로 필터링
-    if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
-      sql += ` AND a.status = ?`;
-      queryParams.push(status);
+    let unionSql = actionSql;
+    let unionParams = [...actionParams];
+
+    if (allowVirtualEntries) {
+      const virtualConditions: string[] = ['cs.airline_id = ?', "cs.status = 'in_progress'"];
+      const virtualParams: any[] = [airlineId];
+
+      if (search && search.trim()) {
+        const searchValue = `%${search}%`;
+        virtualConditions.push(`(
+          cs.callsign_pair LIKE ?
+          OR '조치 등록 필요' LIKE ?
+          OR '' LIKE ?
+        )`);
+        virtualParams.push(searchValue, searchValue, searchValue);
+      }
+
+      if (dateFrom) {
+        virtualConditions.push('cs.last_occurred_at >= ?');
+        virtualParams.push(dateFrom);
+      }
+
+      if (dateTo) {
+        virtualConditions.push('cs.last_occurred_at <= ?');
+        virtualParams.push(dateTo);
+      }
+
+      const virtualSql = `
+        SELECT
+          ('virtual-' || cs.id) as id,
+          cs.airline_id,
+          cs.id as callsign_id,
+          '조치 등록 필요' as action_type,
+          NULL as description,
+          NULL as manager_name,
+          NULL as manager_email,
+          NULL as planned_due_date,
+          'in_progress' as status,
+          NULL as result_detail,
+          NULL as completed_at,
+          '' as registered_by,
+          cs.created_at as registered_at,
+          cs.updated_at as updated_at,
+          NULL as reviewed_by,
+          NULL as reviewed_at,
+          NULL as review_comment,
+          al.id as airline_id_ref,
+          al.code as airline_code,
+          al.name_ko as airline_name_ko,
+          cs.id as cs_id,
+          cs.callsign_pair,
+          cs.my_callsign,
+          cs.other_callsign,
+          cs.airline_code as cs_airline_code,
+          cs.other_airline_code,
+          cs.risk_level,
+          cs.occurrence_count,
+          cs.error_type,
+          cs.sub_error,
+          cs.similarity,
+          cs.created_at as callsign_created_at,
+          cs.last_occurred_at,
+          1 as is_virtual
+        FROM callsigns cs
+        JOIN airlines al ON cs.airline_id = al.id
+        LEFT JOIN (
+          SELECT DISTINCT callsign_id, airline_id
+          FROM actions
+          WHERE status IN ('pending', 'in_progress')
+        ) active_actions
+          ON active_actions.callsign_id = cs.id
+          AND active_actions.airline_id = cs.airline_id
+        WHERE ${virtualConditions.join(' AND ')}
+          AND active_actions.callsign_id IS NULL
+      `;
+
+      unionSql = `${unionSql} UNION ALL ${virtualSql}`;
+      unionParams = [...unionParams, ...virtualParams];
     }
 
-    // 검색 조건 (유사호출부호, 조치유형, 담당자) - SQLite LIKE 사용
-    if (search && search.trim()) {
-      const searchValue = `%${search}%`;
-      sql += ` AND (
-        cs.callsign_pair LIKE ?
-        OR a.action_type LIKE ?
-        OR a.manager_name LIKE ?
-      )`;
-      queryParams.push(searchValue, searchValue, searchValue);
-    }
+    const finalSql = `${unionSql} ORDER BY registered_at DESC LIMIT ? OFFSET ?`;
+    const finalParams = [...unionParams, limit, offset];
+    const result = await query(finalSql, finalParams);
 
-    // 날짜 필터 조건
-    if (dateFrom) {
-      sql += ` AND a.registered_at >= ?`;
-      queryParams.push(dateFrom);
-    }
-
-    if (dateTo) {
-      sql += ` AND a.registered_at <= ?`;
-      queryParams.push(dateTo);
-    }
-
-    // 페이지네이션
-    sql += ` ORDER BY a.registered_at DESC LIMIT ? OFFSET ?`;
-    queryParams.push(limit);
-    queryParams.push(offset);
-
-    // 데이터 조회
-    const result = await query(sql, queryParams);
-
-    // 전체 개수 조회
-    let countSql = `
-      SELECT COUNT(*) as total FROM actions a
-      WHERE a.airline_id = ?
-    `;
-    const countParams: any[] = [airlineId];
-
-    // 필터 조건: 실제 status 값으로 필터링
-    if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
-      countSql += ` AND a.status = ?`;
-      countParams.push(status);
-    }
-
-    if (search && search.trim()) {
-      const searchValue = `%${search}%`;
-      countSql += ` AND (
-        cs.callsign_pair LIKE ?
-        OR a.action_type LIKE ?
-        OR a.manager_name LIKE ?
-      )`;
-      countParams.push(searchValue, searchValue, searchValue);
-    }
-
-    // 날짜 필터 조건
-    if (dateFrom) {
-      countSql += ` AND a.registered_at >= ?`;
-      countParams.push(dateFrom);
-    }
-
-    if (dateTo) {
-      countSql += ` AND a.registered_at <= ?`;
-      countParams.push(dateTo);
-    }
-
-    const countResult = await query(countSql, countParams);
-    const total = parseInt(countResult.rows[0].total || '0', 10);
+    const countSql = `SELECT COUNT(*) as total FROM (${unionSql}) as combined`;
+    const countResult = await query(countSql, unionParams);
+    const total = parseInt(countResult.rows[0]?.total || '0', 10);
 
     return NextResponse.json({
       data: result.rows.map((row: any) => ({
@@ -207,6 +251,7 @@ export async function GET(
         reviewed_by: row.reviewed_by,
         reviewed_at: row.reviewed_at,
         review_comment: row.review_comment,
+        is_virtual: Boolean(row.is_virtual),
         // camelCase 별칭
         airlineId: row.airline_id,
         callsignId: row.callsign_id || row.cs_id,
@@ -221,6 +266,7 @@ export async function GET(
         reviewedBy: row.reviewed_by,
         reviewedAt: row.reviewed_at,
         reviewComment: row.review_comment,
+        isVirtual: Boolean(row.is_virtual),
         airlineCode: row.cs_airline_code,
         otherAirlineCode: row.other_airline_code,
       })),

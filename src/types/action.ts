@@ -138,6 +138,7 @@ export interface Action {
   reviewed_by?: string;
   reviewed_at?: string;
   review_comment?: string;
+  is_virtual?: boolean;
 
   // API 응답 시 포함 정보
   airline?: any; // Airline 객체
@@ -160,6 +161,7 @@ export interface Action {
   reviewedBy?: string;
   reviewedAt?: string;
   reviewComment?: string;
+  isVirtual?: boolean;
 }
 
 /**

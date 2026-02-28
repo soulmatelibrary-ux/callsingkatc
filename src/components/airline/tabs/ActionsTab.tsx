@@ -22,6 +22,7 @@ interface ActionsTabProps {
   onStatusFilterChange: (status: 'all' | ActionStatus) => void;
   onActionClick: (action: Action) => void;
   onCallsignDoubleClick: (callsign: Callsign) => void;
+  onCreateAction: (callsignId?: string) => void;
 }
 
 export function ActionsTab({
@@ -40,6 +41,7 @@ export function ActionsTab({
   onStatusFilterChange,
   onActionClick,
   onCallsignDoubleClick,
+  onCreateAction,
 }: ActionsTabProps) {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -204,6 +206,7 @@ export function ActionsTab({
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {actionsData.data.map((action, index) => {
+                  const isVirtual = action.is_virtual ?? action.isVirtual ?? false;
                   const registeredDate = action.registered_at
                     ? new Date(action.registered_at).toLocaleDateString('ko-KR')
                     : '-';
@@ -235,10 +238,10 @@ export function ActionsTab({
                         {action.callsign?.callsign_pair || '-'}
                       </td>
                       <td className="px-8 py-5 text-sm font-bold text-gray-700">
-                        {action.action_type}
+                        {action.action_type || (isVirtual ? '조치 등록 필요' : '-')}
                       </td>
                       <td className="px-8 py-5 text-sm font-bold text-gray-700">
-                        {action.manager_name}
+                        {action.manager_name || (isVirtual ? '-' : '')}
                       </td>
                       <td className="px-8 py-5 text-center">
                         <span
@@ -251,10 +254,16 @@ export function ActionsTab({
                       </td>
                       <td className="px-8 py-5 text-center">
                         <button
-                          onClick={() => onActionClick(action)}
-                          className="px-4 py-2 bg-rose-700 text-white text-[9px] font-black rounded-none shadow-none hover:bg-rose-800 transition-all uppercase tracking-wider"
+                          onClick={() =>
+                            isVirtual
+                              ? onCreateAction(action.callsign_id || action.callsignId)
+                              : onActionClick(action)
+                          }
+                          className={`px-4 py-2 text-white text-[9px] font-black rounded-none shadow-none transition-all uppercase tracking-wider ${
+                            isVirtual ? 'bg-[#00205b] hover:bg-[#001540]' : 'bg-rose-700 hover:bg-rose-800'
+                          }`}
                         >
-                          편집
+                          {isVirtual ? '등록' : '편집'}
                         </button>
                       </td>
                     </tr>

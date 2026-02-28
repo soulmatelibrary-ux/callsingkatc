@@ -164,12 +164,6 @@ npm install -g vercel
 vercel
 ```
 
-### Docker
-```bash
-docker build -t katc1 .
-docker run -p 3000:3000 katc1
-```
-
 ### 수동 배포
 ```bash
 npm run build
@@ -178,16 +172,13 @@ npm run start
 
 ## 🧪 테스트 계정
 
-### 관리자
-- Email: `admin@katc.com`
+### 관리자 (단일 계정)
 - Email: `lsi117@airport.co.kr`
-- Password: `Starred3!`
-
-### 일반 사용자 (대한항공)
-- Email: `user@kal.com`
-- Password: `Starred3!`
+- Password: `1234`
 
 > ⚠️ 프로덕션 환경에서는 반드시 변경하세요!
+
+현재 저장소에는 운영 중인 SQLite 데이터베이스 파일 [data/katc1.db](data/katc1.db)이 포함되어 있으며, 관리자와 일반 사용자 계정을 모두 그대로 담고 있습니다. **모든 계정의 초기 비밀번호는 1234**로 통일되어 있으니 배포 전 반드시 교체하세요.
 
 ## 🐛 문제 해결
 
@@ -205,12 +196,13 @@ npm run start
 npm run dev -- -p 3001
 ```
 
-## 📚 문서
+## 🚫 제외 대상
 
-- [아키텍처 설계](./docs/01-plan)
-- [시스템 설계](./docs/02-design)
-- [구현 보고서](./docs/04-report)
-- [API 문서](./docs/04-report/features)
+- `callsign.xlsx` 등 원본 데이터 엑셀 파일
+- `docs/` 이하 설계·보고·로그 문서
+- 환경 변수 파일 (`.env*`)
+- 빌드 산출물 및 캐시 (`.next/`, `out/`, `coverage/`)
+- 의존성 폴더 (`node_modules/`)
 
 ## 🤝 기여
 
