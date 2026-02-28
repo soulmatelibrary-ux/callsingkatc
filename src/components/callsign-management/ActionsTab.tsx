@@ -82,11 +82,11 @@ export function ActionsTab() {
     return actionsQuery.data?.data || [];
   }, [actionsQuery.data]);
 
-  // 상태별 통계 (API 응답의 summary 필드 사용)
+  // 상태별 통계 (전체 데이터에서 계산)
   const totalCount = actionsQuery.data?.pagination.total || 0;
-  const pendingCount = actionsQuery.data?.summary?.pending || 0;
-  const inProgressCount = actionsQuery.data?.summary?.in_progress || 0;
-  const completedCount = actionsQuery.data?.summary?.completed || 0;
+  const pendingCount = actions.filter((a) => a.status === 'pending').length;
+  const inProgressCount = actions.filter((a) => a.status === 'in_progress').length;
+  const completedCount = actions.filter((a) => a.status === 'completed').length;
 
   // 항공사별 통계 (현재 필터 기준)
   const airlineStats = useMemo(() => {

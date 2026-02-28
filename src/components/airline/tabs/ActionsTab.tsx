@@ -100,7 +100,7 @@ export function ActionsTab({
           </div>
           <input
             type="text"
-            placeholder="조치이력 내 유사호출부호, 담당자 등을 검색하세요..."
+            placeholder="조치이력 내 유사호출부호, 조치유형 등을 검색하세요..."
             value={actionSearchInput}
             onChange={(e) => onSearchInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -142,6 +142,16 @@ export function ActionsTab({
           }`}
         >
           전체
+        </button>
+        <button
+          onClick={() => onStatusFilterChange('pending')}
+          className={`flex-1 min-w-[100px] px-6 py-2.5 rounded-none text-xs font-black tracking-tight transition-all ${
+            actionStatusFilter === 'pending'
+              ? 'bg-orange-600 text-white shadow-none'
+              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+          }`}
+        >
+          미조치
         </button>
         <button
           onClick={() => onStatusFilterChange('in_progress')}
@@ -193,9 +203,6 @@ export function ActionsTab({
                   <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">
                     Type
                   </th>
-                  <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest">
-                    Manager
-                  </th>
                   <th className="px-8 py-4 text-center text-[11px] font-black text-gray-400 uppercase tracking-widest">
                     Status
                   </th>
@@ -239,9 +246,6 @@ export function ActionsTab({
                       </td>
                       <td className="px-8 py-5 text-sm font-bold text-gray-700">
                         {action.action_type || (isVirtual ? '조치 등록 필요' : '-')}
-                      </td>
-                      <td className="px-8 py-5 text-sm font-bold text-gray-700">
-                        {action.manager_name || (isVirtual ? '-' : '')}
                       </td>
                       <td className="px-8 py-5 text-center">
                         <span
