@@ -94,7 +94,8 @@ export async function POST(request: NextRequest) {
       : null;
 
     // 📌 비밀번호 강제 변경 기준: is_default_password 또는 password_change_required 중 하나라도 true
-    const needsPasswordChange = user.is_default_password === true || user.password_change_required === true;
+    // SQLite는 boolean을 정수 0/1로 저장하므로, !! 연산자로 변환 (1 === true는 false이므로)
+    const needsPasswordChange = !!user.is_default_password || !!user.password_change_required;
 
     const sanitizedUser = {
       id: user.id,

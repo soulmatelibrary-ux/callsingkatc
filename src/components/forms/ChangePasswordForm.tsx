@@ -47,6 +47,7 @@ interface ChangePasswordFormProps {
 export function ChangePasswordForm({ forced = false }: ChangePasswordFormProps) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const [isSuccess, setIsSuccess] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [watchedNewPassword, setWatchedNewPassword] = useState('');
@@ -175,9 +176,12 @@ export function ChangePasswordForm({ forced = false }: ChangePasswordFormProps) 
                 variant="secondary"
                 fullWidth
                 size="lg"
-                onClick={() => {
-                  window.location.href = '/api/auth/logout';
+                onClick={async () => {
+                  setIsRedirecting(true);
+                  await logout();
+                  router.push('/login');
                 }}
+                disabled={isRedirecting}
               >
                 로그아웃
               </Button>
