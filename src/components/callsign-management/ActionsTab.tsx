@@ -25,7 +25,7 @@ export function ActionsTab() {
   };
 
   const [selectedAirlineId, setSelectedAirlineId] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<'pending' | 'in_progress' | 'completed' | ''>('');
+  const [selectedStatus, setSelectedStatus] = useState<'pending' | 'in_progress' | 'completed' | ''>('in_progress');
   const [dateFrom, setDateFrom] = useState<string>(getDefaultDateFrom());
   const [dateTo, setDateTo] = useState<string>(getDefaultDateTo());
   const [page, setPage] = useState(1);
@@ -313,9 +313,9 @@ export function ActionsTab() {
               <button
                 onClick={() => {
                   setSelectedAirlineId('');
-                  setSelectedStatus('');
-                  setDateFrom('');
-                  setDateTo('');
+                  setSelectedStatus('in_progress');
+                  setDateFrom(getDefaultDateFrom());
+                  setDateTo(getDefaultDateTo());
                   setPage(1);
                 }}
                 className="w-full px-4 py-2.5 bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 rounded-none transition-all"

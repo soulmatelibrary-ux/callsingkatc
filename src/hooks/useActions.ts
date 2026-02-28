@@ -73,8 +73,8 @@ export function useAllActions(
       return data;
     },
     enabled: !!accessToken && (options?.enabled ?? true),
-    staleTime: 30 * 1000, // 30초
-    gcTime: 5 * 60 * 1000, // 5분
+    staleTime: 60 * 1000, // 60초 (캐시 시간 증가)
+    gcTime: 10 * 60 * 1000, // 10분 (캐시 보관 기간 증가)
   });
 }
 
