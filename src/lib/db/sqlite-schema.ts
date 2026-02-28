@@ -203,6 +203,8 @@ function createTables(database: Database.Database) {
       file_upload_id TEXT REFERENCES file_uploads(id),
       uploaded_at DATETIME,
       status VARCHAR(20) NOT NULL DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'completed')),
+      my_action_status VARCHAR(20) DEFAULT 'no_action' CHECK (my_action_status IN ('no_action', 'pending', 'in_progress', 'completed')),
+      other_action_status VARCHAR(20) DEFAULT 'no_action' CHECK (other_action_status IN ('no_action', 'pending', 'in_progress', 'completed')),
       created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(airline_id, callsign_pair),

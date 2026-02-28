@@ -314,6 +314,14 @@ export async function POST(
       );
     }
 
+    // 인가 확인: 관리자이거나 해당 항공사 소속이어야 함
+    if (payload.role !== 'admin' && payload.airlineId !== airlineId) {
+      return NextResponse.json(
+        { error: '접근 권한이 없습니다.' },
+        { status: 403 }
+      );
+    }
+
     // 요청 본문 (ActionModal에서 snake_case로 전송)
     const body = await request.json();
     const {
@@ -376,6 +384,8 @@ export async function POST(
     );
 
     let otherAirlineId: string | null = null;
+    let otherActionExists = false;
+
     if (otherAirlineResult.rows.length > 0) {
       otherAirlineId = otherAirlineResult.rows[0].id;
 
@@ -384,15 +394,14 @@ export async function POST(
         'SELECT COUNT(*) as count FROM actions WHERE callsign_id = ? AND airline_id = ?',
         [callsignId, otherAirlineId]
       );
-      var otherActionExists = otherActionCheck.rows[0].count > 0;
-    } else {
-      var otherActionExists = false;
+      otherActionExists = otherActionCheck.rows[0].count > 0;
     }
 
-    // completedAt이 없으면 현재 시각 사용
-    const completedTimestamp = completedAt || new Date().toISOString();
-    // 상태: 요청에서 받으면 그 값 사용, 없으면 'in_progress' 기본값
+    // completed 상태일 때만 completedAt 설정 (기본값: 현재 시각)
     const actionStatus = requestStatus || 'in_progress';
+    const completedTimestamp = (actionStatus === 'completed' && !completedAt)
+      ? new Date().toISOString()
+      : completedAt || null;
 
     // 조치 생성 (트랜잭션)
     await transaction(async (trx) => {

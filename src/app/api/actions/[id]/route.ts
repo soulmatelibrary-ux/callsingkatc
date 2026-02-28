@@ -167,6 +167,15 @@ export async function PATCH(
       );
     }
 
+    // 권한 확인: 해당 조치를 수정할 권한이 있는지 확인
+    const actionAirlineId = existingAction.rows[0].airline_id;
+    if (payload.role !== 'admin' && payload.airlineId !== actionAirlineId) {
+      return NextResponse.json(
+        { error: '권한이 없습니다.' },
+        { status: 403 }
+      );
+    }
+
     // 상태 로직: in_progress는 action row 삭제 + callsigns 상태 복원
     if (status === 'in_progress') {
       // in_progress = 항공사 미조치 상태 = action row 삭제 + callsign 상태 복원
@@ -270,13 +279,29 @@ export async function PATCH(
         const updated = await trx('SELECT * FROM actions WHERE id = ?', [id]);
         if (updated.rows.length > 0) {
           const newStatus = updated.rows[0].status;
-          // 3. callsigns 상태 동기화
-          // - status: action의 status와 일치하게
-          // - my_action_status/other_action_status: action의 status로 업데이트
           const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
+          const otherStatusColumnName = isMy ? 'other_action_status' : 'my_action_status';
+
+          // 3. callsigns 상태 동기화
+          // - my_action_status/other_action_status: 업데이트된 action의 status로 설정
+          // - status: 양쪽 모두 조치가 있으면 'completed', 아니면 'in_progress'
+          const otherStatusResult = await trx(
+            `SELECT ${otherStatusColumnName} FROM callsigns WHERE id = ?`,
+            [callsignId]
+          );
+
+          let newCallsignStatus = 'in_progress';
+          if (otherStatusResult.rows.length > 0) {
+            const otherStatus = otherStatusResult.rows[0][otherStatusColumnName];
+            // 양쪽 모두 'no_action'이 아니면 'completed'
+            if (newStatus !== 'no_action' && otherStatus !== 'no_action') {
+              newCallsignStatus = 'completed';
+            }
+          }
+
           await trx(
             `UPDATE callsigns SET status = ?, ${statusColumnName} = ? WHERE id = ?`,
-            [newStatus, newStatus, callsignId]
+            [newCallsignStatus, newStatus, callsignId]
           );
         }
         return updated;
@@ -382,17 +407,34 @@ export async function DELETE(
     const isMy = airlineCheck.rows[0]?.code === airlineCode;
 
     // 삭제 (on_delete cascade는 자동으로 action_history도 삭제)
-    // 동시에 callsigns.my_action_status/other_action_status를 'no_action'으로 초기화
+    // 동시에 callsigns 상태 업데이트
     await transaction(async (trx) => {
       // 1. action 삭제
       await trx('DELETE FROM actions WHERE id = ?', [id]);
 
-      // 2. callsign 상태 초기화
-      // - 자사/타사에 따라 my_action_status 또는 other_action_status를 'no_action'으로 설정
+      // 2. callsign 상태 업데이트
       const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
+      const otherStatusColumnName = isMy ? 'other_action_status' : 'my_action_status';
+
+      // - 해당 항공사 상태를 'no_action'으로 초기화
+      // - callsigns.status 재계산: 양쪽 모두 no_action이면 'in_progress', 아니면 'completed'
+      const callsignStatus = await trx(
+        `SELECT ${otherStatusColumnName} FROM callsigns WHERE id = ?`,
+        [callsignId]
+      );
+
+      let newCallsignStatus = 'in_progress';
+      if (callsignStatus.rows.length > 0) {
+        const otherStatus = callsignStatus.rows[0][otherStatusColumnName];
+        // 상대 항공사가 조치를 등록했으면 여전히 'in_progress' (자신이 처리 안 했으므로)
+        if (otherStatus !== 'no_action') {
+          newCallsignStatus = 'in_progress';  // 한쪽만 조치 있으면 진행 중
+        }
+      }
+
       await trx(
-        `UPDATE callsigns SET ${statusColumnName} = ? WHERE id = ?`,
-        ['no_action', callsignId]
+        `UPDATE callsigns SET status = ?, ${statusColumnName} = ? WHERE id = ?`,
+        [newCallsignStatus, 'no_action', callsignId]
       );
     });
 
