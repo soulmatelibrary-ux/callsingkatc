@@ -248,14 +248,35 @@ export async function POST(request: NextRequest) {
       : null;
 
     // 5. DB 저장
-    const result = await query(
+    const insertResult = await query(
       `INSERT INTO announcements
         (title, content, level, start_date, end_date, target_airlines, created_by)
       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [title, content, level, startDate, endDate, targetAirlinesStr, payload.userId]
     );
 
-    return NextResponse.json(result.rows[0], { status: 201 });
+    // 6. 생성된 공지사항 조회
+    const createdResult = await query(
+      `SELECT id, title, content, level,
+              start_date as "startDate", end_date as "endDate",
+              target_airlines as "targetAirlines",
+              created_by as "createdBy", created_at as "createdAt",
+              is_active as "isActive"
+       FROM announcements
+       WHERE created_by = ?
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      [payload.userId]
+    );
+
+    if (createdResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: '공지사항 생성 확인 실패' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(createdResult.rows[0], { status: 201 });
   } catch (error) {
     console.error('[POST /api/admin/announcements] Error:', error);
     return NextResponse.json(

@@ -141,12 +141,32 @@ export async function PATCH(
     params_arr.push(params.id);
     const sql = `
       UPDATE announcements
-      SET ?
+      SET ${updates.join(', ')}
       WHERE id = ?`;
 
-    const result = await query(sql, params_arr);
+    await query(sql, params_arr);
 
-    return NextResponse.json(result.rows[0], { status: 200 });
+    // 7. 업데이트된 공지사항 조회
+    const updatedResult = await query(
+      `SELECT id, title, content, level,
+              start_date as "startDate", end_date as "endDate",
+              target_airlines as "targetAirlines",
+              created_by as "createdBy", created_at as "createdAt",
+              updated_by as "updatedBy", updated_at as "updatedAt",
+              is_active as "isActive"
+       FROM announcements
+       WHERE id = ?`,
+      [params.id]
+    );
+
+    if (updatedResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: '공지사항을 찾을 수 없습니다.' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(updatedResult.rows[0], { status: 200 });
   } catch (error) {
     console.error('[PATCH /api/admin/announcements/{id}] Error:', error);
     return NextResponse.json(

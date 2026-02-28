@@ -109,19 +109,27 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
     // 사용자 업데이트
     const sql = `UPDATE users
-                 SET ?
+                 SET ${updates.join(', ')}
                  WHERE id = ?`;
 
-    const result = await query(sql, params_array);
+    await query(sql, params_array);
 
-    if (result.rows.length === 0) {
+    // 업데이트된 사용자 조회
+    const userResult = await query(
+      `SELECT id, email, status, role, airline_id, last_login_at, created_at, updated_at
+       FROM users
+       WHERE id = ?`,
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
       return NextResponse.json(
         { error: '사용자를 찾을 수 없습니다.' },
         { status: 404 }
       );
     }
 
-    const user = result.rows[0];
+    const user = userResult.rows[0];
 
     // 항공사 정보 조회
     const airlineResult = await query(
@@ -203,21 +211,29 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 사용자 삭제
-    const deleteResult = await query('DELETE FROM users WHERE id = ?', [userId]);
+    // 삭제 전 사용자 정보 저장
+    const userBeforeDelete = await query(
+      'SELECT id, email FROM users WHERE id = ?',
+      [userId]
+    );
 
-    if (deleteResult.rows.length === 0) {
+    if (userBeforeDelete.rows.length === 0) {
       return NextResponse.json(
         { error: '사용자를 찾을 수 없습니다.' },
         { status: 404 }
       );
     }
 
+    const userInfo = userBeforeDelete.rows[0];
+
+    // 사용자 삭제
+    await query('DELETE FROM users WHERE id = ?', [userId]);
+
     return NextResponse.json({
       message: '사용자가 삭제되었습니다.',
       user: {
-        id: deleteResult.rows[0].id,
-        email: deleteResult.rows[0].email,
+        id: userInfo.id,
+        email: userInfo.email,
       },
     });
   } catch (error) {
