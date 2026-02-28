@@ -111,7 +111,7 @@ export async function GET(
 
     // 검색 조건 (유사호출부호, 조치유형, 담당자) - SQLite LIKE 사용
     if (search && search.trim()) {
-      const searchValue = `%?%`;
+      const searchValue = `%${search}%`;
       sql += ` AND (
         cs.callsign_pair LIKE ?
         OR a.action_type LIKE ?
@@ -161,7 +161,7 @@ export async function GET(
     }
 
     if (search && search.trim()) {
-      const searchValue = `%?%`;
+      const searchValue = `%${search}%`;
       countSql += ` AND (
         cs.callsign_pair LIKE ?
         OR a.action_type LIKE ?
@@ -337,8 +337,8 @@ export async function POST(
     const actionStatus = requestStatus || 'in_progress';
 
     // 조치 생성 (트랜잭션)
-    const result = await transaction(async (trx) => {
-      const actionResult = await trx(
+    await transaction(async (trx) => {
+      await trx(
         `INSERT INTO actions (
           airline_id, callsign_id, action_type, description,
           manager_name, planned_due_date, completed_at,
@@ -349,18 +349,29 @@ export async function POST(
 
       // 호출부호 상태를 완료로 변경
       await trx('UPDATE callsigns SET status = ? WHERE id = ?', ['completed', callsignId]);
-
-      return actionResult;
     });
 
-    if (result.rows.length === 0) {
+    // 생성된 조치 조회
+    const actionResult = await query(
+      `SELECT
+        id, airline_id, callsign_id, action_type, description,
+        manager_name, planned_due_date, completed_at,
+        status, registered_by, registered_at, updated_at
+       FROM actions
+       WHERE airline_id = ? AND callsign_id = ?
+       ORDER BY registered_at DESC
+       LIMIT 1`,
+      [airlineId, callsignId]
+    );
+
+    if (actionResult.rows.length === 0) {
       return NextResponse.json(
-        { error: '조치 생성에 실패했습니다.' },
+        { error: '조치 조회 실패' },
         { status: 500 }
       );
     }
 
-    const action = result.rows[0];
+    const action = actionResult.rows[0];
 
     return NextResponse.json(
       {
@@ -371,6 +382,7 @@ export async function POST(
         description: action.description,
         manager_name: action.manager_name,
         planned_due_date: action.planned_due_date,
+        completed_at: action.completed_at,
         status: action.status,
         registered_by: action.registered_by,
         registered_at: action.registered_at,

@@ -96,12 +96,25 @@ export async function PATCH(
 
     values.push(id);
 
-    const sql = `UPDATE airlines SET ? WHERE id = ?`;
+    const sql = `UPDATE airlines SET ${updates.join(', ')} WHERE id = ?`;
 
-    const result = await query(sql, values);
+    await query(sql, values);
+
+    // 업데이트된 항공사 조회
+    const updatedResult = await query(
+      'SELECT id, code, name_ko, name_en, display_order FROM airlines WHERE id = ?',
+      [id]
+    );
+
+    if (updatedResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: '항공사를 찾을 수 없습니다.' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json(
-      { airline: result.rows[0] },
+      { airline: updatedResult.rows[0] },
       { status: 200 }
     );
   } catch (error) {

@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
           ROW_NUMBER() OVER (PARTITION BY a.callsign_id ORDER BY a.updated_at DESC, a.registered_at DESC) as rn
         FROM actions a
       ) latest_action ON c.id = latest_action.callsign_id AND latest_action.rn = 1
-      WHERE 1=1 ?
+      WHERE 1=1 ${whereClause}
       ORDER BY
         CASE
           WHEN c.risk_level = '매우높음' THEN 3
@@ -96,17 +96,8 @@ export async function GET(request: NextRequest) {
     const result = await query(sql, params);
 
     // 전체 개수 조회
-    let countSql = `SELECT COUNT(*) as total FROM callsigns c WHERE 1=1`;
-    const countParams: any[] = [];
-
-    if (airlineId) {
-      countSql += ` AND airline_id = ?`;
-      countParams.push(airlineId);
-    }
-    if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
-      countSql += ` AND risk_level = ?`;
-      countParams.push(riskLevel);
-    }
+    const countSql = `SELECT COUNT(*) as total FROM callsigns c WHERE 1=1 ${whereClause}`;
+    const countParams: any[] = [...params.slice(0, params.length - 2)];  // limit, offset 제외
 
     const countResult = await query(countSql, countParams);
     const total = parseInt(countResult.rows[0].total, 10);

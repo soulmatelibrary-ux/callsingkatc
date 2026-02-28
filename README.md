@@ -14,14 +14,12 @@
 
 - **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
 - **State Management**: Zustand, TanStack Query v5
-- **Backend**: Node.js, PostgreSQL
-- **BaaS**: bkend.ai (인증, 데이터베이스)
-- **배포**: Next.js App Router
+- **Backend**: Node.js, SQLite 3 (better-sqlite3)
+- **배포**: Vercel (Next.js App Router)
 
 ## 📋 시스템 요구사항
 
 - Node.js 18+
-- PostgreSQL 13+
 - npm 또는 yarn
 - GitHub 계정 (선택사항)
 
@@ -47,26 +45,14 @@ yarn install
 `.env.local` 파일 생성:
 
 ```env
-# bkend.ai 프로젝트 ID (필수)
-# https://bkend.ai에서 프로젝트 생성 후 ID 입력
-NEXT_PUBLIC_BKEND_PROJECT_ID=your_bkend_project_id
+# JWT 토큰 시크릿 (필수)
+JWT_SECRET=your_secret_key_here_32_chars_minimum
 
-# PostgreSQL 데이터베이스 (선택)
-# 로컬 개발시 기본값: localhost:5432
-DATABASE_URL=postgresql://user:password@localhost:5432/katc1
+# API 엔드포인트
+NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
-### 4️⃣ 데이터베이스 초기화
-
-```bash
-# PostgreSQL에서 데이터베이스 생성
-psql -U postgres -c "CREATE DATABASE katc1;"
-
-# 스키마 및 샘플 데이터 로드
-psql -U postgres -d katc1 -f scripts/init.sql
-```
-
-### 5️⃣ 개발 서버 실행
+### 4️⃣ 개발 서버 실행
 
 ```bash
 npm run dev
@@ -74,7 +60,7 @@ npm run dev
 
 브라우저에서 `http://localhost:3000` 열기
 
-### 6️⃣ 빌드 및 배포
+### 5️⃣ 빌드 및 배포
 
 ```bash
 # 프로덕션 빌드
@@ -205,15 +191,14 @@ npm run start
 
 ## 🐛 문제 해결
 
-### "Cannot connect to database"
-- PostgreSQL이 실행 중인지 확인
-- DATABASE_URL이 올바른지 확인
-- `scripts/init.sql`으로 스키마 초기화 완료 확인
-
-### "NEXT_PUBLIC_BKEND_PROJECT_ID 에러"
-- bkend.ai에서 프로젝트 생성
-- `.env.local` 파일에 ID 입력
+### "JWT_SECRET 에러"
+- `.env.local` 파일에 JWT_SECRET 입력
+- 최소 32자 이상의 임의 문자열 권장
 - `npm run dev` 재실행
+
+### "데이터베이스 파일 손상"
+- `data/katc1.db` 파일 삭제
+- `npm run dev`로 자동 재생성
 
 ### "포트 3000이 이미 사용 중"
 ```bash
@@ -243,8 +228,8 @@ MIT License - 자유롭게 사용, 수정, 배포 가능
 
 ---
 
-**마지막 업데이트**: 2026-02-20
-**버전**: 1.0.0
+**마지막 업데이트**: 2026-02-28
+**버전**: 1.0.0 (SQLite 기반)
 **상태**: ✅ Production Ready
 
 ## 🚀 다음 단계

@@ -113,14 +113,28 @@ export async function POST(request: NextRequest) {
     }
 
     // 항공사 생성
-    const result = await query(
+    await query(
       `INSERT INTO airlines (code, name_ko, name_en, display_order)
        VALUES (?, ?, ?, ?)`,
       [code, name_ko, name_en, nextOrder]
     );
 
+    // 생성된 항공사 조회
+    const createdResult = await query(
+      `SELECT id, code, name_ko, name_en, display_order FROM airlines
+       WHERE code = ?`,
+      [code]
+    );
+
+    if (createdResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: '항공사 생성 확인 실패' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
-      { airline: result.rows[0] },
+      { airline: createdResult.rows[0] },
       { status: 201 }
     );
   } catch (error) {
