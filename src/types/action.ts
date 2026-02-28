@@ -67,10 +67,18 @@ export interface Callsign {
   created_at: string;
   updated_at: string;
 
-  // 조치 상태 정보
+  // 조치 상태 정보 (단일 항공사 - 사용자 API 호환성)
   action_status?: 'no_action' | 'pending' | 'in_progress' | 'completed';
   action_type?: string | null;
   action_completed_at?: string | null;
+
+  // 양쪽 항공사 조치 상태 정보 (관리자 API)
+  my_airline_id?: string;
+  my_action_status?: 'no_action' | 'pending' | 'in_progress' | 'completed';
+  my_action_type?: string | null;
+  other_action_status?: 'no_action' | 'pending' | 'in_progress' | 'completed';
+  other_action_type?: string | null;
+  both_completed?: boolean;
 
   // 최근 조치 정보 (하위호환성)
   latest_action_id?: string;
@@ -99,6 +107,13 @@ export interface Callsign {
   actionStatus?: 'no_action' | 'pending' | 'in_progress' | 'completed';
   actionType?: string | null;
   actionCompletedAt?: string | null;
+  // 양쪽 항공사 조치 상태 (camelCase 버전)
+  myAirlineId?: string;
+  myActionStatus?: 'no_action' | 'pending' | 'in_progress' | 'completed';
+  myActionType?: string | null;
+  otherActionStatus?: 'no_action' | 'pending' | 'in_progress' | 'completed';
+  otherActionType?: string | null;
+  bothCompleted?: boolean;
   latestActionId?: string;
   latestActionStatus?: 'pending' | 'in_progress' | 'completed';
   latestActionManager?: string | null;

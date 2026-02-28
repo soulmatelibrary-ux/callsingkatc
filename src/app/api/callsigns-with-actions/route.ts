@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       `SELECT id, airline_id, airline_code, callsign_pair, my_callsign, other_callsign,
               other_airline_code, error_type, sub_error, risk_level, similarity,
               occurrence_count, first_occurred_at, last_occurred_at,
-              status, created_at, updated_at
+              file_upload_id, uploaded_at, status, created_at, updated_at
        FROM callsigns
        WHERE status = 'in_progress'
          ${riskLevelCondition}
@@ -212,6 +212,8 @@ export async function GET(request: NextRequest) {
           occurrence_count: callsign.occurrence_count,
           first_occurred_at: callsign.first_occurred_at,
           last_occurred_at: callsign.last_occurred_at,
+          file_upload_id: callsign.file_upload_id,
+          uploaded_at: callsign.uploaded_at,
           status: callsign.status,
           created_at: callsign.created_at,
           updated_at: callsign.updated_at,
