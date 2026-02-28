@@ -19,7 +19,6 @@ import {
   BarChart3,
   ClipboardList,
   TrendingUp,
-  Megaphone
 } from 'lucide-react';
 import {
   AirlineTabType,
@@ -351,7 +350,6 @@ export default function AirlinePage() {
     { id: 'incidents', label: '조치대상', icon: BarChart3, color: 'primary' },
     { id: 'actions', label: '검출이력', icon: ClipboardList, color: 'info' },
     { id: 'statistics', label: '통계', icon: TrendingUp, color: 'success' },
-    { id: 'announcements', label: '공지사항', icon: Megaphone, color: 'orange' },
   ];
 
   return (
