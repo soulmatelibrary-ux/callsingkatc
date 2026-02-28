@@ -82,13 +82,18 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     // 📌 초기화 비밀번호: 암호화된 임시 비밀번호 생성 (예측 불가능)
     // 사용자에게는 비밀번호를 직접 전달하지 않고, 관리자 UI에서만 표시
-    const tempPassword = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    // crypto.getRandomValues를 사용한 안전한 난수 생성
+    // 12자리 hexadecimal (48비트) + 1자리 숫자 (4비트) + 특수문자 = 16자 이상
+    const hexPart = Array.from(crypto.getRandomValues(new Uint8Array(8)))
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('')
-      .substring(0, 12)
-      .toUpperCase()
-      + Math.floor(Math.random() * 10)
-      + '!';
+      .toUpperCase();
+
+    // 숫자 1자리는 crypto.getRandomValues 사용 (0-9)
+    const randomBytes = crypto.getRandomValues(new Uint8Array(1));
+    const numPart = (randomBytes[0] % 10).toString();
+
+    const tempPassword = hexPart + numPart + '!';
     const passwordHash = await bcrypt.hash(tempPassword, 10);
 
     // DB 업데이트

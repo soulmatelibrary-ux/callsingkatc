@@ -52,11 +52,6 @@ export function ActionsTab() {
   // 선택한 항공사의 호출부호 목록
   const callsignsQuery = useAirlineCallsigns(selectedAirlineId, { limit: 100 });
 
-  // 전체 필터 적용되지 않은 데이터로 통계 계산 (모든 훅 최상단에 선언)
-  const allActionsQuery = useAllActions({
-    limit: 1000, // 전체 데이터 조회
-  });
-
   const statusColors: Record<string, string> = {
     pending: 'bg-yellow-50 text-yellow-600 border-yellow-100',
     in_progress: 'bg-blue-50 text-blue-600 border-blue-100',
@@ -87,12 +82,11 @@ export function ActionsTab() {
     return actionsQuery.data?.data || [];
   }, [actionsQuery.data]);
 
-  // 상태별 집계 (훅 규칙을 위해 반환 전에 계산)
-  const allActions = allActionsQuery.data?.data || [];
+  // 상태별 통계 (API 응답의 summary 필드 사용)
   const totalCount = actionsQuery.data?.pagination.total || 0;
-  const pendingCount = allActions.filter(a => a.status === 'pending').length;
-  const inProgressCount = allActions.filter(a => a.status === 'in_progress').length;
-  const completedCount = allActions.filter(a => a.status === 'completed').length;
+  const pendingCount = actionsQuery.data?.summary?.pending || 0;
+  const inProgressCount = actionsQuery.data?.summary?.in_progress || 0;
+  const completedCount = actionsQuery.data?.summary?.completed || 0;
 
   // 항공사별 통계 (현재 필터 기준)
   const airlineStats = useMemo(() => {

@@ -5,6 +5,7 @@
  * 쿼리 파라미터:
  *   - status: active|suspended (필터)
  *   - airlineId: 항공사별 필터
+ *   - email: 이메일 검색 (포함 검색, 선택사항)
  *
  * POST /api/admin/users
  * 사용자 사전등록 (관리자만)
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
     // 필터 조건
     const status = request.nextUrl.searchParams.get('status');
     const airlineId = request.nextUrl.searchParams.get('airlineId');
+    const emailSearch = request.nextUrl.searchParams.get('email');
 
     let sql = `SELECT
                  u.id, u.email, u.status, u.role, u.last_login_at, u.created_at, u.updated_at,
@@ -60,6 +62,12 @@ export async function GET(request: NextRequest) {
     if (airlineId) {
       sql += ` AND u.airline_id = ?`;
       params.push(airlineId);
+    }
+
+    // 이메일 검색 (LIKE 검색)
+    if (emailSearch) {
+      sql += ` AND u.email LIKE ?`;
+      params.push(`%${emailSearch}%`);
     }
 
     sql += ' ORDER BY u.created_at DESC';

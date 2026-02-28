@@ -144,6 +144,54 @@ export async function GET(request: NextRequest) {
     const countResult = await query(countSql, countParams);
     const total = parseInt(countResult.rows[0].total, 10);
 
+    // 상태별 통계 조회 (전체 데이터 기준)
+    let summaryCountParams: any[] = [];
+    let summarySql = `SELECT a.status, COUNT(*) as count FROM actions a LEFT JOIN callsigns cs ON a.callsign_id = cs.id WHERE 1=1`;
+
+    if (airlineId) {
+      summarySql += ` AND a.airline_id = ?`;
+      summaryCountParams.push(airlineId);
+    }
+
+    if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
+      summarySql += ` AND a.status = ?`;
+      summaryCountParams.push(status);
+    }
+
+    if (search && search.trim()) {
+      const searchValue = `%${search}%`;
+      summarySql += ` AND (
+        cs.callsign_pair LIKE ?
+        OR a.action_type LIKE ?
+        OR a.manager_name LIKE ?
+      )`;
+      summaryCountParams.push(searchValue, searchValue, searchValue);
+    }
+
+    if (dateFrom) {
+      summarySql += ` AND DATE(a.registered_at) >= DATE(?)`;
+      summaryCountParams.push(dateFrom);
+    }
+
+    if (dateTo) {
+      summarySql += ` AND DATE(a.registered_at) <= DATE(?)`;
+      summaryCountParams.push(dateTo);
+    }
+
+    summarySql += ` GROUP BY a.status`;
+    const summaryResult = await query(summarySql, summaryCountParams);
+
+    const summary = {
+      pending: 0,
+      in_progress: 0,
+      completed: 0,
+    };
+
+    summaryResult.rows.forEach((row: any) => {
+      const statusKey = row.status === 'in_progress' ? 'in_progress' : row.status;
+      summary[statusKey as keyof typeof summary] = parseInt(row.count, 10);
+    });
+
     return NextResponse.json({
       data: result.rows.map((action: any) => ({
         id: action.id,
@@ -196,6 +244,7 @@ export async function GET(request: NextRequest) {
         total,
         totalPages: Math.ceil(total / limit),
       },
+      summary,
     });
   } catch (error) {
     console.error('조치 목록 조회 오류:', error);

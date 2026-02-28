@@ -47,17 +47,18 @@ export function PasswordResetSection() {
     setResetError(null);
 
     try {
-      const response = await apiFetch("/api/admin/users");
+      // 서버 측 검색 (email 파라미터 전달)
+      const searchUrl = new URL("/api/admin/users", window.location.origin);
+      searchUrl.searchParams.set("email", email);
+
+      const response = await apiFetch(searchUrl.pathname + searchUrl.search);
       if (!response.ok) {
-        throw new Error("사용자 목록을 불러오지 못했습니다.");
+        throw new Error("사용자를 검색하지 못했습니다.");
       }
       const data = await response.json();
-      const allUsers: UserSearchResult[] = data.users;
+      const searchResults: UserSearchResult[] = data.users || [];
 
-      const filtered = allUsers.filter((u) =>
-        u.email.toLowerCase().includes(email.toLowerCase()),
-      );
-      setSearchResults(filtered);
+      setSearchResults(searchResults);
       setHasSearched(true);
     } catch (err) {
       setSearchError(
