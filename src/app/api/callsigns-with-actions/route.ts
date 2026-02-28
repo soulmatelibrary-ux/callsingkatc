@@ -204,19 +204,25 @@ export async function GET(request: NextRequest) {
       return { callsign, actionStatus };
     });
 
+    // myActionStatus 필터: 진행중(no_action) vs 완료(any action exists)
     if (myActionStatus) {
-      filteredRows = filteredRows.filter(
-        (row) => row.actionStatus.myActionStatus === myActionStatus
-      );
+      filteredRows = filteredRows.filter((row) => {
+        if (myActionStatus === 'in_progress') {
+          // 진행중: 조치 없음 (no_action)
+          return row.actionStatus.myActionStatus === 'no_action';
+        } else if (myActionStatus === 'completed') {
+          // 완료: 조치 있음 (no_action 제외한 모든 상태)
+          return row.actionStatus.myActionStatus !== 'no_action';
+        }
+        return true;
+      });
     }
 
     // summary 계산 (필터링 후)
     const summary = {
       total: filteredRows.length,
-      completed: filteredRows.filter((r) => r.actionStatus.myActionStatus === 'completed').length,
-      in_progress: filteredRows.filter((r) => r.actionStatus.myActionStatus === 'in_progress').length,
-      pending: filteredRows.filter((r) => r.actionStatus.myActionStatus === 'pending').length,
-      no_action: filteredRows.filter((r) => r.actionStatus.myActionStatus === 'no_action').length,
+      completed: filteredRows.filter((r) => r.actionStatus.myActionStatus !== 'no_action').length,
+      in_progress: filteredRows.filter((r) => r.actionStatus.myActionStatus === 'no_action').length,
     };
 
     // 페이지네이션 처리

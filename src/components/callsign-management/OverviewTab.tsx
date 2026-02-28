@@ -142,12 +142,10 @@ export function OverviewTab() {
     <div className="space-y-8">
       {/* KPI 카드 또는 필터 결과 요약 카드 */}
       {hasFilters && summary ? (
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <StatCard label="전체" value={summary.total} color="text-gray-900" />
           <StatCard label="완료" value={summary.completed} color="text-emerald-600" />
           <StatCard label="진행중" value={summary.in_progress} color="text-blue-600" />
-          <StatCard label="대기중" value={summary.pending} color="text-amber-600" />
-          <StatCard label="미등록" value={summary.no_action} color="text-gray-600" />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">

@@ -281,10 +281,8 @@ export interface CallsignListResponse {
   };
   summary?: {
     total: number;
-    completed: number;
-    in_progress: number;
-    pending: number;
-    no_action: number;
+    completed: number; // 조치 있음
+    in_progress: number; // 조치 없음
   };
 }
 
