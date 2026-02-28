@@ -7,19 +7,18 @@ import * as XLSX from 'xlsx';
 import { parseJsonCookie } from '@/lib/cookies';
 import { ROUTES } from '@/lib/constants';
 import { useAirlineActions, useAirlineActionStats, useAirlineCallsigns } from '@/hooks/useActions';
-import { useActiveAnnouncements } from '@/hooks/useAnnouncements';
+import { useActiveAnnouncements, useAnnouncementHistory } from '@/hooks/useAnnouncements';
 import { useDateRangeFilter, formatDateInput, toInputDate } from '@/hooks/useDateRangeFilter';
 import { ActionModal } from '@/components/actions/ActionModal';
 import { Header } from '@/components/layout/Header';
 import { AirlineStatisticsTab } from '@/components/airline/AirlineStatisticsTab';
-import { IncidentsTab, AnalysisTab, ActionsTab, AnnouncementsTab } from '@/components/airline/tabs';
+import { IncidentsTab, ActionsTab, AnnouncementsTab } from '@/components/airline/tabs';
 import { NanoIcon } from '@/components/ui/NanoIcon';
 import {
   BarChart3,
   ClipboardList,
   TrendingUp,
-  Megaphone,
-  PieChart
+  Megaphone
 } from 'lucide-react';
 import {
   AirlineTabType,
@@ -129,7 +128,7 @@ export default function AirlinePage() {
             }
           }
         } catch (err) {
-          console.error('항공사 정보 복구 실패:', err);
+          // 조용히 처리
         } finally {
           setLoading(false);
         }
@@ -300,7 +299,6 @@ export default function AirlinePage() {
 
   const navItems = [
     { id: 'incidents' as const, label: '발생현황', icon: BarChart3, color: 'primary' },
-    { id: 'analysis' as const, label: '세부오류분석', icon: PieChart, color: 'warning' },
     { id: 'actions' as const, label: '조치이력', icon: ClipboardList, color: 'info' },
     { id: 'statistics' as const, label: '통계', icon: TrendingUp, color: 'success' },
     { id: 'announcements' as const, label: '공지사항', icon: Megaphone, color: 'orange' },
@@ -366,14 +364,6 @@ export default function AirlinePage() {
                 onErrorTypeFilterChange={setErrorTypeFilter}
                 onOpenActionModal={handleOpenActionModal}
                 onExport={handleExportIncidents}
-              />
-            )}
-
-            {activeTab === 'analysis' && (
-              <AnalysisTab
-                incidents={incidents}
-                errorTypeFilter={errorTypeFilter}
-                onErrorTypeFilterChange={setErrorTypeFilter}
               />
             )}
 
