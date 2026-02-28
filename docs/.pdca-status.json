@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-02-28T00:49:23.068Z",
+  "lastUpdated": "2026-02-28T01:01:39.892Z",
   "activeFeatures": [
     "katc1",
     "api",
@@ -96,9 +96,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:40:36.197Z",
-        "lastUpdated": "2026-02-19T11:08:36.058Z"
+        "lastUpdated": "2026-02-28T01:01:36.271Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/ui/StatusBadge.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/ui/PasswordStrength.tsx"
     },
     "layout": {
       "phase": "do",
@@ -122,7 +122,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:41:49.609Z",
-        "lastUpdated": "2026-02-28T00:48:59.647Z"
+        "lastUpdated": "2026-02-28T01:01:20.363Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/forms/ChangePasswordForm.tsx"
     },
@@ -135,7 +135,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:43:18.371Z",
-        "lastUpdated": "2026-02-28T00:47:27.802Z"
+        "lastUpdated": "2026-02-28T01:01:17.077Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/admin/CreateUserModal.tsx"
     },
@@ -161,7 +161,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:43:44.364Z",
-        "lastUpdated": "2026-02-28T00:48:15.004Z"
+        "lastUpdated": "2026-02-28T01:01:39.892Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/login/route.ts"
     },
@@ -200,9 +200,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T05:44:00.843Z",
-        "lastUpdated": "2026-02-28T00:49:08.465Z"
+        "lastUpdated": "2026-02-28T00:55:16.544Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/change-password/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/(auth)/change-password/page.tsx"
     },
     "pending": {
       "phase": "do",
@@ -304,9 +304,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T09:28:20.107Z",
-        "lastUpdated": "2026-02-28T00:48:44.667Z"
+        "lastUpdated": "2026-02-28T00:50:06.116Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/users/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/actions/[id]/route.ts"
     },
     "katc1-backend": {
       "phase": "do",
@@ -343,7 +343,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-19T11:18:22.152Z",
-        "lastUpdated": "2026-02-28T00:48:06.975Z"
+        "lastUpdated": "2026-02-28T01:01:13.431Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/users/[id]/password-reset/route.ts"
     },
@@ -356,9 +356,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T02:01:15.039Z",
-        "lastUpdated": "2026-02-25T14:09:29.357Z"
+        "lastUpdated": "2026-02-28T01:01:26.779Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/airline/AirlineStatisticsTab.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/(main)/airline/page.tsx"
     },
     "airlines": {
       "phase": "do",
@@ -408,7 +408,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-20T09:06:56.111Z",
-        "lastUpdated": "2026-02-28T00:47:17.966Z"
+        "lastUpdated": "2026-02-28T00:49:40.974Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/upload-callsigns/route.ts"
     },
@@ -463,9 +463,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-21T14:57:06.344Z",
-        "lastUpdated": "2026-02-28T00:33:58.627Z"
+        "lastUpdated": "2026-02-28T01:01:36.699Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/announcements/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/(main)/airline/announcements/page.tsx"
     },
     "history": {
       "phase": "do",
@@ -568,9 +568,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-25T13:33:05.332Z",
-        "lastUpdated": "2026-02-25T21:29:32.910Z"
+        "lastUpdated": "2026-02-28T00:59:54.291Z"
       },
-      "lastFile": "/Users/sein/Desktop/katc1/src/components/airline/tabs/AnnouncementsTab.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/airline/tabs/AnnouncementsTab.tsx"
     },
     "db": {
       "phase": "do",
@@ -581,7 +581,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-25T14:03:29.895Z",
-        "lastUpdated": "2026-02-27T13:06:03.773Z"
+        "lastUpdated": "2026-02-28T00:50:15.806Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/sqlite.ts"
     },
@@ -594,9 +594,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-26T13:50:00.016Z",
-        "lastUpdated": "2026-02-27T13:04:54.030Z"
+        "lastUpdated": "2026-02-28T00:54:40.769Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/queries/file-uploads.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/queries/auth.ts"
     },
     "test-callsigns": {
       "phase": "do",
@@ -620,7 +620,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T00:48:23.166Z",
-        "lastUpdated": "2026-02-28T00:48:31.121Z"
+        "lastUpdated": "2026-02-28T00:55:12.940Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/middleware.ts"
     }
@@ -633,7 +633,7 @@
   "session": {
     "startedAt": "2026-02-19T05:22:47.564Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-02-28T00:49:23.068Z"
+    "lastActivity": "2026-02-28T01:01:39.892Z"
   },
   "history": [
     {
@@ -7635,6 +7635,204 @@
     {
       "timestamp": "2026-02-28T00:49:23.068Z",
       "feature": "callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:49:36.051Z",
+      "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:49:37.425Z",
+      "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:49:40.974Z",
+      "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:50:06.116Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:50:15.806Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:54:40.769Z",
+      "feature": "queries",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:54:45.985Z",
+      "feature": "forms",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:54:48.613Z",
+      "feature": "login",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:54:52.015Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:54:58.161Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:55:00.821Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:55:04.304Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:55:07.030Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:55:07.209Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:55:12.940Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:55:13.497Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:55:16.544Z",
+      "feature": "change-password",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:56:23.846Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:59:30.503Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:59:38.065Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:59:42.440Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T00:59:54.291Z",
+      "feature": "tabs",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:13.431Z",
+      "feature": "password-reset",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:13.823Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:17.077Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:20.363Z",
+      "feature": "forms",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:22.998Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:26.779Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:28.210Z",
+      "feature": "ui",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:32.221Z",
+      "feature": "ui",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:36.271Z",
+      "feature": "ui",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:36.699Z",
+      "feature": "announcements",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-02-28T01:01:39.892Z",
+      "feature": "login",
       "phase": "do",
       "action": "updated"
     }

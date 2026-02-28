@@ -148,9 +148,6 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('[LOGIN_ERROR]', errorMessage);
-    console.error('[LOGIN_ERROR_FULL]', error);
     return NextResponse.json(
       { error: '로그인 중 오류가 발생했습니다.' },
       { status: 500 }

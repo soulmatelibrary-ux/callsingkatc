@@ -7,7 +7,7 @@ import * as XLSX from 'xlsx';
 import { parseJsonCookie } from '@/lib/cookies';
 import { ROUTES } from '@/lib/constants';
 import { useAirlineActions, useAirlineActionStats, useAirlineCallsigns } from '@/hooks/useActions';
-import { useActiveAnnouncements, useAnnouncementHistory } from '@/hooks/useAnnouncements';
+import { useActiveAnnouncements } from '@/hooks/useAnnouncements';
 import { useDateRangeFilter, formatDateInput, toInputDate } from '@/hooks/useDateRangeFilter';
 import { ActionModal } from '@/components/actions/ActionModal';
 import { Header } from '@/components/layout/Header';
@@ -157,11 +157,6 @@ export default function AirlinePage() {
   });
 
   const { data: activeAnnouncementsData, isLoading: activeAnnouncementsLoading } = useActiveAnnouncements();
-  const { data: announcementHistoryData, isLoading: announcementHistoryLoading } = useAnnouncementHistory({
-    status: 'all',
-    limit: 5,
-    page: 1,
-  });
 
   // 메모이제이션된 데이터 변환
   const incidents = useMemo<Incident[]>(() => {
@@ -187,11 +182,6 @@ export default function AirlinePage() {
   const activeAnnouncements = useMemo(
     () => activeAnnouncementsData?.announcements ?? [],
     [activeAnnouncementsData]
-  );
-
-  const latestAnnouncements = useMemo(
-    () => announcementHistoryData?.announcements ?? [],
-    [announcementHistoryData]
   );
 
   // 호출부호 상세 메타 (메모이제이션)
@@ -430,9 +420,7 @@ export default function AirlinePage() {
             {activeTab === 'announcements' && (
               <AnnouncementsTab
                 activeAnnouncements={activeAnnouncements}
-                latestAnnouncements={latestAnnouncements}
                 activeAnnouncementsLoading={activeAnnouncementsLoading}
-                announcementHistoryLoading={announcementHistoryLoading}
                 totalActiveAnnouncements={activeAnnouncementsData?.total ?? activeAnnouncements.length}
               />
             )}

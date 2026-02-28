@@ -24,6 +24,9 @@
 - v1.0 (2026-02-27): 86% FAIL, 66 $N across 12 files
 
 ## Phase Analysis History (latest first)
+- Full System v4.0: 84% WARNING (CRITICAL: deletedAction ref error, 20+ console.log, announcement level mismatch)
+- Password Reset & Force Change v2.0 FINAL: 93% PASS (all 4 fixes verified)
+- Password Reset & Force Change v1.0: 88% WARNING (4 priority issues found)
 - SQLite Migration v3.0 FINAL: 92% PASS
 - SQLite Migration v2.0: 87% FAIL
 - SQLite Migration v1.0: 86% FAIL
@@ -53,7 +56,29 @@
 - `src/lib/jwt.ts` - JWT gen/verify (1h access, 7d refresh)
 - `src/lib/db/sqlite-schema.ts` - 11 tables, 39 indexes, sample data
 
+## Resolved Issues (Password Reset feature, 2026-02-28)
+- FIXED: `auth.ts:getUserByEmail` now includes `last_password_changed_at` - 90-day expiry functional
+- FIXED: `LoginForm.tsx:74` now uses `?forced=true` param - forced mode UI works on client redirect
+- FIXED: console.log removed from login route + middleware (CLAUDE.md compliant)
+- FIXED: metadata export removed from 'use client' page
+
+## Remaining Low-Priority (Password Reset)
+- LOW: console.log in logout/route.ts, refresh/route.ts, Providers.tsx
+- MEDIUM: refresh/route.ts forceChangePassword uses only is_default_password (missing OR password_change_required)
+
+## Full System v4.0 Key Findings (2026-02-28)
+1. CRITICAL: `actions/[id]/route.ts:185` - `deletedAction` never defined (ReferenceError at runtime)
+2. HIGH: Announcement levels mismatch: design=critical/urgent/normal/info, impl=warning/info/success
+3. HIGH: API URL paths differ significantly from design (10+ endpoints)
+4. MEDIUM: 20+ console.log/warn violations of CLAUDE.md
+5. MEDIUM: 2 .bak files in source tree
+6. MEDIUM: Inconsistent response format (data[] vs users[] vs announcements[])
+7. LOW: 3 PostgreSQL error code checks (42703) - dead code
+8. Match Rate: 84% WARNING (below 90% threshold)
+
 ## Analysis Reports
+- `katc1-full-system-v4.analysis.md` - Full System v4.0 (84% WARNING)
+- `password-reset-force-change.analysis.md` - Password Reset v2.0 (93% PASS)
 - `katc1-sqlite-final-v3.analysis.md` - v3.0 FINAL (92% PASS)
 - `katc1-sqlite-cleanup-v2.analysis.md` - v2.0 (87% FAIL)
 - `katc1-auth-sqlite-migration.analysis.md` - v1.0 (86% FAIL)

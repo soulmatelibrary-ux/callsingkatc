@@ -2,8 +2,9 @@
  * 비밀번호 강도 표시 컴포넌트
  * - 8자 이상
  * - 대문자 1개 이상
+ * - 소문자 1개 이상
  * - 숫자 1개 이상
- * - 특수문자 1개 이상 (보너스)
+ * - 특수문자 1개 이상
  */
 
 interface PasswordStrengthProps {
@@ -18,6 +19,7 @@ interface Rule {
 const rules: Rule[] = [
   { label: '8자 이상', test: (pw) => pw.length >= 8 },
   { label: '대문자 포함', test: (pw) => /[A-Z]/.test(pw) },
+  { label: '소문자 포함', test: (pw) => /[a-z]/.test(pw) },
   { label: '숫자 포함', test: (pw) => /\d/.test(pw) },
   { label: '특수문자 포함', test: (pw) => /[!@#$%^&*(),.?":{}|<>]/.test(pw) },
 ];
@@ -32,6 +34,7 @@ const strengthConfig = [
   { label: '약함', color: 'bg-orange-400' },
   { label: '보통', color: 'bg-yellow-400' },
   { label: '강함', color: 'bg-green-500' },
+  { label: '매우 강함', color: 'bg-green-600' },
 ];
 
 export function PasswordStrength({ password }: PasswordStrengthProps) {
@@ -44,7 +47,7 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
     <div className="mt-2 space-y-2" aria-live="polite" aria-label="비밀번호 강도">
       {/* 강도 바 */}
       <div className="flex gap-1">
-        {[1, 2, 3, 4].map((level) => (
+        {[1, 2, 3, 4, 5].map((level) => (
           <div
             key={level}
             className={[

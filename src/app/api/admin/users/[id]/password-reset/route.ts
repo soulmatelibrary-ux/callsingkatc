@@ -80,9 +80,16 @@ export async function PUT(request: NextRequest, { params }: Params) {
       );
     }
 
-    // 📌 초기화 비밀번호: {항공사코드}1234! 형식
-    const resetPassword = `${targetUser.airline_code}1234!`;
-    const passwordHash = await bcrypt.hash(resetPassword, 10);
+    // 📌 초기화 비밀번호: 암호화된 임시 비밀번호 생성 (예측 불가능)
+    // 사용자에게는 비밀번호를 직접 전달하지 않고, 관리자 UI에서만 표시
+    const tempPassword = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+      .substring(0, 12)
+      .toUpperCase()
+      + Math.floor(Math.random() * 10)
+      + '!';
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
 
     // DB 업데이트
     await query(
@@ -98,9 +105,8 @@ export async function PUT(request: NextRequest, { params }: Params) {
     return NextResponse.json({
       message: '비밀번호가 초기화되었습니다.',
       email: targetUser.email,
-      resetPasswordFormat: `{항공사코드}1234!`,
-      example: resetPassword,
-      hint: `사용자의 항공사코드: ${targetUser.airline_code}`,
+      tempPassword, // ⚠️ API 응답에만 포함, 로그되지 않도록 주의
+      instruction: '임시 비밀번호를 사용자에게 안전한 경로(별도 메시지/이메일)로 전달하세요.',
     });
   } catch (error) {
     console.error('비밀번호 초기화 오류:', error);

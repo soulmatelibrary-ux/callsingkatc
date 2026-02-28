@@ -12,13 +12,12 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/store/authStore';
 import { useAirlines } from '@/hooks/useAirlines';
+import { PASSWORD_REGEX, PASSWORD_RULE } from '@/lib/constants';
 
 interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[a-zA-Z\d!@#$%^&*]{8,}$/;
 
 export function CreateUserModal({ isOpen, onClose }: CreateUserModalProps) {
   const [email, setEmail] = useState('');

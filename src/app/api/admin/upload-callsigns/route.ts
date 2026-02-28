@@ -257,7 +257,7 @@ export async function POST(request: NextRequest) {
 
           // 필수 필드 검증
           if (!rowData.airline_code || !rowData.callsign_pair || !rowData.my_callsign || !rowData.other_callsign) {
-            errors.push(`행 ?: 필수 필드 누락`);
+            errors.push(`행 ${i + 2}: 필수 필드 누락`);
             continue;
           }
 
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
           );
 
           if (airlineResult.rows.length === 0) {
-            errors.push(`행 ?: 항공사 코드(?)를 찾을 수 없습니다.`);
+            errors.push(`행 ${i + 2}: 항공사 코드(${rowData.airline_code})를 찾을 수 없습니다.`);
             continue;
           }
 
@@ -449,7 +449,7 @@ export async function POST(request: NextRequest) {
             updatedCount++;
           }
         } catch (rowError) {
-          errors.push(`행 ?: ?`);
+          errors.push(`행 ${i + 2}: ${rowError instanceof Error ? rowError.message : String(rowError)}`);
         }
       }
 

@@ -170,19 +170,7 @@ export async function PATCH(
     // 상태 로직: in_progress는 action row 삭제 + callsigns.status 'in_progress'로 복원
     if (status === 'in_progress') {
       // in_progress = 항공사 미조치 상태 = action row 삭제 + callsign 상태 복원
-      const deletedAction = await query(
-        'SELECT id, callsign_id FROM actions WHERE id = ?',
-        [id]
-      );
-
-      if (deletedAction.rows.length === 0) {
-        return NextResponse.json(
-          { error: '조치를 찾을 수 없습니다.' },
-          { status: 404 }
-        );
-      }
-
-      const callsignId = deletedAction.rows[0].callsign_id;
+      const callsignId = existingAction.rows[0].callsign_id;
 
       // 트랜잭션: action 삭제 + callsign 상태 복원
       await transaction(async (trx) => {

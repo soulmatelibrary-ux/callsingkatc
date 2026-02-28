@@ -364,20 +364,28 @@ export function IncidentsTab({
           />
         </div>
 
-        {/* Quick Range 버튼 */}
+        {/* Quick Range 버튼 - 검색, 오늘, 1개월 */}
         <div className="flex rounded-none border border-gray-200 overflow-hidden flex-shrink-0">
-          {(['today', '1w', '2w', '1m'] as const).map((range) => (
+          {(['search', 'today', '1m'] as const).map((range) => (
             <button
               key={range}
               type="button"
-              onClick={() => onApplyQuickRange(range)}
+              onClick={() => {
+                if (range === 'search') {
+                  onSearchSubmit();
+                } else {
+                  onApplyQuickRange(range as '1m' | 'today');
+                }
+              }}
               className={`px-3 py-2 text-xs font-black tracking-tight transition-all border-r border-gray-200 last:border-r-0 ${
-                activeRange === range
+                range === 'search'
+                  ? 'bg-white text-gray-500 hover:bg-gray-900 hover:text-white'
+                  : activeRange === range
                   ? 'bg-gray-900 text-white'
                   : 'bg-white text-gray-500 hover:bg-gray-900 hover:text-white'
               }`}
             >
-              {range === 'today' ? '오늘' : range === '1w' ? '1주' : range === '2w' ? '2주' : '1개월'}
+              {range === 'search' ? '검색' : range === 'today' ? '오늘' : '1개월'}
             </button>
           ))}
         </div>
@@ -406,7 +414,7 @@ export function IncidentsTab({
               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
             />
           </svg>
-          <span className="whitespace-nowrap">{isExporting ? '내보내는 중...' : 'Excel 내보내기'}</span>
+          <span className="whitespace-nowrap">{isExporting ? '...' : 'Excel'}</span>
         </button>
       </div>
 

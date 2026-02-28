@@ -81,12 +81,9 @@ export function ChangePasswordForm({ forced = false }: ChangePasswordFormProps) 
         }, 2000);
       }
     } catch (err: any) {
-      const code = err?.response?.data?.error?.code;
-      if (code === 'INVALID_PASSWORD') {
-        setServerError('현재 비밀번호가 올바르지 않습니다.');
-      } else {
-        setServerError(AUTH_ERRORS.UNKNOWN_ERROR);
-      }
+      // changePasswordAPI throws { error: string }, not axios-style error
+      const errorMessage = err?.error || err?.message || AUTH_ERRORS.UNKNOWN_ERROR;
+      setServerError(errorMessage);
     }
   }
 

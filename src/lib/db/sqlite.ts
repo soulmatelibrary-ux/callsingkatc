@@ -44,8 +44,6 @@ export async function query(text: string, params?: any[]): Promise<any> {
     const sql = text;
     const newParams = params || [];
 
-    console.log('[SQLite] SQL 실행:', { sql: sql.substring(0, 100), params: newParams });
-
     const stmt = database.prepare(sql);
 
     let result: any;
