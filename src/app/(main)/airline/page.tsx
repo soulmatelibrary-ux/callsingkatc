@@ -75,25 +75,6 @@ export default function AirlinePage() {
   const incidentsDateFilter = useDateRangeFilter({ defaultRange: '1m' });
   const statsDateFilter = useDateRangeFilter({ defaultRange: '1m' });
 
-  // 상태 필터 변경 시 캐시 초기화
-  useEffect(() => {
-    queryClient.removeQueries({ queryKey: ['airline-actions'], exact: false });
-    setActionPage(1);
-  }, [actionStatusFilter, queryClient, airlineId]);
-
-  // 공지사항 팝업 자동 표시 (미읽은 공지사항이 있으면 로드 후 1회만 표시)
-  useEffect(() => {
-    if (popupShown || !announcementHistoryData) return;
-
-    const unreadAnnouncements = announcementHistoryData.announcements.filter(
-      (a) => !a.isViewed
-    );
-
-    if (unreadAnnouncements.length > 0) {
-      setIsAnnouncementPopupOpen(true);
-      setPopupShown(true);
-    }
-  }, [announcementHistoryData, popupShown]);
 
   // 초기 로드
   useEffect(() => {
@@ -180,6 +161,26 @@ export default function AirlinePage() {
     status: 'active',
     limit: 100,
   });
+
+  // 상태 필터 변경 시 캐시 초기화
+  useEffect(() => {
+    queryClient.removeQueries({ queryKey: ['airline-actions'], exact: false });
+    setActionPage(1);
+  }, [actionStatusFilter, queryClient, airlineId]);
+
+  // 공지사항 팝업 자동 표시 (미읽은 공지사항이 있으면 로드 후 1회만 표시)
+  useEffect(() => {
+    if (popupShown || !announcementHistoryData) return;
+
+    const unreadAnnouncements = announcementHistoryData.announcements.filter(
+      (a) => !a.isViewed
+    );
+
+    if (unreadAnnouncements.length > 0) {
+      setIsAnnouncementPopupOpen(true);
+      setPopupShown(true);
+    }
+  }, [announcementHistoryData, popupShown]);
 
   // 메모이제이션된 데이터 변환
   const incidents = useMemo<Incident[]>(() => {

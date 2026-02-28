@@ -86,19 +86,28 @@ export function OverviewTab() {
   }, [pagination, page]);
 
   const getActionStatusMeta = (status?: string) => {
-    const normalized = (status || 'pending').toLowerCase();
+    const normalized = (status || 'no_action').toLowerCase();
     switch (normalized) {
       case 'completed':
-      case 'complete':
         return {
           label: '완료',
           bubble: 'bg-emerald-50 text-emerald-600 border-emerald-100',
         };
+      case 'in_progress':
+        return {
+          label: '조치중',
+          bubble: 'bg-blue-50 text-blue-600 border-blue-100',
+        };
       case 'pending':
+        return {
+          label: '미조치',
+          bubble: 'bg-amber-50 text-amber-600 border-amber-100',
+        };
+      case 'no_action':
       default:
         return {
-          label: '진행중',
-          bubble: 'bg-amber-50 text-amber-600 border-amber-100',
+          label: '미등록',
+          bubble: 'bg-gray-50 text-gray-600 border-gray-100',
         };
     }
   };
@@ -136,7 +145,7 @@ export function OverviewTab() {
           <div>
             <h3 className="text-xl font-black text-gray-900 tracking-tight">호출부호 목록</h3>
             <p className="text-[10px] font-black text-gray-400 mt-1 uppercase tracking-widest">
-              Call Signs List
+              Call Signs List - 양쪽 항공사 조치상태 비교
             </p>
           </div>
           <button
@@ -194,16 +203,10 @@ export function OverviewTab() {
               <thead>
                 <tr className="bg-white">
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                    항공사
-                  </th>
-                  <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
                     호출부호
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
                     위험도
-                  </th>
-                  <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                    상대항공사
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
                     유사도
@@ -218,13 +221,13 @@ export function OverviewTab() {
                     최근발생일
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                    관제사권고
+                    자사 조치
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                    섹터
+                    타사 조치
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                    조치상태
+                    전체 완료
                   </th>
                   <th className="px-6 py-4 text-left text-[11px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
                     등록일
@@ -232,40 +235,36 @@ export function OverviewTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {rows.map((callsign) => (
+                {rows.map((callsign: any) => (
                   <tr key={callsign.id} className="group hover:bg-primary/[0.02] transition-all">
-                    {/* 항공사 */}
-                    <td className="px-6 py-5 font-bold text-gray-900 whitespace-nowrap">{callsign.airline_code}</td>
-
                     {/* 호출부호 */}
                     <td className="px-6 py-5 font-medium text-gray-700 whitespace-nowrap">{callsign.callsign_pair}</td>
 
                     {/* 위험도 */}
                     <td className="px-6 py-5">
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border whitespace-nowrap ${callsign.risk_level === '매우높음'
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border whitespace-nowrap ${
+                          callsign.risk_level === '매우높음'
                             ? 'bg-red-50 text-red-600 border-red-100'
                             : callsign.risk_level === '높음'
-                              ? 'bg-amber-50 text-amber-600 border-amber-100'
-                              : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                          }`}
+                            ? 'bg-amber-50 text-amber-600 border-amber-100'
+                            : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                        }`}
                       >
                         {callsign.risk_level}
                       </span>
                     </td>
 
-                    {/* 상대 항공사 */}
-                    <td className="px-6 py-5 text-gray-700 font-medium whitespace-nowrap">{callsign.other_airline_code || '-'}</td>
-
                     {/* 유사도 */}
                     <td className="px-6 py-5">
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${callsign.similarity === '매우높음'
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${
+                          callsign.similarity === '매우높음'
                             ? 'bg-red-50 text-red-600'
                             : callsign.similarity === '높음'
-                              ? 'bg-orange-50 text-orange-600'
-                              : 'bg-gray-50 text-gray-600'
-                          }`}
+                            ? 'bg-orange-50 text-orange-600'
+                            : 'bg-gray-50 text-gray-600'
+                        }`}
                       >
                         {callsign.similarity || '-'}
                       </span>
@@ -287,26 +286,10 @@ export function OverviewTab() {
                         : '-'}
                     </td>
 
-                    {/* 관제사 권고 */}
-                    <td className="px-6 py-5 text-gray-700 text-[12px] whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded text-[10px] font-bold ${
-                        callsign.atc_recommendation === '즉시조치'
-                          ? 'bg-red-100 text-red-700'
-                          : callsign.atc_recommendation === '주의감시'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {callsign.atc_recommendation || '-'}
-                      </span>
-                    </td>
-
-                    {/* 섹터 */}
-                    <td className="px-6 py-5 text-gray-700 font-medium whitespace-nowrap">{callsign.sector || '-'}</td>
-
-                    {/* 조치 상태 */}
+                    {/* 자사 조치 상태 */}
                     <td className="px-6 py-5">
                       {(() => {
-                        const meta = getActionStatusMeta(callsign.latest_action_status);
+                        const meta = getActionStatusMeta(callsign.my_action_status);
                         return (
                           <span
                             className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border whitespace-nowrap ${meta.bubble}`}
@@ -315,6 +298,33 @@ export function OverviewTab() {
                           </span>
                         );
                       })()}
+                    </td>
+
+                    {/* 타사 조치 상태 */}
+                    <td className="px-6 py-5">
+                      {(() => {
+                        const meta = getActionStatusMeta(callsign.other_action_status);
+                        return (
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border whitespace-nowrap ${meta.bubble}`}
+                          >
+                            {meta.label}
+                          </span>
+                        );
+                      })()}
+                    </td>
+
+                    {/* 전체 완료 여부 */}
+                    <td className="px-6 py-5">
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black border whitespace-nowrap ${
+                          callsign.both_completed
+                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                            : 'bg-gray-50 text-gray-600 border-gray-100'
+                        }`}
+                      >
+                        {callsign.both_completed ? '✓ 완료' : '미완료'}
+                      </span>
                     </td>
 
                     {/* 등록일 */}
