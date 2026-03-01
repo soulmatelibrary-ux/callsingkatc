@@ -247,17 +247,17 @@ export function OverviewTab() {
       </div>
 
       {/* 필터 영역 */}
-      <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+      <div className="bg-slate-50/50 px-4 py-3 rounded-xl border border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
         {/* 드롭다운 및 날짜 (좌측) */}
-        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
-          <div className="relative min-w-[120px] flex-grow xl:flex-grow-0">
+        <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
+          <div className="relative w-[110px] flex-shrink-0">
             <select
               value={selectedRiskLevel}
               onChange={(e) => {
                 setSelectedRiskLevel(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
+              className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none h-9"
             >
               <option value="">위험도 전체</option>
               <option value="매우높음">매우높음</option>
@@ -269,14 +269,14 @@ export function OverviewTab() {
             </div>
           </div>
 
-          <div className="relative min-w-[140px] flex-grow xl:flex-grow-0">
+          <div className="relative w-[130px] flex-shrink-0">
             <select
               value={selectedAirlineId}
               onChange={(e) => {
                 setSelectedAirlineId(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
+              className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none h-9"
             >
               <option value="">항공사 전체</option>
               {airlinesQuery.data?.map((airline) => (
@@ -290,14 +290,14 @@ export function OverviewTab() {
             </div>
           </div>
 
-          <div className="relative min-w-[130px] flex-grow xl:flex-grow-0">
+          <div className="relative w-[120px] flex-shrink-0">
             <select
               value={selectedActionStatus}
               onChange={(e) => {
                 setSelectedActionStatus(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
+              className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none h-9"
             >
               <option value="">조치상태 전체</option>
               <option value="completed">완료</option>
@@ -308,14 +308,14 @@ export function OverviewTab() {
             </div>
           </div>
 
-          <div className="relative min-w-[140px] flex-grow xl:flex-grow-0">
+          <div className="relative w-[130px] flex-shrink-0">
             <select
               value={selectedActionType}
               onChange={(e) => {
                 setSelectedActionType(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
+              className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none h-9"
             >
               <option value="">조치유형 전체</option>
               <option value="편명 변경">편명 변경</option>
@@ -330,7 +330,7 @@ export function OverviewTab() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 min-w-[280px] flex-grow xl:flex-grow-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <input
               type="date"
               value={completedDateFrom}
@@ -338,7 +338,7 @@ export function OverviewTab() {
                 setCompletedDateFrom(e.target.value);
                 setPage(1);
               }}
-              className="w-full xl:w-36 px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700"
+              className="w-[125px] px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 h-9"
             />
             <span className="text-slate-400 font-medium text-sm">-</span>
             <input
@@ -348,24 +348,24 @@ export function OverviewTab() {
                 setCompletedDateTo(e.target.value);
                 setPage(1);
               }}
-              className="w-full xl:w-36 px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700"
+              className="w-[125px] px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 h-9"
             />
           </div>
         </div>
 
         {/* 페이지 보기 설정 (우측) */}
-        <div className="flex items-center gap-3 pl-1 xl:pl-4 xl:border-l xl:border-slate-200/80 mt-1 xl:mt-0 flex-shrink-0">
+        <div className="flex items-center gap-2 pl-1 xl:pl-3 xl:border-l xl:border-slate-200/80 mt-1 xl:mt-0 flex-shrink-0">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
             보기 설정
           </span>
-          <div className="relative">
+          <div className="relative w-[90px]">
             <select
               value={String(limit)}
               onChange={(e) => {
                 setLimit(Number(e.target.value));
                 setPage(1);
               }}
-              className="pl-3 pr-7 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
+              className="w-full pl-3 pr-6 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none h-9"
             >
               {pageSizeOptions.map((option) => (
                 <option key={option} value={option}>
