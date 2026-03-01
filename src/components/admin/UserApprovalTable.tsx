@@ -68,11 +68,9 @@ export function UserApprovalTable() {
 
   function isMutating(userId: string) {
     return (
-      approve.isPending ||
-      reject.isPending ||
-      suspend.isPending ||
-      activate.isPending ||
-      deleteUser.isPending
+      (suspend.isPending && suspend.variables === userId) ||
+      (activate.isPending && activate.variables === userId) ||
+      (deleteUser.isPending && deleteUser.variables === userId)
     );
   }
 
