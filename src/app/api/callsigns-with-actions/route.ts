@@ -5,10 +5,10 @@
  * 쿼리 파라미터:
  *   - riskLevel: 위험도 필터 (매우높음|높음|낮음)
  *   - airlineId: 항공사 ID 필터 (UUID)
- *   - myActionStatus: 자사 조치 상태 필터 (completed|in_progress|pending|no_action)
+ *   - myActionStatus: 최종 조치 상태 필터 (complete|partial|in_progress)
  *   - actionType: 조치 유형 필터
- *   - completedDateFrom: 처리일자 시작 (YYYY-MM-DD)
- *   - completedDateTo: 처리일자 종료 (YYYY-MM-DD)
+ *   - dateFrom: 등록일자 시작 (YYYY-MM-DD, uploaded_at 기준)
+ *   - dateTo: 등록일자 종료 (YYYY-MM-DD, uploaded_at 기준)
  *   - page: 페이지 번호 (기본값: 1)
  *   - limit: 페이지 크기 (기본값: 20, 최대: 100)
  */
@@ -152,15 +152,19 @@ export async function GET(request: NextRequest) {
       sqlParams.push(dateTo);
     }
 
-    // 호출부호 목록 조회 (callsigns 테이블에서 양쪽 조치 상태 직접 조회)
+    // 호출부호 목록 조회 (callsigns + actions 조인으로 조치유형과 처리일자 포함)
+    // 최신 조치 정보만 가져오기 위해 LEFT JOIN + GROUP BY 사용
     const callsignsResult = await query(
       `SELECT c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
               c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
               c.occurrence_count, c.first_occurred_at, c.last_occurred_at,
               c.file_upload_id, c.uploaded_at, c.status, c.created_at, c.updated_at,
-              c.my_action_status, c.other_action_status
+              c.my_action_status, c.other_action_status,
+              a.action_type, a.completed_at as action_completed_at
        FROM callsigns c
+       LEFT JOIN actions a ON c.id = a.callsign_id
        ${conditions}
+       GROUP BY c.id
        ORDER BY
          CASE
            WHEN c.risk_level = '매우높음' THEN 3
@@ -287,6 +291,9 @@ export async function GET(request: NextRequest) {
         my_airline_code: callsign.airline_code,
         my_action_status: callsign.my_action_status || 'no_action',
         other_action_status: callsign.other_action_status || 'no_action',
+        // 조치 정보 (actions 테이블)
+        action_type: callsign.action_type || '-',
+        action_completed_at: callsign.action_completed_at || null,
         // 최종 조치 상태 (3가지)
         // - complete: 조치 완료
         //   ├─ 같은 항공사(KAL-KAL): 한쪽만 완료해도 완료
