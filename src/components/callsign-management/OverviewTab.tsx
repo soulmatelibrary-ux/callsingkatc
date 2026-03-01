@@ -247,35 +247,36 @@ export function OverviewTab() {
       </div>
 
       {/* 필터 영역 */}
-      <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 flex flex-col lg:flex-row gap-5">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 flex-1">
-          <div className="relative">
+      <div className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        {/* 드롭다운 및 날짜 (좌측) */}
+        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+          <div className="relative min-w-[120px] flex-grow xl:flex-grow-0">
             <select
               value={selectedRiskLevel}
               onChange={(e) => {
                 setSelectedRiskLevel(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
+              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
             >
               <option value="">위험도 전체</option>
               <option value="매우높음">매우높음</option>
               <option value="높음">높음</option>
               <option value="낮음">낮음</option>
             </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative min-w-[140px] flex-grow xl:flex-grow-0">
             <select
               value={selectedAirlineId}
               onChange={(e) => {
                 setSelectedAirlineId(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
+              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
             >
               <option value="">항공사 전체</option>
               {airlinesQuery.data?.map((airline) => (
@@ -284,37 +285,37 @@ export function OverviewTab() {
                 </option>
               ))}
             </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative min-w-[130px] flex-grow xl:flex-grow-0">
             <select
               value={selectedActionStatus}
               onChange={(e) => {
                 setSelectedActionStatus(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
+              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
             >
               <option value="">조치상태 전체</option>
               <option value="completed">완료</option>
               <option value="in_progress">진행중</option>
             </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative min-w-[140px] flex-grow xl:flex-grow-0">
             <select
               value={selectedActionType}
               onChange={(e) => {
                 setSelectedActionType(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
+              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
             >
               <option value="">조치유형 전체</option>
               <option value="편명 변경">편명 변경</option>
@@ -324,12 +325,12 @@ export function OverviewTab() {
               <option value="시스템 개선">시스템 개선</option>
               <option value="기타">기타</option>
             </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
 
-          <div className="relative">
+          <div className="flex items-center gap-2 min-w-[280px] flex-grow xl:flex-grow-0">
             <input
               type="date"
               value={completedDateFrom}
@@ -337,11 +338,9 @@ export function OverviewTab() {
                 setCompletedDateFrom(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm text-slate-700"
+              className="w-full xl:w-36 px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700"
             />
-          </div>
-
-          <div className="relative">
+            <span className="text-slate-400 font-medium text-sm">-</span>
             <input
               type="date"
               value={completedDateTo}
@@ -349,14 +348,14 @@ export function OverviewTab() {
                 setCompletedDateTo(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm text-slate-700"
+              className="w-full xl:w-36 px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700"
             />
           </div>
         </div>
 
-        {/* 페이지당 선택 */}
-        <div className="flex items-center gap-3 lg:pl-5 lg:border-l lg:border-slate-200/80">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider hidden md:block whitespace-nowrap">
+        {/* 페이지 보기 설정 (우측) */}
+        <div className="flex items-center gap-3 pl-1 xl:pl-4 xl:border-l xl:border-slate-200/80 mt-1 xl:mt-0 flex-shrink-0">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
             보기 설정
           </span>
           <div className="relative">
@@ -366,7 +365,7 @@ export function OverviewTab() {
                 setLimit(Number(e.target.value));
                 setPage(1);
               }}
-              className="pl-4 pr-8 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
+              className="pl-3 pr-7 py-2 bg-white border border-slate-200 rounded-lg text-[13px] font-bold focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none"
             >
               {pageSizeOptions.map((option) => (
                 <option key={option} value={option}>
@@ -375,7 +374,7 @@ export function OverviewTab() {
               ))}
             </select>
             <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
-              <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
         </div>
