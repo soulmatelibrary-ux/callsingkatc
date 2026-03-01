@@ -6,6 +6,8 @@ import { useCallsigns, useAllActions } from '@/hooks/useActions';
 import { useAirlines } from '@/hooks/useAirlines';
 import { useAuthStore } from '@/store/authStore';
 import { StatCard } from './StatCard';
+import { ActionTypeDistributionChart } from '@/components/admin/ActionTypeDistributionChart';
+import { DuplicateCallsignsChart } from '@/components/admin/DuplicateCallsignsChart';
 
 interface CallsignStatsResponse {
   total: number;
@@ -308,6 +310,12 @@ export function StatisticsTab() {
             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No Data</p>
           </div>
         )}
+      </div>
+
+      {/* 조치 유형별 분포 및 중복 호출부호 분석 */}
+      <div className="space-y-8">
+        <ActionTypeDistributionChart />
+        <DuplicateCallsignsChart />
       </div>
     </div>
   );

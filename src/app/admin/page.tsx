@@ -4,8 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ADMIN_DASHBOARD_CARDS } from '@/lib/admin-navigation';
 import { useAuthStore } from '@/store/authStore';
-import { ActionTypeDistributionChart } from '@/components/admin/ActionTypeDistributionChart';
-import { DuplicateCallsignsChart } from '@/components/admin/DuplicateCallsignsChart';
 
 /**
  * /admin 페이지 - 관리자 대시보드
@@ -117,12 +115,6 @@ export default function AdminPage() {
               <p className="text-2xl font-bold text-green-600">정상</p>
             </div>
           </div>
-        </div>
-
-        {/* 조치 및 호출부호 통계 */}
-        <div className="mt-12 space-y-8">
-          <ActionTypeDistributionChart />
-          <DuplicateCallsignsChart />
         </div>
 
         {/* 데이터 관리 */}

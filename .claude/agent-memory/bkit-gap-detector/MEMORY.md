@@ -24,6 +24,7 @@
 - v1.0 (2026-02-27): 86% FAIL, 66 $N across 12 files
 
 ## Phase Analysis History (latest first)
+- Full System v5.0: 83% WARNING (C-1: admin/announcements/[id] params not awaited, 7 API response format mismatches, 23 console.log, DB Provider 0% unimplemented, .bak files resolved)
 - Admin Reset Data v1.0: 96% PASS (API 100%, UI 95%, Security 98%, 1 MEDIUM: UI lists audit_logs as deleted but API preserves it)
 - OverviewTab Filters + Excel v1.0: 96% PASS (airlineId/myActionStatus filters, summary card, Excel export, all security checks pass)
 - Airline Page Medium Fix v1.0: 96% PASS (M1 actionId flow verified, M2 statusCounts.waiting verified, 1 HIGH: AirlineTabType missing 'announcements')
@@ -43,14 +44,20 @@
 - Phase 4 airline-data-action v2.0: 75%
 - v5.0 full system: 65%, v4.0 auth-only: 92%
 
-## Known Remaining Issues (v3.0)
-1. CRITICAL: `actions/[id]/route.ts:291` missing comma (won't compile)
-2. CRITICAL: `announcements/[id]/route.ts:80` PostgreSQL ANY(string_to_array) + param count mismatch
-3. MEDIUM: ~7 files use `?` as dynamic SQL fragment (WHERE ?, SET ?)
-4. MEDIUM: 4 files have `%?%` search bug (matches literal "?" not search term)
-5. MEDIUM: 6 files access `result.rows` after INSERT/UPDATE/DELETE (undefined)
-6. LOW: `42703` PG error code checks in 2 airline route files (dead code)
-7. LOW: `.bak` file in source tree
+## Known Remaining Issues (v5.0 - 2026-03-01)
+1. CRITICAL: `admin/announcements/[id]/route.ts` - params not awaited (5 occurrences, runtime bug)
+2. MEDIUM: 7 API response format mismatches (airlines/users/announcements use resource-name keys instead of `data`)
+3. MEDIUM: 23 console.log/warn across 8 files (CLAUDE.md violation)
+4. MEDIUM: snake_case + camelCase dual response in 4+ APIs
+5. LOW: `42703` PG error code checks in 2 airline route files (dead code)
+6. LOW: `any` types in AuthState.user, Action.airline, Action.registeredUser
+7. LOW: User type comment says "PostgreSQL" (stale after SQLite migration)
+8. INFO: DB Provider Pattern design (draft) entirely unimplemented - deferred
+
+## Resolved Issues (v5.0 vs v4.0)
+- FIXED: `actions/[id]/route.ts:185` deletedAction ReferenceError (was CRITICAL in v4.0)
+- FIXED: .bak files removed (was 2 in v4.0, 0 now)
+- FIXED: PostgreSQL ANY/string_to_array in announcements (was CRITICAL in v3.0)
 
 ## Resolved Bugs (from v2.0)
 - Bug #1 (hardcoded status): FIXED (but syntax error introduced)
@@ -85,6 +92,7 @@
 8. Match Rate: 84% WARNING (below 90% threshold)
 
 ## Analysis Reports
+- `katc1-full-system-v5.analysis.md` - Full System v5.0 (83% WARNING)
 - `features/admin-reset-data.analysis.md` - Admin Reset Data v1.0 (96% PASS)
 - `features/overview-tab-filters-excel.analysis.md` - OverviewTab Filters + Excel v1.0 (96% PASS)
 - `features/airline-page-medium-fix.analysis.md` - Airline Page Medium Fix v1.0 (96% PASS)
