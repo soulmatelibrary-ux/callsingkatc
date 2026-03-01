@@ -150,17 +150,23 @@ export async function GET(request: NextRequest) {
       (airlinesResult.rows || []).map((a: any) => a.code)
     );
 
-    // myActionStatus 필터 적용 (양쪽 조치 상태 기반)
+    // myActionStatus 필터 적용 (final_status 기반: complete/partial/in_progress)
     let filteredRows = callsignsResult.rows;
 
     if (myActionStatus) {
       filteredRows = filteredRows.filter((row: any) => {
-        if (myActionStatus === 'completed') {
-          // 완료: 양쪽 모두 완료 (완전 완료)
-          return row.my_action_status === 'completed' && row.other_action_status === 'completed';
+        const myCompleted = row.my_action_status === 'completed';
+        const otherCompleted = row.other_action_status === 'completed';
+
+        if (myActionStatus === 'complete') {
+          // 완전 완료: 양쪽 모두 완료
+          return myCompleted && otherCompleted;
+        } else if (myActionStatus === 'partial') {
+          // 부분 완료: 한쪽만 완료
+          return (myCompleted && !otherCompleted) || (!myCompleted && otherCompleted);
         } else if (myActionStatus === 'in_progress') {
-          // 진행중: 아직 조치가 없는 것 (양쪽 모두 completed가 아님)
-          return row.my_action_status !== 'completed' || row.other_action_status !== 'completed';
+          // 진행중: 아직 조치가 없음 (양쪽 모두 완료되지 않음)
+          return !myCompleted && !otherCompleted;
         }
         return true;
       });

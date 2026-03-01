@@ -201,7 +201,7 @@ export function OverviewTab() {
                 '자사 조치상태': getActionStatusMeta(callsign.my_action_status).label,
                 '타사(코드)': callsign.other_airline_code || '-',
                 '타사 조치상태': getActionStatusMeta(callsign.other_action_status).label,
-                '전체 완료': callsign.final_status === 'completed' ? '완료' : '미완료',
+                '조치 상태': callsign.final_status === 'complete' ? '완전 완료' : callsign.final_status === 'partial' ? '부분 완료' : '진행중',
                 '등록일': callsign.uploaded_at
                   ? new Date(callsign.uploaded_at).toLocaleDateString('ko-KR')
                   : '-',
@@ -283,7 +283,8 @@ export function OverviewTab() {
               className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 appearance-none h-9"
             >
               <option value="">조치상태 전체</option>
-              <option value="completed">완료</option>
+              <option value="complete">완전 완료</option>
+              <option value="partial">부분 완료</option>
               <option value="in_progress">진행중</option>
             </select>
             <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
@@ -507,17 +508,17 @@ export function OverviewTab() {
                       })()}
                     </td>
 
-                    {/* 전체 완료 여부 */}
+                    {/* 전체 완료 여부 - 3가지 상태 */}
                     <td className="px-6 py-5">
                       <div className="flex flex-col gap-1.5 justify-center">
-                        {callsign.final_status === 'completed' ? (
+                        {callsign.final_status === 'complete' ? (
                           <span className="inline-flex items-center px-2.5 py-1 rounded-[8px] text-[10px] font-bold border bg-emerald-50 text-emerald-600 border-emerald-100 whitespace-nowrap w-fit">
-                            ✓ 양쪽완료
+                            ✓ 완전 완료
                           </span>
-                        ) : (
+                        ) : callsign.final_status === 'partial' ? (
                           <>
                             <span className="inline-flex items-center px-2.5 py-1 rounded-[8px] text-[10px] font-bold border bg-amber-50 text-amber-600 border-amber-100 whitespace-nowrap w-fit">
-                              부분완료
+                              ◐ 부분 완료
                             </span>
                             <span className="text-[9px] font-semibold text-slate-400">
                               {callsign.my_action_status === 'completed' && callsign.other_action_status !== 'completed'
@@ -527,6 +528,10 @@ export function OverviewTab() {
                                   : '미조치'}
                             </span>
                           </>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-[8px] text-[10px] font-bold border bg-slate-50 text-slate-600 border-slate-100 whitespace-nowrap w-fit">
+                            ○ 진행중
+                          </span>
                         )}
                       </div>
                     </td>
