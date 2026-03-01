@@ -156,9 +156,11 @@ export default function AdminPage() {
                 <li>• 공지사항 (announcements)</li>
                 <li>• 공지사항 조회 기록 (announcement_views)</li>
                 <li>• 파일 업로드 (file_uploads)</li>
-                <li>• 감사 로그 (audit_logs)</li>
                 <li>• 비밀번호 이력 (password_history)</li>
               </ul>
+              <p className="text-sm text-gray-700 mt-2 ml-4">
+                ✓ 감사 로그 (audit_logs)는 <span className="font-semibold">보존됩니다</span> (초기화 기록 추적용)
+              </p>
             </div>
 
             <p className="text-sm text-gray-600 mb-4">
