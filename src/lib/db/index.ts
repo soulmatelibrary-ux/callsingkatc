@@ -4,8 +4,6 @@
 
 import * as sqliteDriver from './sqlite';
 
-console.log(`[Database] SQLite 초기화 중...`);
-
 export async function query(text: string, params?: any[]): Promise<any> {
   return sqliteDriver.query(text, params);
 }

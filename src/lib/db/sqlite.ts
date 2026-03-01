@@ -28,8 +28,6 @@ export function initSQLite() {
   // 외래키 활성화
   db.pragma('foreign_keys = ON');
 
-  console.log('[SQLite] 데이터베이스 초기화:', dbPath);
-
   // 스키마 초기화
   initializeSchema(db);
 
@@ -56,9 +54,6 @@ export async function query(text: string, params?: any[]): Promise<any> {
       const info = stmt.run(...newParams);
       result = { changes: info.changes, rowCount: info.changes };
     }
-
-    const duration = Date.now() - start;
-    console.log('[SQLite] 쿼리 완료:', { duration, isSelect, rowCount: result.rowCount });
 
     return result;
   } catch (error: any) {
