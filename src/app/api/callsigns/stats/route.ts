@@ -42,6 +42,8 @@ export async function GET(request: NextRequest) {
     // 필터 파라미터
     const airlineId = request.nextUrl.searchParams.get('airlineId');
     const riskLevel = request.nextUrl.searchParams.get('riskLevel');
+    const dateFrom = request.nextUrl.searchParams.get('dateFrom');
+    const dateTo = request.nextUrl.searchParams.get('dateTo');
 
     // 기본 쿼리
     let sql = `SELECT risk_level, COUNT(*) as count FROM callsigns WHERE 1=1`;
@@ -56,6 +58,15 @@ export async function GET(request: NextRequest) {
     if (riskLevel && ['매우높음', '높음', '낮음'].includes(riskLevel)) {
       sql += ` AND risk_level = ?`;
       params.push(riskLevel);
+    }
+
+    if (dateFrom) {
+      sql += ` AND uploaded_at >= ?`;
+      params.push(dateFrom);
+    }
+    if (dateTo) {
+      sql += ` AND uploaded_at <= datetime(?, '+1 day')`;
+      params.push(dateTo);
     }
 
     sql += ` GROUP BY risk_level`;

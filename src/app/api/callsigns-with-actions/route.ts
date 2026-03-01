@@ -85,8 +85,8 @@ export async function GET(request: NextRequest) {
     const airlineId = request.nextUrl.searchParams.get('airlineId');
     const myActionStatus = request.nextUrl.searchParams.get('myActionStatus');
     const actionType = request.nextUrl.searchParams.get('actionType');
-    const completedDateFrom = request.nextUrl.searchParams.get('completedDateFrom');
-    const completedDateTo = request.nextUrl.searchParams.get('completedDateTo');
+    const dateFrom = request.nextUrl.searchParams.get('dateFrom');
+    const dateTo = request.nextUrl.searchParams.get('dateTo');
     const page = Math.max(1, parseInt(request.nextUrl.searchParams.get('page') || '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(request.nextUrl.searchParams.get('limit') || '20', 10)));
 
@@ -132,6 +132,24 @@ export async function GET(request: NextRequest) {
         conditions = `WHERE c.airline_id = ?`;
       }
       sqlParams.push(airlineId);
+    }
+
+    if (dateFrom) {
+      if (conditions) {
+        conditions += ` AND c.uploaded_at >= ?`;
+      } else {
+        conditions = `WHERE c.uploaded_at >= ?`;
+      }
+      sqlParams.push(dateFrom);
+    }
+
+    if (dateTo) {
+      if (conditions) {
+        conditions += ` AND c.uploaded_at <= datetime(?, '+1 day')`;
+      } else {
+        conditions = `WHERE c.uploaded_at <= datetime(?, '+1 day')`;
+      }
+      sqlParams.push(dateTo);
     }
 
     // 호출부호 목록 조회 (callsigns 테이블에서 양쪽 조치 상태 직접 조회)
@@ -198,18 +216,6 @@ export async function GET(request: NextRequest) {
     // actionType 필터 적용
     if (actionType) {
       filteredRows = filteredRows.filter((row: any) => row.action_type === actionType);
-    }
-
-    // 처리일자 범위 필터 적용
-    if (completedDateFrom || completedDateTo) {
-      filteredRows = filteredRows.filter((row: any) => {
-        // 조치가 없으면 (completed_at이 NULL) 날짜 필터 무시하고 포함
-        if (!row.completed_at) return true;
-        const completedDate = row.completed_at.split('T')[0]; // YYYY-MM-DD 형식 추출
-        if (completedDateFrom && completedDate < completedDateFrom) return false;
-        if (completedDateTo && completedDate > completedDateTo) return false;
-        return true;
-      });
     }
 
     // summary 계산 (필터링 후)

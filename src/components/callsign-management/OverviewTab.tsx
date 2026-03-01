@@ -14,14 +14,24 @@ interface StatsResponse {
   low: number;
 }
 
+const getDefaultDateFrom = () => {
+  const d = new Date();
+  d.setMonth(d.getMonth() - 1);
+  return d.toISOString().split('T')[0];
+};
+
+const getDefaultDateTo = () => {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+};
 
 export function OverviewTab() {
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>('');
   const [selectedAirlineId, setSelectedAirlineId] = useState<string>('');
   const [selectedActionStatus, setSelectedActionStatus] = useState<string>('');
   const [selectedActionType, setSelectedActionType] = useState<string>('');
-  const [completedDateFrom, setCompletedDateFrom] = useState<string>('');
-  const [completedDateTo, setCompletedDateTo] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<string>(getDefaultDateFrom());
+  const [dateTo, setDateTo] = useState<string>(getDefaultDateTo());
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const pageSizeOptions = [10, 30, 50, 100];
@@ -33,8 +43,8 @@ export function OverviewTab() {
     airlineId: selectedAirlineId || undefined,
     myActionStatus: selectedActionStatus || undefined,
     actionType: selectedActionType || undefined,
-    completedDateFrom: completedDateFrom || undefined,
-    completedDateTo: completedDateTo || undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
     page,
     limit,
   });
@@ -49,6 +59,9 @@ export function OverviewTab() {
 
       const params = new URLSearchParams();
       if (selectedRiskLevel) params.append('riskLevel', selectedRiskLevel);
+      if (selectedAirlineId) params.append('airlineId', selectedAirlineId);
+      if (dateFrom) params.append('dateFrom', dateFrom);
+      if (dateTo) params.append('dateTo', dateTo);
 
       const response = await fetch(`/api/callsigns/stats?${params.toString()}`, {
         headers: {
@@ -132,8 +145,8 @@ export function OverviewTab() {
     setSelectedAirlineId('');
     setSelectedActionStatus('');
     setSelectedActionType('');
-    setCompletedDateFrom('');
-    setCompletedDateTo('');
+    setDateFrom(getDefaultDateFrom());
+    setDateTo(getDefaultDateTo());
     setPage(1);
   };
 
@@ -317,9 +330,9 @@ export function OverviewTab() {
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <input
               type="date"
-              value={completedDateFrom}
+              value={dateFrom}
               onChange={(e) => {
-                setCompletedDateFrom(e.target.value);
+                setDateFrom(e.target.value);
                 setPage(1);
               }}
               className="w-[125px] px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 h-9"
@@ -327,9 +340,9 @@ export function OverviewTab() {
             <span className="text-slate-400 font-medium text-sm">-</span>
             <input
               type="date"
-              value={completedDateTo}
+              value={dateTo}
               onChange={(e) => {
-                setCompletedDateTo(e.target.value);
+                setDateTo(e.target.value);
                 setPage(1);
               }}
               className="w-[125px] px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[13px] font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all shadow-sm text-slate-700 h-9"

@@ -26,13 +26,13 @@ import {
  */
 export function useAllActions(
   filters?: {
-  airlineId?: string;
-  status?: 'pending' | 'in_progress' | 'completed';
-  search?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  page?: number;
-  limit?: number;
+    airlineId?: string;
+    status?: 'pending' | 'in_progress' | 'completed';
+    search?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    page?: number;
+    limit?: number;
   },
   options?: { enabled?: boolean }
 ) {
@@ -261,9 +261,9 @@ export function useAirlineActionStats(
       const response = await fetch(
         `/api/airlines/${airlineId}/actions/stats${qs ? `?${qs}` : ''}`,
         {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
         }
       );
 
@@ -460,8 +460,8 @@ export function useCallsignsWithActions(
     airlineId?: string;
     myActionStatus?: string;
     actionType?: string;
-    completedDateFrom?: string;
-    completedDateTo?: string;
+    dateFrom?: string;
+    dateTo?: string;
     page?: number;
     limit?: number;
   },
@@ -472,7 +472,7 @@ export function useCallsignsWithActions(
   const limit = filters?.limit || 20;
 
   return useQuery({
-    queryKey: ['callsigns-with-actions', filters?.riskLevel, filters?.airlineId, filters?.myActionStatus, filters?.actionType, filters?.completedDateFrom, filters?.completedDateTo, page, limit],
+    queryKey: ['callsigns-with-actions', filters?.riskLevel, filters?.airlineId, filters?.myActionStatus, filters?.actionType, filters?.dateFrom, filters?.dateTo, page, limit],
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('인증 토큰이 없습니다.');
@@ -483,8 +483,8 @@ export function useCallsignsWithActions(
       if (filters?.airlineId) params.append('airlineId', filters.airlineId);
       if (filters?.myActionStatus) params.append('myActionStatus', filters.myActionStatus);
       if (filters?.actionType) params.append('actionType', filters.actionType);
-      if (filters?.completedDateFrom) params.append('completedDateFrom', filters.completedDateFrom);
-      if (filters?.completedDateTo) params.append('completedDateTo', filters.completedDateTo);
+      if (filters?.dateFrom) params.append('dateFrom', filters.dateFrom);
+      if (filters?.dateTo) params.append('dateTo', filters.dateTo);
       params.append('page', String(page));
       params.append('limit', String(limit));
 

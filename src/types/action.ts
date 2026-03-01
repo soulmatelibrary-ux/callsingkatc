@@ -83,7 +83,7 @@ export interface Callsign {
   // 최종 조치 상태
   // - 상대 항공사가 국외: 자사만 조치하면 완료
   // - 상대 항공사가 국내: 양쪽 모두 조치해야 완료
-  final_status?: 'in_progress' | 'completed';
+  final_status?: 'complete' | 'partial' | 'in_progress';
 
   // 최근 조치 정보 (하위호환성)
   latest_action_id?: string;
