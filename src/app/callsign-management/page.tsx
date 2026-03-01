@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { OverviewTab } from '@/components/callsign-management/OverviewTab';
-import { ActionsTab } from '@/components/callsign-management/ActionsTab';
+// import { ActionsTab } from '@/components/callsign-management/ActionsTab';
 import { StatisticsTab } from '@/components/callsign-management/StatisticsTab';
 import { Sidebar } from '@/components/callsign-management/Sidebar';
 import { Header } from '@/components/layout/Header';
@@ -45,7 +45,7 @@ export default function CallsignManagementPublicPage() {
 
   const menuItems = [
     { id: 'overview', label: '전체현황', icon: BarChart3, color: 'primary' },
-    { id: 'actions', label: '항공사조치', icon: Plane, color: 'info' },
+    // { id: 'actions', label: '항공사조치', icon: Plane, color: 'info' },
     { id: 'stats', label: '통계', icon: TrendingUp, color: 'success' },
     { id: 'upload', label: '엑셀입력', icon: FileSpreadsheet, color: 'orange' },
   ];
@@ -113,7 +113,7 @@ export default function CallsignManagementPublicPage() {
 
             {/* 콘텐츠 표시 */}
             {activeTab === 'overview' && <OverviewTab />}
-            {activeTab === 'actions' && <ActionsTab />}
+            {/* {activeTab === 'actions' && <ActionsTab />} */}
             {activeTab === 'stats' && <StatisticsTab />}
             {activeTab === 'upload' && <Sidebar />}
           </main>
