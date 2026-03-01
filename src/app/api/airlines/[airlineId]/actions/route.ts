@@ -330,6 +330,12 @@ export async function POST(
       );
     }
 
+    // 국내 항공사 목록 조회 (W-5 FIX: 최종 상태 계산용)
+    const domesticAirlinesResult = await query('SELECT code FROM airlines');
+    const domesticAirlines = new Set(
+      (domesticAirlinesResult.rows || []).map((a: any) => a.code)
+    );
+
     // 요청 본문 (ActionModal에서 snake_case로 전송)
     const body = await request.json();
     const {
@@ -368,7 +374,7 @@ export async function POST(
     // 호출부호 존재 및 항공사 코드 일치 확인 + 상세 정보 조회
     // (내 항공사이거나 상대 항공사인 경우 모두 허용)
     const callsignCheck = await query(
-      'SELECT id, airline_code, other_airline_code FROM callsigns WHERE id = ? AND (airline_code = ? OR other_airline_code = ?)',
+      'SELECT id, airline_code, other_airline_code, my_action_status, other_action_status FROM callsigns WHERE id = ? AND (airline_code = ? OR other_airline_code = ?)',
       [callsignId, airlineCode, airlineCode]
     );
 
@@ -392,17 +398,19 @@ export async function POST(
     );
 
     let otherAirlineId: string | null = null;
-    let otherActionExists = false;
+    let otherActionStatus: string | null = null;
 
     if (otherAirlineResult.rows.length > 0) {
       otherAirlineId = otherAirlineResult.rows[0].id;
 
-      // 상대 항공사가 이 호출부호에 대한 조치를 이미 등록했는지 확인
+      // 상대 항공사의 현재 조치 상태 조회 (W-5 FIX)
       const otherActionCheck = await query(
-        'SELECT COUNT(*) as count FROM actions WHERE callsign_id = ? AND airline_id = ?',
+        'SELECT status FROM actions WHERE callsign_id = ? AND airline_id = ? AND COALESCE(is_cancelled, 0) = 0 ORDER BY registered_at DESC LIMIT 1',
         [callsignId, otherAirlineId]
       );
-      otherActionExists = otherActionCheck.rows[0].count > 0;
+      if (otherActionCheck.rows.length > 0) {
+        otherActionStatus = otherActionCheck.rows[0].status;
+      }
     }
 
     // completed 상태일 때만 completedAt 설정 (기본값: 현재 시각)
@@ -446,21 +454,18 @@ export async function POST(
 
       // 2. callsigns 테이블 업데이트
       // - my_action_status: 자사 조치 상태를 actions.status로 설정
-      // - status: 호출부호 전체 처리 상태 (둘 다 조치되면 'completed')
+      // - status: 호출부호 전체 처리 상태 (calculateFinalStatus와 동일한 로직)
+      // (W-5 FIX: 국내/국외 항공사 구분)
       let newCallsignStatus = 'in_progress';
 
-      if (otherActionExists) {
-        // 상대 항공사가 이미 조치를 등록했으므로, 이제 둘 다 조치가 있음
-        // → callsigns.status = 'completed'
-        if (actionStatus === 'completed') {
-          newCallsignStatus = 'completed';
-        } else {
-          newCallsignStatus = 'in_progress';
-        }
+      // 상대 항공사가 국외(DB 미등록) → 자사만 조치하면 완료
+      if (!otherAirlineCode || !domesticAirlines.has(otherAirlineCode)) {
+        newCallsignStatus = actionStatus === 'completed' ? 'completed' : 'in_progress';
       } else {
-        // 상대 항공사가 아직 조치를 등록하지 않음
-        // → callsigns.status = 'in_progress' (유지)
-        newCallsignStatus = 'in_progress';
+        // 국내 항공사 간 → 양쪽 모두 완료해야 완료
+        newCallsignStatus = (actionStatus === 'completed' && otherActionStatus === 'completed')
+          ? 'completed'
+          : 'in_progress';
       }
 
       // 자사인지 타사인지에 따라 업데이트할 컬럼 결정

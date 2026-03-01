@@ -152,23 +152,8 @@ export async function GET(request: NextRequest) {
     );
 
     // myActionStatus 필터 적용 (actions.status 사용)
+    // 현재는 상태 필터를 적용하지 않음 - 모든 데이터 표시
     let filteredRows = callsignsResult.rows;
-
-    if (myActionStatus) {
-      filteredRows = filteredRows.filter((row: any) => {
-        if (myActionStatus === 'in_progress') {
-          // 진행중: pending 또는 in_progress
-          return row.action_status === 'in_progress' || row.action_status === 'pending';
-        } else if (myActionStatus === 'completed') {
-          // 완료: completed 상태만
-          return row.action_status === 'completed';
-        } else if (myActionStatus === 'no_action') {
-          // 미등록: 조치가 없거나 pending
-          return !row.action_status || row.action_status === 'pending';
-        }
-        return true;
-      });
-    }
 
     // actionType 필터 적용
     if (actionType) {
