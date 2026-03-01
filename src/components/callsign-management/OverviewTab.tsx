@@ -218,7 +218,7 @@ export function OverviewTab() {
                 '자사 조치상태': getActionStatusMeta(callsign.my_action_status).label,
                 '타사(코드)': callsign.other_airline_code || '-',
                 '타사 조치상태': getActionStatusMeta(callsign.other_action_status).label,
-                '전체 완료': callsign.bothCompleted ? '완료' : '미완료',
+                '전체 완료': callsign.final_status === 'completed' ? '완료' : '미완료',
                 '등록일': callsign.uploaded_at
                   ? new Date(callsign.uploaded_at).toLocaleDateString('ko-KR')
                   : '-',
@@ -528,7 +528,7 @@ export function OverviewTab() {
                     {/* 전체 완료 여부 */}
                     <td className="px-6 py-5">
                       <div className="flex flex-col gap-1.5 justify-center">
-                        {callsign.bothCompleted ? (
+                        {callsign.final_status === 'completed' ? (
                           <span className="inline-flex items-center px-2.5 py-1 rounded-[8px] text-[10px] font-bold border bg-emerald-50 text-emerald-600 border-emerald-100 whitespace-nowrap w-fit">
                             ✓ 양쪽완료
                           </span>
