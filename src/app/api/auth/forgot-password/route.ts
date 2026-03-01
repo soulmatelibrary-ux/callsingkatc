@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
         await query(
           `UPDATE users
            SET password_hash = ?,
-               is_default_password = true,
-               password_change_required = true,
+               is_default_password = 1,
+               password_change_required = 1,
                updated_at = CURRENT_TIMESTAMP
            WHERE id = ?`,
           [passwordHash, user.id]
