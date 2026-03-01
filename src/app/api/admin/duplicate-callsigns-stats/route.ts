@@ -63,6 +63,10 @@ export async function GET(request: NextRequest) {
         al.name_ko as airline_name_ko,
         a.action_type,
         COUNT(*) as count,
+        (
+          SELECT COUNT(*) FROM actions
+          WHERE airline_id = a.airline_id
+        ) as total_actions,
         ROUND(
           COUNT(*) * 100.0 / (
             SELECT COUNT(*) FROM actions
@@ -113,6 +117,7 @@ export async function GET(request: NextRequest) {
         airline_name_ko: row.airline_name_ko,
         action_type: row.action_type,
         count: parseInt(row.count, 10),
+        total_actions: parseInt(row.total_actions, 10),
         percentage: parseFloat(row.percentage) || 0,
         opportunity_score: parseInt(row.opportunity_score, 10) || 0,
       })),

@@ -50,6 +50,7 @@ export interface DuplicateCallsignsByType {
   airline_name_ko: string;
   action_type: string;
   count: number;
+  total_actions: number;
   percentage: number;
   opportunity_score: number;
 }

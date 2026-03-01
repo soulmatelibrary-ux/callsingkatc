@@ -141,10 +141,10 @@ export function DuplicateCallsignsChart() {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-gray-900">
-                      {item.count}건
+                      {item.count}건/{item.total_actions}건
                     </p>
                     <p className="text-xs text-gray-500">
-                      전체의 {item.percentage.toFixed(1)}%
+                      ({item.percentage.toFixed(1)}%)
                     </p>
                   </div>
                 </div>
