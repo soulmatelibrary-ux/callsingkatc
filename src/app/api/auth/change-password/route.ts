@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
 
       // user 쿠키 갱신
       response.cookies.set('user', userCookieValue, {
-        httpOnly: false,
+        httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60,

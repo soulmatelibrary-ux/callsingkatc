@@ -25,20 +25,20 @@ export const deleteAnnouncement = `DELETE FROM announcements WHERE id = ?`;
 /**
  * 읽음 처리 - 사용자별 기록 조회
  */
-export const getUserAnnouncementRead = `SELECT * FROM announcement_reads WHERE user_id = ? AND announcement_id = ?`;
+export const getUserAnnouncementRead = `SELECT * FROM announcement_views WHERE user_id = ? AND announcement_id = ?`;
 
 /**
  * 읽음 처리 - 기록 생성
  */
-export const createAnnouncementRead = `INSERT INTO announcement_reads (user_id, announcement_id, read_at) VALUES (?, ?, CURRENT_TIMESTAMP)`;
+export const createAnnouncementRead = `INSERT INTO announcement_views (user_id, announcement_id, viewed_at) VALUES (?, ?, CURRENT_TIMESTAMP)`;
 
 /**
  * 읽음 처리 - 사용자의 미읽 공지사항 조회
  */
 export const getUnreadAnnouncements = `SELECT a.* FROM announcements a
      WHERE NOT EXISTS (
-       SELECT 1 FROM announcement_reads ar
-       WHERE ar.user_id = ? AND ar.announcement_id = a.id
+       SELECT 1 FROM announcement_views av
+       WHERE av.user_id = ? AND av.announcement_id = a.id
      )
      ORDER BY a.created_at DESC`;
 
@@ -47,8 +47,8 @@ export const getUnreadAnnouncements = `SELECT a.* FROM announcements a
  */
 export const getAnnouncementHistoryBase = `SELECT
        a.id, a.title, a.created_at, a.updated_at,
-       COUNT(DISTINCT ar.user_id) as read_count
+       COUNT(DISTINCT av.user_id) as read_count
      FROM announcements a
-     LEFT JOIN announcement_reads ar ON a.id = ar.announcement_id
+     LEFT JOIN announcement_views av ON a.id = av.announcement_id
      GROUP BY a.id
      ORDER BY a.created_at DESC`;

@@ -66,14 +66,14 @@ export async function transaction<T>(
   callback: (query: (text: string, params?: any[]) => Promise<any>) => Promise<T>
 ): Promise<T> {
   const database = initSQLite();
-  
+
   try {
-    database.exec('BEGIN TRANSACTION');
-    const result = await callback(query);
-    database.exec('COMMIT');
+    // better-sqlite3의 내장 transaction 메서드 사용
+    // 동기적으로 BEGIN/COMMIT을 보장하여 비동기 콜백 중 다른 요청이 끼어드는 것을 방지
+    const txn = database.transaction((cb: () => Promise<T>) => cb());
+    const result = await txn(() => callback(query));
     return result;
   } catch (error) {
-    database.exec('ROLLBACK');
     throw error;
   }
 }

@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       passwordChangeRequired: needsPasswordChange,
     }));
     response.cookies.set('user', userCookieValue, {
-      httpOnly: false, // 클라이언트에서 접근 가능
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60,

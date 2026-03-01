@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-03-01T09:46:52.515Z",
+  "lastUpdated": "2026-03-01T09:47:30.189Z",
   "activeFeatures": [
     "actions",
     "callsign-management",
@@ -20,7 +20,10 @@
     "forgot-password",
     "reset-data",
     "action-type-stats",
-    "duplicate-callsigns-stats"
+    "duplicate-callsigns-stats",
+    "queries",
+    "login",
+    "change-password"
   ],
   "primaryFeature": "actions",
   "features": {
@@ -59,9 +62,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:39:47.747Z",
-        "lastUpdated": "2026-03-01T07:27:54.247Z"
+        "lastUpdated": "2026-03-01T09:47:30.189Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/hooks/useAdminStats.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/next.config.js"
     },
     "callsigns-with-actions": {
       "phase": "do",
@@ -202,9 +205,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T13:37:20.422Z",
-        "lastUpdated": "2026-03-01T09:46:52.515Z"
+        "lastUpdated": "2026-03-01T09:46:57.912Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/announcements/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/file-uploads/[id]/route.ts"
     },
     "db": {
       "phase": "do",
@@ -215,7 +218,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T13:41:08.428Z",
-        "lastUpdated": "2026-03-01T07:00:26.845Z"
+        "lastUpdated": "2026-03-01T09:47:18.807Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/sqlite.ts"
     },
@@ -270,6 +273,45 @@
         "lastUpdated": "2026-03-01T07:29:26.795Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/duplicate-callsigns-stats/route.ts"
+    },
+    "queries": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-01T09:47:05.356Z",
+        "lastUpdated": "2026-03-01T09:47:05.356Z"
+      },
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/queries/announcements.ts"
+    },
+    "login": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-01T09:47:09.103Z",
+        "lastUpdated": "2026-03-01T09:47:09.103Z"
+      },
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/login/route.ts"
+    },
+    "change-password": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-01T09:47:14.373Z",
+        "lastUpdated": "2026-03-01T09:47:14.373Z"
+      },
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/change-password/route.ts"
     }
   },
   "pipeline": {
@@ -280,7 +322,7 @@
   "session": {
     "startedAt": "2026-02-28T05:13:16.433Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-03-01T09:46:52.515Z"
+    "lastActivity": "2026-03-01T09:47:30.189Z"
   },
   "history": [
     {
@@ -2008,6 +2050,48 @@
     {
       "timestamp": "2026-03-01T09:46:52.515Z",
       "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T09:46:55.751Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T09:46:57.912Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T09:47:05.356Z",
+      "feature": "queries",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T09:47:09.103Z",
+      "feature": "login",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T09:47:14.373Z",
+      "feature": "change-password",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T09:47:18.807Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T09:47:30.189Z",
+      "feature": "similarity_callsign",
       "phase": "do",
       "action": "updated"
     }

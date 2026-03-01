@@ -18,6 +18,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: fileUploadId } = await params;
+
     // 인증 확인 (관리자만)
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -35,8 +37,6 @@ export async function DELETE(
         { status: 403 }
       );
     }
-
-    const fileUploadId = params.id;
 
     // 1. 해당 file_upload_id로 연결된 callsigns 확인
     const callsignsResult = await query(

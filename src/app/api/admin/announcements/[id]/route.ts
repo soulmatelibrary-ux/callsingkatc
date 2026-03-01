@@ -184,6 +184,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     // 1. 인증 확인
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -206,7 +208,7 @@ export async function DELETE(
     // 2. 공지사항 존재 확인
     const existResult = await query(
       `SELECT id FROM announcements WHERE id = ?`,
-      [params.id]
+      [id]
     );
 
     if (existResult.rows.length === 0) {
@@ -219,7 +221,7 @@ export async function DELETE(
     // 3. 삭제 (ON DELETE CASCADE로 announcement_views도 함께 삭제)
     await query(
       `DELETE FROM announcements WHERE id = ?`,
-      [params.id]
+      [id]
     );
 
     return NextResponse.json(
