@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { OverviewTab } from '@/components/callsign-management/OverviewTab';
-import { ActionsTab } from '@/components/callsign-management/ActionsTab';
+// import { ActionsTab } from '@/components/callsign-management/ActionsTab';
 import { StatisticsTab } from '@/components/callsign-management/StatisticsTab';
 import { Sidebar } from '@/components/callsign-management/Sidebar';
 
