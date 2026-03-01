@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     // JWT 토큰에서 user_id 추출
     const token = request.headers.get('Authorization')?.substring(7) || '';
     const payload = verifyToken(token);
-    const userId = payload?.sub || payload?.id;
+    const userId = payload?.userId;
 
     if (!userId) {
       return NextResponse.json(
