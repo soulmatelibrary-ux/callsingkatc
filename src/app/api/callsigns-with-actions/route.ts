@@ -153,7 +153,8 @@ export async function GET(request: NextRequest) {
     }
 
     // 호출부호 목록 조회 (callsigns + actions 조인으로 조치유형과 처리일자 포함)
-    // 최신 조치 정보만 가져오기 위해 LEFT JOIN + GROUP BY 사용
+    // 취소되지 않은(cancelled이 아닌) 최신 조치 정보만 가져오기
+    // status != 'cancelled'인 조치 중 가장 최신 것을 가져옴
     const callsignsResult = await query(
       `SELECT c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
               c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
@@ -162,7 +163,11 @@ export async function GET(request: NextRequest) {
               c.my_action_status, c.other_action_status,
               a.action_type, a.completed_at as action_completed_at
        FROM callsigns c
-       LEFT JOIN actions a ON c.id = a.callsign_id
+       LEFT JOIN (
+         SELECT * FROM actions
+         WHERE status != 'pending'
+         ORDER BY registered_at DESC
+       ) a ON c.id = a.callsign_id
        ${conditions}
        GROUP BY c.id
        ORDER BY

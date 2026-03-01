@@ -36,7 +36,7 @@ export async function PATCH(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { code, name_ko, name_en, display_order } = body;
 
@@ -139,7 +139,7 @@ export async function DELETE(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // 항공사 존재 확인
     const existing = await query(

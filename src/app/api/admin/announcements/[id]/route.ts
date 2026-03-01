@@ -29,6 +29,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     // 1. 인증 확인
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -51,7 +53,7 @@ export async function PATCH(
     // 2. 공지사항 존재 확인 및 기존 데이터 조회
     const existResult = await query(
       `SELECT id, start_date as "startDate", end_date as "endDate" FROM announcements WHERE id = ?`,
-      [params.id]
+      [id]
     );
 
     if (existResult.rows.length === 0) {
@@ -138,7 +140,7 @@ export async function PATCH(
     }
 
     // 6. DB 업데이트
-    params_arr.push(params.id);
+    params_arr.push(id);
     const sql = `
       UPDATE announcements
       SET ${updates.join(', ')}
@@ -156,7 +158,7 @@ export async function PATCH(
               is_active as "isActive"
        FROM announcements
        WHERE id = ?`,
-      [params.id]
+      [id]
     );
 
     if (updatedResult.rows.length === 0) {

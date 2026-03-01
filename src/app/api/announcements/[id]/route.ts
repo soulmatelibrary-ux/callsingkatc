@@ -58,6 +58,8 @@ export async function GET(
     const user = userResult.rows[0];
 
     // 3. 공지사항 조회 (활성화된 것만, viewCount 포함)
+    const { id } = await params;
+
     const announcementResult = await query(
       `
       SELECT
@@ -80,7 +82,7 @@ export async function GET(
           OR INSTR(target_airlines, ?) > 0
         )
       `,
-      [params.id, params.id, user.airline_code]
+      [id, id, user.airline_code]
     );
 
     if (announcementResult.rows.length === 0) {
@@ -99,7 +101,7 @@ export async function GET(
       FROM announcement_views
       WHERE announcement_id = ? AND user_id = ?
       `,
-      [params.id, user.id]
+      [id, user.id]
     );
 
     return NextResponse.json({
@@ -122,6 +124,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+
     // 1. 인증 확인
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -144,7 +148,7 @@ export async function POST(
     // 2. 공지사항 존재 확인
     const announcementResult = await query(
       `SELECT id FROM announcements WHERE id = ?`,
-      [params.id]
+      [id]
     );
 
     if (announcementResult.rows.length === 0) {
@@ -162,7 +166,7 @@ export async function POST(
       ON CONFLICT (announcement_id, user_id)
       DO UPDATE SET viewed_at = CURRENT_TIMESTAMP
       `,
-      [params.id, payload.userId]
+      [id, payload.userId]
     );
 
     return NextResponse.json({ status: 'recorded' }, { status: 200 });
