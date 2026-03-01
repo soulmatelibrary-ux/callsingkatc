@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/store/authStore';
 import * as XLSX from 'xlsx';
 import { parseJsonCookie } from '@/lib/cookies';
 import { ROUTES } from '@/lib/constants';
@@ -34,12 +35,12 @@ import { Action, Callsign } from '@/types/action';
 export default function AirlinePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { user } = useAuthStore((s) => ({ user: s.user }));
 
   // 기본 상태
   const [airlineCode, setAirlineCode] = useState<string>('');
   const [airlineName, setAirlineName] = useState<string>('');
   const [airlineId, setAirlineId] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<AirlineTabType>('incidents');
 
   // 모달 상태
@@ -77,22 +78,20 @@ export default function AirlinePage() {
   const statsDateFilter = useDateRangeFilter({ defaultRange: '1m' });
 
 
-  // 초기 로드
+  // 초기 로드 - authStore에서 사용자 정보 사용
   useEffect(() => {
-    const userCookie = document.cookie
-      .split(';')
-      .find(c => c.trim().startsWith('user='));
-
-    const userData = parseJsonCookie<CookieUser>(userCookie);
-
-    if (!userData) {
+    // authStore에서 user 정보 사용 (쿠키 대신)
+    if (!user) {
       router.push(ROUTES.LOGIN);
       return;
     }
 
-    let code = userData.airline?.code || '';
-    let name = userData.airline?.name_ko || '';
-    let id = userData.airline?.id || '';
+    let code = user.airline?.code || '';
+    let name = user.airline?.name_ko || '';
+    let id = user.airline?.id || '';
+
+    // 📌 DEBUG: user.airline 정보 확인
+    console.log('[AirlinePage] user.airline:', user.airline, 'id:', id, 'id.length:', id.length);
 
     if (!code) {
       code = 'KAL';
@@ -108,35 +107,8 @@ export default function AirlinePage() {
 
     if (id) {
       setAirlineId(id);
-      setLoading(false);
-    } else {
-      const fetchAirlineInfo = async () => {
-        try {
-          const response = await fetch('/api/auth/me', {
-            method: 'GET',
-            credentials: 'include',
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            const fallbackAirline = data.user?.airline;
-            const fallbackId = fallbackAirline?.id || data.user?.airline_id;
-
-            if (fallbackId) {
-              setAirlineId(fallbackId);
-              if (!code && fallbackAirline?.code) setAirlineCode(fallbackAirline.code);
-              if (!name && fallbackAirline?.name_ko) setAirlineName(fallbackAirline.name_ko);
-            }
-          }
-        } catch (err) {
-          // 조용히 처리
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchAirlineInfo();
     }
-  }, [router]);
+  }, [user, router]);
 
   // 데이터 훅
   const { data: actionsData, isLoading: actionsLoading } = useAirlineActions({
@@ -146,6 +118,16 @@ export default function AirlinePage() {
     page: actionPage,
     limit: actionLimit,
   });
+
+  // 📌 DEBUG: airlineId와 관련 상태 확인
+  useEffect(() => {
+    if (airlineId) {
+      console.log('[AirlinePage] Final airlineId:', {
+        value: airlineId,
+        length: airlineId.length,
+      });
+    }
+  }, [airlineId]);
 
   const { data: callsignsData, isLoading: callsignsLoading } = useAirlineCallsigns(airlineId, {
     limit: 1000,
@@ -243,7 +225,6 @@ export default function AirlinePage() {
     }
 
     try {
-      setIsExporting(true);
       const rows = incidents.map((incident) => ({
         '호출부호 쌍': incident.pair,
         '자사 호출부호': incident.mine,
@@ -264,15 +245,18 @@ export default function AirlinePage() {
       XLSX.writeFile(workbook, fileName);
     } catch {
       window.alert('엑셀 파일 생성 중 문제가 발생했습니다.');
-    } finally {
-      setIsExporting(false);
     }
-  }, [isExporting, incidents, airlineCode]);
+  }, [incidents, airlineCode]);
 
   const handleOpenActionModal = useCallback((incident: Incident) => {
+    if (!airlineId) {
+      window.alert('항공사 정보를 불러올 수 없습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+      console.error('[AirlinePage] airlineId is missing:', { airlineId, user: user?.airline });
+      return;
+    }
     setSelectedIncident(incident);
     setIsActionModalOpen(true);
-  }, []);
+  }, [airlineId]);
 
   const handleCreateActionFromCallsign = useCallback((callsignId?: string) => {
     if (!callsignId) return;
@@ -338,15 +322,6 @@ export default function AirlinePage() {
     if (Number.isNaN(date.getTime())) return '-';
     return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
   }, []);
-
-  // 로딩 상태
-  if (loading || callsignsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-600">로딩 중...</div>
-      </div>
-    );
-  }
 
   const navItems: Array<{ id: AirlineTabType; label: string; icon: any; color: 'primary' | 'info' | 'success' | 'orange' }> = [
     { id: 'incidents', label: '조치대상', icon: BarChart3, color: 'primary' },

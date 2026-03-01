@@ -49,6 +49,8 @@ const isTokenExpired = (payload: RefreshTokenPayload | null): boolean => {
 };
 
 export function middleware(request: NextRequest) {
+  // 🔴 임시 비활성화: 모든 요청 허용
+  return NextResponse.next();
   const { pathname } = request.nextUrl;
 
   // refreshToken 쿠키만 확인 (단순화)
@@ -135,15 +137,7 @@ export function middleware(request: NextRequest) {
  */
 export const config = {
   matcher: [
-    // 보호 라우트
-    '/airline/:path*',
-    '/admin/:path*',
-    '/callsign-management/:path*',
-    // 인증 라우트
-    '/login',
-    '/forgot-password',
-    '/change-password',
-    // 제외 라우트
+    // 모든 경로 (/_next, /api, /static, /favicon.ico 제외)
     '/((?!_next|api|static|favicon.ico).*)',
   ],
 };

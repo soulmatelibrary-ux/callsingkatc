@@ -29,10 +29,10 @@ export default function AdminUsersPageClient({ initialTab }: AdminUsersPageClien
   return (
     <main className="flex-1 w-full px-4 sm:px-6 py-6 space-y-6">
       <div className="flex items-center justify-between mb-2">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">관리자 페이지</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            사용자, 항공사, 비밀번호를 한 곳에서 관리합니다.
+        <div className="flex flex-row items-center gap-3">
+          <h1 className="text-xl font-bold text-gray-900 border-r border-gray-300 pr-3">관리자 페이지</h1>
+          <p className="text-sm text-gray-500">
+            사용자, 항공사, 비밀번호 통합 관리
           </p>
         </div>
       </div>

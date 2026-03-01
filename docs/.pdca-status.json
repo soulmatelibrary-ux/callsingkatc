@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-03-01T09:48:41.610Z",
+  "lastUpdated": "2026-03-01T11:45:23.837Z",
   "activeFeatures": [
     "actions",
     "callsign-management",
@@ -36,7 +36,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T05:13:16.433Z",
-        "lastUpdated": "2026-03-01T09:48:31.407Z"
+        "lastUpdated": "2026-03-01T11:45:23.837Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/actions/route.ts"
     },
@@ -49,9 +49,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:35:08.964Z",
-        "lastUpdated": "2026-03-01T07:35:24.849Z"
+        "lastUpdated": "2026-03-01T10:41:35.636Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/callsign-management/StatisticsTab.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/callsign-management/page.tsx"
     },
     "similarity_callsign": {
       "phase": "do",
@@ -62,9 +62,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:39:47.747Z",
-        "lastUpdated": "2026-03-01T09:47:30.189Z"
+        "lastUpdated": "2026-03-01T11:45:15.779Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/next.config.js"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/hooks/useActions.ts"
     },
     "callsigns-with-actions": {
       "phase": "do",
@@ -75,7 +75,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:41:35.431Z",
-        "lastUpdated": "2026-03-01T09:47:38.151Z"
+        "lastUpdated": "2026-03-01T10:02:36.956Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/callsigns-with-actions/route.ts"
     },
@@ -88,9 +88,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:44:23.628Z",
-        "lastUpdated": "2026-03-01T07:35:34.938Z"
+        "lastUpdated": "2026-03-01T11:38:27.089Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/admin/page.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/admin/DuplicateCallsignsChart.tsx"
     },
     "upload-callsigns": {
       "phase": "do",
@@ -114,7 +114,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:47:57.840Z",
-        "lastUpdated": "2026-03-01T00:00:40.754Z"
+        "lastUpdated": "2026-03-01T11:15:07.768Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/(main)/airline/page.tsx"
     },
@@ -192,9 +192,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T13:00:02.612Z",
-        "lastUpdated": "2026-02-28T13:00:02.612Z"
+        "lastUpdated": "2026-03-01T10:38:56.243Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/layout/Header.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/layout/Providers.tsx"
     },
     "[id]": {
       "phase": "do",
@@ -205,9 +205,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T13:37:20.422Z",
-        "lastUpdated": "2026-03-01T09:46:57.912Z"
+        "lastUpdated": "2026-03-01T11:44:36.242Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/file-uploads/[id]/route.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/actions/[id]/route.ts"
     },
     "db": {
       "phase": "do",
@@ -218,9 +218,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T13:41:08.428Z",
-        "lastUpdated": "2026-03-01T09:47:18.807Z"
+        "lastUpdated": "2026-03-01T10:04:27.796Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/sqlite.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/sqlite-schema.ts"
     },
     "forgot-password": {
       "phase": "do",
@@ -270,7 +270,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-01T07:27:48.462Z",
-        "lastUpdated": "2026-03-01T07:29:26.795Z"
+        "lastUpdated": "2026-03-01T11:38:19.748Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/duplicate-callsigns-stats/route.ts"
     },
@@ -322,7 +322,7 @@
   "session": {
     "startedAt": "2026-02-28T05:13:16.433Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-03-01T09:48:41.610Z"
+    "lastActivity": "2026-03-01T11:45:23.837Z"
   },
   "history": [
     {
@@ -2110,6 +2110,252 @@
     {
       "timestamp": "2026-03-01T09:48:41.610Z",
       "feature": "upload-callsigns",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T09:50:00.021Z",
+      "feature": "callsigns-with-actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:02:36.956Z",
+      "feature": "callsigns-with-actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:04:27.796Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:13:46.796Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:14:54.841Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:20:46.731Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:20:50.470Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:21:42.250Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:21:47.320Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:21:50.183Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:23:29.913Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:24:34.040Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:27:50.967Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:30:51.415Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:31:25.838Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:33:45.074Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:34:56.716Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:38:56.243Z",
+      "feature": "layout",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:39:37.012Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:41:35.636Z",
+      "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T10:46:47.512Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:01:11.901Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:01:15.853Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:01:22.826Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:11:56.903Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:12:02.660Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:13:22.107Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:13:25.283Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:15:07.768Z",
+      "feature": "airline",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:15:16.447Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:38:14.507Z",
+      "feature": "duplicate-callsigns-stats",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:38:19.748Z",
+      "feature": "duplicate-callsigns-stats",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:38:23.019Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:38:27.089Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:44:05.535Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:44:36.242Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:44:43.735Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:44:52.465Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:45:15.779Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:45:18.467Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T11:45:23.837Z",
+      "feature": "actions",
       "phase": "do",
       "action": "updated"
     }

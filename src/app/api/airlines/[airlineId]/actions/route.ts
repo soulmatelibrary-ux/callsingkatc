@@ -303,6 +303,13 @@ export async function POST(
   try {
     const { airlineId } = await params;
 
+    // 📌 DEBUG: POST 요청이 도달했는지 확인
+    console.log('[POST /api/airlines/[airlineId]/actions] 요청 도달:', {
+      airlineId,
+      method: request.method,
+      url: request.url,
+    });
+
     // 인증 확인
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
@@ -419,25 +426,26 @@ export async function POST(
       ? new Date().toISOString()
       : completedAt || null;
 
-    // Step 1: 기존 action 조회 (Callsign 등록 시 자동 생성된 action)
+    // Step 1: 기존 action 조회 (취소된 행도 포함하여 재조치 지원)
+    // COALESCE(is_cancelled, 0)=0인 행 우선, 그 다음 is_cancelled=1 (취소된 행)을 조회
     const existingActionResult = await query(
-      `SELECT id FROM actions WHERE airline_id = ? AND callsign_id = ? AND is_cancelled = 0
-       ORDER BY registered_at DESC LIMIT 1`,
+      `SELECT id FROM actions WHERE airline_id = ? AND callsign_id = ?
+       ORDER BY COALESCE(is_cancelled, 0) ASC, registered_at DESC LIMIT 1`,
       [airlineId, callsignId]
     );
 
     if (existingActionResult.rows.length === 0) {
       return NextResponse.json(
-        { error: '등록할 조치를 찾을 수 없습니다. (호출부호가 등록되지 않았거나 조치가 이미 취소되었을 수 있습니다.)' },
+        { error: '등록할 조치를 찾을 수 없습니다. (호출부호가 등록되지 않았습니다.)' },
         { status: 404 }
       );
     }
 
     const existingActionId = existingActionResult.rows[0].id;
 
-    // Step 2: 기존 action UPDATE (Option 2: 같은 row를 UPDATE)
+    // Step 2: 기존 action UPDATE (취소된 행도 복원 가능)
     await transaction(async (trx) => {
-      // 1. action 업데이트 (상태, 조치 정보)
+      // 1. action 업데이트 (상태, 조치 정보, 취소 플래그 복원)
       const nowIso = new Date().toISOString();
       await trx(
         `UPDATE actions SET
@@ -447,6 +455,7 @@ export async function POST(
           planned_due_date = ?,
           completed_at = ?,
           status = ?,
+          is_cancelled = 0,
           updated_at = ?
          WHERE id = ?`,
         [actionType, description || null, managerName || null, plannedDueDate || null, completedTimestamp, actionStatus, nowIso, existingActionId]

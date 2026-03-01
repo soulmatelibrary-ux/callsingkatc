@@ -107,6 +107,91 @@ POST   /api/auth/refresh                 # 토큰 갱신
 
 ---
 
+## 🔄 Actions 상태 관리 (조치 시스템)
+
+### 핵심 원칙
+> **callsigns 최종 상태 = actions과 항상 동기화되어야 함**
+> - actions 상태 변경 → callsigns 자동 업데이트
+> - 양쪽 상태 불일치는 허용하지 않음
+
+### 국내/외항사 판별 규칙 (필수)
+```typescript
+// 항공사 테이블(airlines)에 입력된 11개만 국내항공사로 인정
+// 그 외는 모두 외항사로 취급
+const domesticAirlines = new Set(['KE', 'OZ', 'LJ', 'BX', 'TW', 'ZE', 'RF', 'WJ', 'EK', 'VJ', 'AF']);
+const isForeignAirline = !domesticAirlines.has(otherAirlineCode);
+```
+
+### 상태 변화 흐름
+
+#### 1단계: 등록 (관리페이지)
+```
+POST /api/admin/callsigns
+결과:
+  - actions: 신규 생성, status = 'in_progress'
+  - callsigns: 신규 생성, status = 'in_progress'
+```
+
+#### 2단계: 조치 (항공사 대시보드)
+```
+POST /api/airlines/:airlineId/actions
+결과:
+  - actions: 기존 row UPDATE, status = 'completed' (또는 'in_progress')
+  - callsigns 상태 = 항공사 조합에 따라 달라짐
+
+완료 조건 매트릭스:
+  ┌──────────────────┬────────┬─────────────────────┐
+  │ 항공사 조합       │ 주체   │ callsigns 최종상태  │
+  ├──────────────────┼────────┼─────────────────────┤
+  │ 같은 항공사       │ 아무나 │ completed           │
+  │ 국내 ↔ 국내      │ 첫번째 │ in_progress         │
+  │ 국내 ↔ 국내      │ 둘째   │ completed (양쪽O)   │
+  │ 국내 ↔ 외항사    │ 국내   │ completed           │
+  │ 외항사 ↔ 외항사  │ 아무나 │ completed           │
+  └──────────────────┴────────┴─────────────────────┘
+```
+
+#### 3단계: 취소 (진행 중 항목 취소)
+```
+PATCH /api/actions/[id] (body: { status: 'in_progress' })
+결과:
+  - actions: 같은 row UPDATE
+    ✅ is_cancelled = 1 (플래그 추가)
+    ✅ status = 'in_progress' (상태 되돌림)
+  - callsigns: 상태 = 'in_progress'
+  - 조치목록: is_cancelled=0인 것만 표시 (필터링)
+```
+
+#### 4단계: 재조치 (취소된 항목 다시 조치)
+```
+POST /api/airlines/:airlineId/actions
+결과:
+  - actions: 기존 취소 row UPDATE (is_cancelled=0, status 업데이트)
+  - 새로운 행 추가 불필요 (같은 row 재사용)
+  - callsigns: 완료 조건 재계산 및 상태 업데이트
+```
+
+### 구현 체크리스트
+```
+✅ 국내/외항사 판별 로직 (domesticAirlines Set)
+✅ 조치 시 callsigns 상태 동기화
+✅ 취소 기능 (is_cancelled 플래그)
+✅ 조치목록 필터링 (COALESCE(is_cancelled, 0) = 0)
+⏳ 재조치 시 기존 취소 row UPDATE (구현 필요시)
+```
+
+### 주의사항 ⚠️
+```
+❌ 절대 금지: callsigns와 actions 상태 불일치
+❌ 절대 금지: is_cancelled=1 행을 물리 삭제
+❌ 절대 금지: 국내/외항사 판별 규칙 무시
+
+✅ 필수: 모든 상태 변경 후 양쪽 동기화 확인
+✅ 필수: 트랜잭션으로 actions + callsigns 함께 업데이트
+```
+
+---
+
 ## 🛠️ 서브에이전트 활용 규칙
 
 ### 자동 호출 조건
@@ -485,13 +570,15 @@ git push origin master
 
 ---
 
-## 📊 최근 개선 사항 (2026-02-25)
+## 📊 최근 개선 사항 (2026-03-01)
 
 | 날짜 | 항목 | 상태 |
 |------|------|------|
 | 2026-02-24 | DB 스키마 불일치 수정 | ✅ |
 | 2026-02-25 | API limit 100→1000 상향 | ✅ |
 | 2026-02-25 | 156개 전체 데이터 조회 가능 | ✅ |
+| 2026-03-01 | 통계 차트 2종 추가 (관리자 대시보드) | ✅ |
+| 2026-03-01 | Actions 상태 관리 로직 명확화 | ✅ |
 
 ---
 
@@ -505,5 +592,5 @@ git push origin master
 
 ---
 
-**최종 수정**: 2026-02-25
+**최종 수정**: 2026-03-01 (Actions 상태 관리 로직 명확화)
 **관리자**: sein
