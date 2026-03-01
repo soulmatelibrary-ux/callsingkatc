@@ -176,36 +176,36 @@ export async function PATCH(
       );
     }
 
-    // 상태 로직: in_progress는 action row 삭제 + callsigns 상태 복원
+    // 상태 로직: 모든 상태 변경은 UPDATE (데이터 삭제 없음)
     if (status === 'in_progress') {
-      // in_progress = 항공사 미조치 상태 = action row 삭제 + callsign 상태 복원
+      // in_progress = 조치 진행중 상태로 업데이트
       const callsignId = existingAction.rows[0].callsign_id;
       const airlineId = existingAction.rows[0].airline_id;
       const airlineCode = existingAction.rows[0].airline_code;
-      const otherAirlineCode = existingAction.rows[0].other_airline_code;
 
       // 자사/타사 판단 (현재 항공사 코드와 비교)
-      // NOTE: 항공사 정보를 위해 별도 조회 필요
       const airlineCheck = await query('SELECT code FROM airlines WHERE id = ?', [airlineId]);
       const isMy = airlineCheck.rows[0]?.code === airlineCode;
 
-      // 트랜잭션: action 삭제 + callsign 상태 복원
+      // 트랜잭션: action 상태 업데이트 + callsign 상태 동기화
       await transaction(async (trx) => {
-        // 1. action 행 삭제
-        await trx('DELETE FROM actions WHERE id = ?', [id]);
+        // 1. action 상태 업데이트 (데이터 유지)
+        await trx(
+          `UPDATE actions SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+          [status, id]
+        );
 
-        // 2. callsign 상태 복원
-        // - status: 'in_progress'로 변경
-        // - my_action_status 또는 other_action_status: 'no_action'으로 초기화
+        // 2. callsign 상태 동기화 (진행중으로 유지)
         const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
         await trx(
-          `UPDATE callsigns SET status = ?, ${statusColumnName} = ? WHERE id = ?`,
-          ['in_progress', 'no_action', callsignId]
+          `UPDATE callsigns SET ${statusColumnName} = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+          ['in_progress', callsignId]
         );
       });
 
-      // 삭제된 action 데이터 반환 (mutation 성공 처리)
-      return NextResponse.json(existingAction.rows[0], { status: 200 });
+      // 업데이트된 action 데이터 반환
+      const updatedResult = await query('SELECT * FROM actions WHERE id = ?', [id]);
+      return NextResponse.json(updatedResult.rows[0], { status: 200 });
     }
 
     // 업데이트 필드 구성 (completed 또는 다른 상태 업데이트)
