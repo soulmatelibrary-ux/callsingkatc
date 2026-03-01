@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-03-01T07:14:56.401Z",
+  "lastUpdated": "2026-03-01T07:20:36.846Z",
   "activeFeatures": [
     "actions",
     "callsign-management",
@@ -44,9 +44,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:35:08.964Z",
-        "lastUpdated": "2026-03-01T07:07:01.053Z"
+        "lastUpdated": "2026-03-01T07:20:36.846Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/callsign-management/OverviewTab.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/admin/callsign-management/page.tsx"
     },
     "similarity_callsign": {
       "phase": "do",
@@ -239,7 +239,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-01T07:00:10.715Z",
-        "lastUpdated": "2026-03-01T07:00:10.715Z"
+        "lastUpdated": "2026-03-01T07:18:03.633Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/reset-data/route.ts"
     }
@@ -252,7 +252,7 @@
   "session": {
     "startedAt": "2026-02-28T05:13:16.433Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-03-01T07:14:56.401Z"
+    "lastActivity": "2026-03-01T07:20:36.846Z"
   },
   "history": [
     {
@@ -1758,6 +1758,24 @@
     {
       "timestamp": "2026-03-01T07:14:56.401Z",
       "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T07:15:15.998Z",
+      "feature": "reset-data",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T07:18:03.633Z",
+      "feature": "reset-data",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T07:20:36.846Z",
+      "feature": "callsign-management",
       "phase": "do",
       "action": "updated"
     }

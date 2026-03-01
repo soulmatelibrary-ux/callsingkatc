@@ -54,19 +54,11 @@ export default function CallsignManagementPage() {
     <div className="flex flex-col bg-[#f8fafc] selection:bg-primary/10 min-h-full">
       <main className="flex-1 w-full px-6 pt-8 pb-10">
         {/* 페이지 헤더 */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-200 pb-8 mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-8 h-1 bg-primary rounded-full" />
-              <span className="text-primary font-bold text-sm tracking-widest uppercase">
-                System Management
-              </span>
-            </div>
-            <h1 className="text-4xl font-black text-gray-900 tracking-tight">유사호출부호 관리</h1>
-            <p className="mt-2 text-gray-500 font-medium">
-              항공교통본부 관리자 통합 대시보드 - 유사호출부호 업로드 및 항공사 조치 현황
-            </p>
-          </div>
+        <div className="flex items-center gap-3 border-b border-gray-200 pb-4 mb-8">
+          <span className="w-6 h-0.5 bg-primary rounded-full" />
+          <span className="text-primary font-bold text-xs tracking-widest uppercase">System Management</span>
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">유사호출부호 관리</h1>
+          <span className="text-xs text-gray-500">- 항공교통본부 관리자 대시보드</span>
         </div>
 
         {/* 메인 콘텐츠: 왼쪽 메뉴 + 오른쪽 콘텐츠 */}

@@ -2,13 +2,14 @@
 
 ## Project Overview
 - KATC1: Aviation similar callsign warning system
-- Stack: Next.js 14, React 18, TypeScript, Zustand, pg (PostgreSQL), bcryptjs, JWT
-- Self-hosted backend (not BaaS): direct PostgreSQL + JWT generation in API routes
+- Stack: Next.js 14, React 18, TypeScript, Zustand, better-sqlite3, bcryptjs, JWT
+- Self-hosted backend: SQLite + JWT generation in API routes
 - Level: Dynamic (fullstack)
 
 ## Security Score History
 - 2026-02-19: 57/100 (Conditional Pass)
 - 2026-02-22: 68/100 (Conditional Pass, improved)
+- 2026-03-01: reset-data endpoint 98/100 (PASS) - userId bug fixed, audit logging working
 
 ## Resolved Issues (since 2026-02-19)
 1. httpOnly cookie - FIXED: Server-side Set-Cookie in login/refresh routes
@@ -17,18 +18,19 @@
 4. AuthState user:any - FIXED: proper User type
 5. AuthState refreshToken field - FIXED: removed (cookie-only)
 
-## Current Critical/High Issues (2026-02-22)
+## Current Critical/High Issues (2026-03-01, updated)
 1. **CRITICAL: .env.development tracked by Git** - Contains DB_PASSWORD & JWT_SECRET in plaintext, .gitignore only covers .env*.local
-2. **CRITICAL: Debug APIs exposed** - /api/debug/callsigns & /api/airlines/test-callsigns have NO auth, stack trace in error response
-3. **HIGH: user cookie not httpOnly** - role info accessible to JS, middleware trusts client-manipulable cookie
-4. **HIGH: PATCH /api/actions/[id] missing role check** - any authenticated user can modify actions
-5. **HIGH: GET logout** - enables CSRF-based forced logout
-6. **HIGH: Signup API open** - creates active accounts without auth
-7. **HIGH: No rate limiting** - brute-force vulnerable
-8. **HIGH: No security event logging** - no audit trail
+2. ~~CRITICAL: Debug APIs exposed~~ **RESOLVED** - Debug API files deleted
+3. ~~CRITICAL: reset-data userId extraction bug~~ **RESOLVED** - Fixed to payload?.userId with null check
+4. **HIGH: user cookie not httpOnly** - role info accessible to JS, middleware trusts client-manipulable cookie
+5. **HIGH: PATCH /api/actions/[id] missing role check** - any authenticated user can modify actions
+6. **HIGH: GET logout** - enables CSRF-based forced logout
+7. **HIGH: Signup API open** - creates active accounts without auth
+8. **HIGH: No rate limiting** - brute-force vulnerable
+9. ~~HIGH: Security event logging blocked~~ **RESOLVED** - audit_logs INSERT now works (userId bug fixed)
 
 ## Good Security Patterns Confirmed
-- Parameterized queries ($1, $2) throughout ALL SQL (no injection risk)
+- Parameterized queries (? placeholders for SQLite) throughout ALL SQL (no injection risk)
 - No innerHTML/dangerouslySetInnerHTML/eval
 - Enumeration defense: same error for invalid email/password
 - PASSWORD_REGEX: 8+ chars, upper, lower, digit, special
@@ -50,7 +52,9 @@
 - `/Users/sein/Desktop/katc1/.env.development` - DANGER: credentials in plaintext
 
 ## Architecture Notes
-- Backend is NOT bkend.ai BaaS anymore - it's self-hosted PostgreSQL with pg driver
+- Backend: SQLite (better-sqlite3) with multi-DB abstraction layer (src/lib/db/index.ts)
 - JWT created locally via jsonwebtoken library (not external service)
+- JWT AccessToken payload fields: userId, email, role, status, airlineId (NOT sub/id)
 - bcryptjs for password hashing (salt rounds: 10)
 - Math.random() used for temp password generation (should use crypto)
+- Transaction: BEGIN/COMMIT/ROLLBACK in sqlite.ts, callback pattern
