@@ -69,7 +69,7 @@ export async function GET(
     // "전체" 또는 "진행중" 필터에서 포함 (완료 필터에서는 제외)
     const allowVirtualEntries = !status || status === 'in_progress';
 
-    const actionConditions: string[] = ['a.airline_id = ?'];
+    const actionConditions: string[] = ['a.airline_id = ?', 'a.is_cancelled = 0'];
     const actionParams: any[] = [airlineId];
 
     if (status && ['pending', 'in_progress', 'completed'].includes(status)) {
@@ -194,7 +194,7 @@ export async function GET(
         LEFT JOIN (
           SELECT DISTINCT callsign_id, airline_id
           FROM actions
-          WHERE status IN ('pending', 'in_progress')
+          WHERE status IN ('pending', 'in_progress') AND is_cancelled = 0
         ) active_actions
           ON active_actions.callsign_id = cs.id
           AND active_actions.airline_id = cs.airline_id

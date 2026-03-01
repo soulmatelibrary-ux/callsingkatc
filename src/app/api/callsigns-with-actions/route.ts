@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
               c.my_action_status, c.other_action_status,
               a.action_type, a.completed_at
        FROM callsigns c
-       LEFT JOIN actions a ON c.id = a.callsign_id AND a.airline_id = c.airline_id
+       LEFT JOIN actions a ON c.id = a.callsign_id AND a.airline_id = c.airline_id AND a.is_cancelled = 0
        ${conditions}
        ORDER BY
          CASE
