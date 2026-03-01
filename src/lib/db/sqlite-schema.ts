@@ -116,6 +116,16 @@ function ensureMissingColumns(database: Database.Database) {
       database.exec(`UPDATE actions SET is_cancelled = 0 WHERE is_cancelled IS NULL`);
       console.log('[SQLite] actions 테이블에 is_cancelled 컬럼 추가 및 기존 데이터 마이그레이션 완료');
     }
+
+    // callsigns 테이블의 my_action_status, other_action_status를 'in_progress'로 마이그레이션
+    // (기존 'no_action'을 'in_progress'로 변경 - Option 2 방식)
+    try {
+      database.exec(`UPDATE callsigns SET my_action_status = 'in_progress' WHERE my_action_status = 'no_action'`);
+      database.exec(`UPDATE callsigns SET other_action_status = 'in_progress' WHERE other_action_status = 'no_action'`);
+      console.log('[SQLite] callsigns 테이블 my_action_status, other_action_status 마이그레이션 완료');
+    } catch (migrationError) {
+      // 이미 마이그레이션된 경우 무시
+    }
   } catch (error: any) {
     console.error('[SQLite] 컬럼 추가 오류:', error.message);
     // 이미 존재하는 경우 무시
@@ -228,8 +238,8 @@ function createTables(database: Database.Database) {
       file_upload_id TEXT REFERENCES file_uploads(id),
       uploaded_at DATETIME,
       status VARCHAR(20) NOT NULL DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'completed')),
-      my_action_status VARCHAR(20) DEFAULT 'no_action' CHECK (my_action_status IN ('no_action', 'pending', 'in_progress', 'completed')),
-      other_action_status VARCHAR(20) DEFAULT 'no_action' CHECK (other_action_status IN ('no_action', 'pending', 'in_progress', 'completed')),
+      my_action_status VARCHAR(20) DEFAULT 'in_progress' CHECK (my_action_status IN ('no_action', 'pending', 'in_progress', 'completed')),
+      other_action_status VARCHAR(20) DEFAULT 'in_progress' CHECK (other_action_status IN ('no_action', 'pending', 'in_progress', 'completed')),
       created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(airline_id, callsign_pair),

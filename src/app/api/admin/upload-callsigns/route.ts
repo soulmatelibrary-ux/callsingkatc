@@ -344,8 +344,9 @@ export async function POST(request: NextRequest) {
                  departure_airport2, arrival_airport2, same_airline_code, same_callsign_length,
                  same_number_position, same_number_count, same_number_ratio, similarity,
                  max_concurrent_traffic, coexistence_minutes, error_probability, atc_recommendation,
-                 error_type, sub_error, risk_level, file_upload_id, uploaded_at, status)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'in_progress')`,
+                 error_type, sub_error, risk_level, file_upload_id, uploaded_at, status,
+                 my_action_status, other_action_status)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'in_progress', 'in_progress', 'in_progress')`,
               [
                 airlineId,
                 rowData.airline_code,
@@ -382,6 +383,38 @@ export async function POST(request: NextRequest) {
             );
 
             callsignId = idResult.rows[0].id;
+
+            // Step 2-1: 새 Callsign 생성 시 양쪽 항공사의 actions 자동 생성 (Option 2)
+            const nowIso = new Date().toISOString();
+            try {
+              // 자사 항공사의 action 생성
+              await query(
+                `INSERT INTO actions
+                  (airline_id, callsign_id, action_type, status, registered_by, registered_at, updated_at)
+                 VALUES (?, ?, '자동생성', 'in_progress', ?, ?, ?)`,
+                [airlineId, callsignId, payload.userId, nowIso, nowIso]
+              );
+
+              // 상대 항공사의 action 생성 (상대 항공사가 국내 항공사인 경우)
+              if (rowData.other_airline_code) {
+                const otherAirlineResult = await query(
+                  'SELECT id FROM airlines WHERE code = ?',
+                  [rowData.other_airline_code]
+                );
+                if (otherAirlineResult.rows.length > 0) {
+                  const otherAirlineId = otherAirlineResult.rows[0].id;
+                  await query(
+                    `INSERT INTO actions
+                      (airline_id, callsign_id, action_type, status, registered_by, registered_at, updated_at)
+                     VALUES (?, ?, '자동생성', 'in_progress', ?, ?, ?)`,
+                    [otherAirlineId, callsignId, payload.userId, nowIso, nowIso]
+                  );
+                }
+              }
+            } catch (actionsError) {
+              console.warn(`Actions 자동 생성 실패 (callsignId: ${callsignId}):`, actionsError);
+              // actions 생성 실패해도 callsign은 이미 저장되었으므로 진행
+            }
           }
 
           // Step 2: 발생 날짜 추출 (시작일시 row[1] 사용, 없으면 오늘)

@@ -398,31 +398,57 @@ export async function POST(
     }
 
     // completed 상태일 때만 completedAt 설정 (기본값: 현재 시각)
-    const actionStatus = requestStatus || 'in_progress';
+    const actionStatus = requestStatus || 'completed';
     const completedTimestamp = (actionStatus === 'completed' && !completedAt)
       ? new Date().toISOString()
       : completedAt || null;
 
-    // 조치 생성 (트랜잭션)
+    // Step 1: 기존 action 조회 (Callsign 등록 시 자동 생성된 action)
+    const existingActionResult = await query(
+      `SELECT id FROM actions WHERE airline_id = ? AND callsign_id = ? AND is_cancelled = 0
+       ORDER BY registered_at DESC LIMIT 1`,
+      [airlineId, callsignId]
+    );
+
+    if (existingActionResult.rows.length === 0) {
+      return NextResponse.json(
+        { error: '등록할 조치를 찾을 수 없습니다. (호출부호가 등록되지 않았거나 조치가 이미 취소되었을 수 있습니다.)' },
+        { status: 404 }
+      );
+    }
+
+    const existingActionId = existingActionResult.rows[0].id;
+
+    // Step 2: 기존 action UPDATE (Option 2: 같은 row를 UPDATE)
     await transaction(async (trx) => {
+      // 1. action 업데이트 (상태, 조치 정보)
+      const nowIso = new Date().toISOString();
       await trx(
-        `INSERT INTO actions (
-          airline_id, callsign_id, action_type, description,
-          manager_name, planned_due_date, completed_at,
-          status, registered_by, registered_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-        [airlineId, callsignId, actionType, description || null, managerName || null, plannedDueDate || null, completedTimestamp, actionStatus, payload.userId]
+        `UPDATE actions SET
+          action_type = ?,
+          description = ?,
+          manager_name = ?,
+          planned_due_date = ?,
+          completed_at = ?,
+          status = ?,
+          updated_at = ?
+         WHERE id = ?`,
+        [actionType, description || null, managerName || null, plannedDueDate || null, completedTimestamp, actionStatus, nowIso, existingActionId]
       );
 
-      // callsigns 테이블 업데이트
-      // 1. my_action_status: 자사 조치 상태를 actions.status로 설정
-      // 2. status: 호출부호 전체 처리 상태 (둘 다 조치되면 'completed')
+      // 2. callsigns 테이블 업데이트
+      // - my_action_status: 자사 조치 상태를 actions.status로 설정
+      // - status: 호출부호 전체 처리 상태 (둘 다 조치되면 'completed')
       let newCallsignStatus = 'in_progress';
 
       if (otherActionExists) {
         // 상대 항공사가 이미 조치를 등록했으므로, 이제 둘 다 조치가 있음
         // → callsigns.status = 'completed'
-        newCallsignStatus = 'completed';
+        if (actionStatus === 'completed') {
+          newCallsignStatus = 'completed';
+        } else {
+          newCallsignStatus = 'in_progress';
+        }
       } else {
         // 상대 항공사가 아직 조치를 등록하지 않음
         // → callsigns.status = 'in_progress' (유지)
@@ -439,17 +465,15 @@ export async function POST(
       );
     });
 
-    // 생성된 조치 조회
+    // Step 3: 업데이트된 조치 조회
     const actionResult = await query(
       `SELECT
         id, airline_id, callsign_id, action_type, description,
         manager_name, planned_due_date, completed_at,
         status, registered_by, registered_at, updated_at
        FROM actions
-       WHERE airline_id = ? AND callsign_id = ?
-       ORDER BY registered_at DESC
-       LIMIT 1`,
-      [airlineId, callsignId]
+       WHERE id = ?`,
+      [existingActionId]
     );
 
     if (actionResult.rows.length === 0) {
