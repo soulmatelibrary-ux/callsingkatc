@@ -1,13 +1,14 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useCallsigns, useAllActions } from '@/hooks/useActions';
-import { useAirlines } from '@/hooks/useAirlines';
 import { useAuthStore } from '@/store/authStore';
+import { useActionTypeStats, useAirlineDetailStats } from '@/hooks/useAdminStats';
 import { StatCard } from './StatCard';
 import { ActionTypeDistributionChart } from '@/components/admin/ActionTypeDistributionChart';
-import { DuplicateCallsignsChart } from '@/components/admin/DuplicateCallsignsChart';
+import { format, addDays, addMonths, lastDayOfMonth } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 interface CallsignStatsResponse {
   total: number;
@@ -16,21 +17,77 @@ interface CallsignStatsResponse {
   low: number;
 }
 
+type PeriodType = 'daily' | 'monthly' | 'yearly';
+
+// 날짜 범위 계산 함수
+function getDateRange(period: PeriodType, offset: number): { dateFrom: string; dateTo: string } {
+  const now = new Date();
+
+  if (period === 'monthly') {
+    const date = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    const first = format(date, 'yyyy-MM-01');
+    const last = format(lastDayOfMonth(date), 'yyyy-MM-dd');
+    return { dateFrom: first, dateTo: last };
+  }
+
+  if (period === 'daily') {
+    const date = addDays(now, offset);
+    const d = format(date, 'yyyy-MM-dd');
+    return { dateFrom: d, dateTo: d };
+  }
+
+  if (period === 'yearly') {
+    const year = now.getFullYear() + offset;
+    return { dateFrom: `${year}-01-01`, dateTo: `${year}-12-31` };
+  }
+
+  return { dateFrom: '', dateTo: '' };
+}
+
+// 표시 텍스트 함수
+function getPeriodLabel(period: PeriodType, offset: number): string {
+  const now = new Date();
+
+  if (period === 'monthly') {
+    const date = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    return format(date, 'yyyy년 M월', { locale: ko });
+  }
+
+  if (period === 'daily') {
+    const date = addDays(now, offset);
+    return format(date, 'yyyy년 M월 d일', { locale: ko });
+  }
+
+  if (period === 'yearly') {
+    const year = now.getFullYear() + offset;
+    return `${year}년`;
+  }
+
+  return '';
+}
+
 export function StatisticsTab() {
+  const [period, setPeriod] = useState<PeriodType>('monthly');
+  const [periodOffset, setPeriodOffset] = useState(0);
   const accessToken = useAuthStore((s) => s.accessToken);
-  const callsignsQuery = useCallsigns({ limit: 50 });
-  const actionsQuery = useAllActions({ limit: 50 });
-  const airlinesQuery = useAirlines();
+
+  // 날짜 범위 계산
+  const dateRange = useMemo(() => getDateRange(period, periodOffset), [period, periodOffset]);
+  const periodLabel = useMemo(() => getPeriodLabel(period, periodOffset), [period, periodOffset]);
 
   // 전체 호출부호 통계 (위험도별)
   const callsignStatsQuery = useQuery<CallsignStatsResponse>({
-    queryKey: ['callsigns-stats', 'all'],
+    queryKey: ['callsigns-stats', dateRange.dateFrom, dateRange.dateTo],
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('인증 토큰이 없습니다.');
       }
 
-      const response = await fetch('/api/callsigns/stats', {
+      const params = new URLSearchParams();
+      params.append('dateFrom', dateRange.dateFrom);
+      params.append('dateTo', dateRange.dateTo);
+
+      const response = await fetch(`/api/callsigns/stats?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -47,14 +104,20 @@ export function StatisticsTab() {
     gcTime: 5 * 60 * 1000,
   });
 
-  // 전체 조치 건수 및 상태별 집계 (pagination.total 활용)
-  const totalActionsQuery = useAllActions({ page: 1, limit: 1 });
-  const pendingActionsQuery = useAllActions({ page: 1, limit: 1, status: 'pending' });
-  const inProgressActionsQuery = useAllActions({ page: 1, limit: 1, status: 'in_progress' });
-  const completedActionsQuery = useAllActions({ page: 1, limit: 1, status: 'completed' });
+  // 조치 건수 및 상태별 집계
+  const totalActionsQuery = useAllActions({ page: 1, limit: 1, dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo });
+  const pendingActionsQuery = useAllActions({ page: 1, limit: 1, status: 'pending', dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo });
+  const inProgressActionsQuery = useAllActions({ page: 1, limit: 1, status: 'in_progress', dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo });
+  const completedActionsQuery = useAllActions({ page: 1, limit: 1, status: 'completed', dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo });
+
+  // 항공사별 상세 통계 (서버 집계)
+  const airlineDetailStatsQuery = useAirlineDetailStats(dateRange);
+
+  // 조치 유형별 분포
+  const actionTypeStatsQuery = useActionTypeStats(dateRange);
 
   // KPI 데이터 계산
-  const totalCallsigns = callsignsQuery.data?.pagination.total ?? 0;
+  const totalCallsigns = callsignStatsQuery.data?.total ?? 0;
   const riskStats = callsignStatsQuery.data || { total: 0, veryHigh: 0, high: 0, low: 0 };
   const actionCounts = {
     total: totalActionsQuery.data?.pagination.total ?? 0,
@@ -63,37 +126,13 @@ export function StatisticsTab() {
     completed: completedActionsQuery.data?.pagination.total ?? 0,
   };
 
-  // 항공사별 상세 통계
-  const airlineDetailStats = useMemo(() => {
-    const actionsList = actionsQuery.data?.data || [];
-    return airlinesQuery.data?.map((airline) => {
-      const actions = actionsList.filter((a) => a.airline_id === airline.id) || [];
-      const completed = actions.filter((a) => a.status === 'completed').length;
-      const total = actions.length;
-      const completionRate = total > 0 ? (completed / total) * 100 : 0;
-
-      const pending = actions.filter((a) => a.status === 'pending').length;
-      const inProgress = actions.filter((a) => a.status === 'in_progress').length;
-
-      return {
-        airline,
-        total,
-        completed,
-        pending,
-        inProgress,
-        completionRate,
-      };
-    }) || [];
-  }, [airlinesQuery.data, actionsQuery.data]);
-
   const isLoading =
-    callsignsQuery.isLoading ||
-    actionsQuery.isLoading ||
     callsignStatsQuery.isLoading ||
     totalActionsQuery.isLoading ||
     pendingActionsQuery.isLoading ||
     inProgressActionsQuery.isLoading ||
-    completedActionsQuery.isLoading;
+    completedActionsQuery.isLoading ||
+    airlineDetailStatsQuery.isLoading;
 
   if (isLoading) {
     return (
@@ -108,6 +147,58 @@ export function StatisticsTab() {
 
   return (
     <div className="space-y-8">
+      {/* 시간 범위 선택 UI */}
+      <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 p-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          {/* 주기 선택 버튼 */}
+          <div className="flex gap-3">
+            {(['daily', 'monthly', 'yearly'] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => {
+                  setPeriod(p);
+                  setPeriodOffset(0);
+                }}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  period === p
+                    ? 'bg-indigo-500 text-white shadow-lg'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {p === 'daily' ? '일별' : p === 'monthly' ? '월별' : '년간'}
+              </button>
+            ))}
+          </div>
+
+          {/* 이전/다음 네비게이션 */}
+          <div className="flex items-center gap-4 sm:gap-6">
+            <button
+              onClick={() => setPeriodOffset(periodOffset - 1)}
+              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              title="이전"
+            >
+              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <div className="min-w-[140px] text-center">
+              <p className="text-lg font-bold text-slate-800">{periodLabel}</p>
+            </div>
+
+            <button
+              onClick={() => setPeriodOffset(periodOffset + 1)}
+              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              title="다음"
+            >
+              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* KPI 카드 */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
         <StatCard label="총 호출부호" value={totalCallsigns} color="text-gray-900" />
@@ -116,128 +207,55 @@ export function StatisticsTab() {
         <StatCard label="완료" value={actionCounts.completed} color="text-emerald-600" />
       </div>
 
-      {/* 차트 영역 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* 위험도별 현황 */}
-        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 p-8">
-          <h3 className="text-xl font-black text-slate-800 mb-8 tracking-tight">위험도별 현황</h3>
-          <div className="space-y-6">
-            <div>
-              <div className="flex justify-between items-end mb-3">
-                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">매우높음</span>
-                <span className="text-sm font-black text-rose-600">{riskStats.veryHigh}건</span>
-              </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-rose-500 rounded-full transition-all duration-1000 ease-out relative"
-                  style={{
-                    width: `${totalCallsigns > 0 ? (riskStats.veryHigh / totalCallsigns) * 100 : 0}%`,
-                  }}
-                >
-                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
-                </div>
-              </div>
+      {/* 위험도별 현황 */}
+      <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 p-8">
+        <h3 className="text-xl font-black text-slate-800 mb-8 tracking-tight">위험도별 현황</h3>
+        <div className="space-y-6">
+          <div>
+            <div className="flex justify-between items-end mb-3">
+              <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">매우높음</span>
+              <span className="text-sm font-black text-rose-600">{riskStats.veryHigh}건</span>
             </div>
-            <div>
-              <div className="flex justify-between items-end mb-3">
-                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">높음</span>
-                <span className="text-sm font-black text-amber-500">{riskStats.high}건</span>
-              </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-amber-500 rounded-full transition-all duration-1000 ease-out relative"
-                  style={{
-                    width: `${totalCallsigns > 0 ? (riskStats.high / totalCallsigns) * 100 : 0}%`,
-                  }}
-                >
-                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
-                </div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between items-end mb-3">
-                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">낮음</span>
-                <span className="text-sm font-black text-emerald-500">{riskStats.low}건</span>
-              </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out relative"
-                  style={{
-                    width: `${totalCallsigns > 0 ? (riskStats.low / totalCallsigns) * 100 : 0}%`,
-                  }}
-                >
-                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
-                </div>
+            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-rose-500 rounded-full transition-all duration-1000 ease-out relative"
+                style={{
+                  width: `${totalCallsigns > 0 ? (riskStats.veryHigh / totalCallsigns) * 100 : 0}%`,
+                }}
+              >
+                <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* 조치 상태별 현황 */}
-        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 p-8">
-          <h3 className="text-xl font-black text-slate-800 mb-8 tracking-tight">조치 상태 분포</h3>
-          <div className="space-y-6">
-            <div>
-              <div className="flex justify-between items-end mb-3">
-                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-amber-500"></div> 미조치 (Pending)
-                </span>
-                <span className="text-sm font-black text-amber-600">{actionCounts.pending}건</span>
-              </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-amber-500 rounded-full transition-all duration-1000 ease-out relative"
-                  style={{
-                    width: `${actionCounts.total > 0
-                      ? (actionCounts.pending / actionCounts.total) * 100
-                      : 0
-                      }%`,
-                  }}
-                >
-                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
-                </div>
+          <div>
+            <div className="flex justify-between items-end mb-3">
+              <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">높음</span>
+              <span className="text-sm font-black text-amber-500">{riskStats.high}건</span>
+            </div>
+            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-amber-500 rounded-full transition-all duration-1000 ease-out relative"
+                style={{
+                  width: `${totalCallsigns > 0 ? (riskStats.high / totalCallsigns) * 100 : 0}%`,
+                }}
+              >
+                <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
               </div>
             </div>
-            <div>
-              <div className="flex justify-between items-end mb-3">
-                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500"></div> 진행중 (In Progress)
-                </span>
-                <span className="text-sm font-black text-indigo-600">{actionCounts.inProgress}건</span>
-              </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out relative"
-                  style={{
-                    width: `${actionCounts.total > 0
-                      ? (actionCounts.inProgress / actionCounts.total) * 100
-                      : 0
-                      }%`,
-                  }}
-                >
-                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
-                </div>
-              </div>
+          </div>
+          <div>
+            <div className="flex justify-between items-end mb-3">
+              <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">낮음</span>
+              <span className="text-sm font-black text-emerald-500">{riskStats.low}건</span>
             </div>
-            <div>
-              <div className="flex justify-between items-end mb-3">
-                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div> 완료 (Completed)
-                </span>
-                <span className="text-sm font-black text-emerald-600">{actionCounts.completed}건</span>
-              </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out relative"
-                  style={{
-                    width: `${actionCounts.total > 0
-                      ? (actionCounts.completed / actionCounts.total) * 100
-                      : 0
-                      }%`,
-                  }}
-                >
-                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
-                </div>
+            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out relative"
+                style={{
+                  width: `${totalCallsigns > 0 ? (riskStats.low / totalCallsigns) * 100 : 0}%`,
+                }}
+              >
+                <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
               </div>
             </div>
           </div>
@@ -255,7 +273,7 @@ export function StatisticsTab() {
         </div>
 
         {/* 테이블 */}
-        {airlineDetailStats.length > 0 ? (
+        {airlineDetailStatsQuery.data && airlineDetailStatsQuery.data.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -270,33 +288,31 @@ export function StatisticsTab() {
                     조치율
                   </th>
                   <th className="px-8 py-5 text-center text-[12px] font-bold text-slate-400 uppercase tracking-wider">
-                    미조치 / 진행중
-                  </th>
-                  <th className="px-8 py-5 text-left text-[12px] font-bold text-slate-400 uppercase tracking-wider">
-                    최근 업로드
+                    미조치 / 진행중 / 완료
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {airlineDetailStats.map((stat) => (
-                  <tr key={stat.airline.id} className="group hover:bg-slate-50/80 transition-colors">
-                    <td className="px-8 py-5 font-bold text-slate-800 text-[15px]">{stat.airline.code}</td>
+                {airlineDetailStatsQuery.data.map((stat) => (
+                  <tr key={stat.airline_id} className="group hover:bg-slate-50/80 transition-colors">
+                    <td className="px-8 py-5 font-bold text-slate-800 text-[15px]">{stat.airline_code}</td>
                     <td className="px-8 py-5 text-center font-semibold text-slate-500">
-                      {stat.total}개
+                      {stat.total_callsigns}개
                     </td>
                     <td className="px-8 py-5 text-center">
-                      <span className={`inline-flex px-3 py-1 rounded-lg text-xs font-bold ${stat.completionRate > 80 ? 'bg-emerald-50 text-emerald-600' :
-                          stat.completionRate > 40 ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
+                      <span className={`inline-flex px-3 py-1 rounded-lg text-xs font-bold ${stat.completion_rate > 80 ? 'bg-emerald-50 text-emerald-600' :
+                          stat.completion_rate > 40 ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
                         }`}>
-                        {stat.completionRate.toFixed(1)}%
+                        {stat.completion_rate.toFixed(1)}%
                       </span>
                     </td>
                     <td className="px-8 py-5 text-center font-medium">
-                      <span className="text-amber-500 font-bold px-2">{stat.pending}</span>
-                      <span className="text-slate-200">/</span>
-                      <span className="text-indigo-500 font-bold px-2">{stat.inProgress}</span>
+                      <span className="text-amber-500 font-bold px-1">{stat.pending_actions}</span>
+                      <span className="text-slate-200 px-1">/</span>
+                      <span className="text-indigo-500 font-bold px-1">{stat.in_progress_actions}</span>
+                      <span className="text-slate-200 px-1">/</span>
+                      <span className="text-emerald-500 font-bold px-1">{stat.completed_actions}</span>
                     </td>
-                    <td className="px-8 py-5 text-slate-400 font-medium">-</td>
                   </tr>
                 ))}
               </tbody>
@@ -312,11 +328,8 @@ export function StatisticsTab() {
         )}
       </div>
 
-      {/* 조치 유형별 분포 및 중복 호출부호 분석 */}
-      <div className="space-y-8">
-        <ActionTypeDistributionChart />
-        <DuplicateCallsignsChart />
-      </div>
+      {/* 조치 유형별 분포 */}
+      <ActionTypeDistributionChart dateRange={dateRange} />
     </div>
   );
 }

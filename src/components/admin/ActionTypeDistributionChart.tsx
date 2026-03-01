@@ -13,13 +13,21 @@ import {
   Cell,
 } from 'recharts';
 
+interface ActionTypeDistributionChartProps {
+  dateRange?: {
+    dateFrom: string;
+    dateTo: string;
+  };
+}
+
 /**
  * 조치 유형별 분포 차트
  * - 각 조치 유형별 상태 분포 (완료, 진행중, 미조치)
  * - 완료율 표시
+ * - 날짜 범위 필터 지원
  */
-export function ActionTypeDistributionChart() {
-  const { data: statsData, isLoading, error } = useActionTypeStats();
+export function ActionTypeDistributionChart({ dateRange }: ActionTypeDistributionChartProps) {
+  const { data: statsData, isLoading, error } = useActionTypeStats(dateRange);
 
   if (isLoading) {
     return (

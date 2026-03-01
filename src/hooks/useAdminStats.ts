@@ -13,17 +13,26 @@ export interface ActionTypeStats {
   completion_rate: number;
 }
 
-export function useActionTypeStats() {
+export interface DateRange {
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export function useActionTypeStats(dateRange?: DateRange) {
   const accessToken = useAuthStore((s) => s.accessToken);
 
   return useQuery({
-    queryKey: ['admin-action-type-stats'],
+    queryKey: ['admin-action-type-stats', dateRange?.dateFrom, dateRange?.dateTo],
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('인증 토큰이 없습니다.');
       }
 
-      const response = await fetch('/api/admin/action-type-stats', {
+      const params = new URLSearchParams();
+      if (dateRange?.dateFrom) params.append('dateFrom', dateRange.dateFrom);
+      if (dateRange?.dateTo) params.append('dateTo', dateRange.dateTo);
+
+      const response = await fetch(`/api/admin/action-type-stats?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -90,6 +99,54 @@ export function useDuplicateCallsignsStats() {
       }
 
       return (await response.json()) as DuplicateCallsignsResponse;
+    },
+    enabled: !!accessToken,
+    staleTime: 5 * 60 * 1000, // 5분
+    gcTime: 10 * 60 * 1000, // 10분
+  });
+}
+
+/**
+ * 항공사별 집계 통계
+ */
+export interface AirlineDetailStats {
+  airline_id: string;
+  airline_code: string;
+  airline_name_ko: string;
+  total_callsigns: number;
+  pending_actions: number;
+  in_progress_actions: number;
+  completed_actions: number;
+  total_actions: number;
+  completion_rate: number;
+}
+
+export function useAirlineDetailStats(dateRange?: DateRange) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery({
+    queryKey: ['admin-airline-stats', dateRange?.dateFrom, dateRange?.dateTo],
+    queryFn: async () => {
+      if (!accessToken) {
+        throw new Error('인증 토큰이 없습니다.');
+      }
+
+      const params = new URLSearchParams();
+      if (dateRange?.dateFrom) params.append('dateFrom', dateRange.dateFrom);
+      if (dateRange?.dateTo) params.append('dateTo', dateRange.dateTo);
+
+      const response = await fetch(`/api/admin/airline-stats?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('통계 조회 실패');
+      }
+
+      const result = await response.json();
+      return result.data as AirlineDetailStats[];
     },
     enabled: !!accessToken,
     staleTime: 5 * 60 * 1000, // 5분

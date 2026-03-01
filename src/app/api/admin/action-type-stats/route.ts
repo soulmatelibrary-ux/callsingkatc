@@ -7,9 +7,13 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/admin/action-type-stats
  *
- * 조치 유형별 분포 통계 조회
+ * 조치 유형별 분포 통계 조회 (날짜 범위 필터 지원)
  * - 각 조치 유형별 건수
  * - 각 조치 유형별 완료율
+ *
+ * 쿼리 파라미터:
+ * - dateFrom: YYYY-MM-DD (optional)
+ * - dateTo: YYYY-MM-DD (optional)
  *
  * 응답:
  * {
@@ -54,6 +58,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // 2️⃣ 쿼리 파라미터 추출
+    const { searchParams } = new URL(request.url);
+    const dateFrom = searchParams.get('dateFrom');
+    const dateTo = searchParams.get('dateTo');
+
+    // SQL WHERE 절 동적 구성
+    let whereClause = 'action_type IS NOT NULL AND action_type != \'\'';
+    const params: (string | null)[] = [];
+
+    if (dateFrom) {
+      whereClause += ' AND DATE(registered_at) >= DATE(?)';
+      params.push(dateFrom);
+    }
+
+    if (dateTo) {
+      whereClause += ' AND DATE(registered_at) <= DATE(?)';
+      params.push(dateTo);
+    }
+
     // 2️⃣ 조치 유형별 분포 통계 조회
     const result = await query(
       `
@@ -68,11 +91,11 @@ export async function GET(request: NextRequest) {
           1
         ) as completion_rate
       FROM actions
-      WHERE action_type IS NOT NULL AND action_type != ''
+      WHERE ${whereClause}
       GROUP BY action_type
       ORDER BY total_count DESC
       `,
-      []
+      params
     );
 
     return NextResponse.json({
