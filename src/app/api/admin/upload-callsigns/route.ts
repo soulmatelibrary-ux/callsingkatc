@@ -87,19 +87,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 파일 업로드 기록 생성
+    // 파일 업로드 기록 생성 (W-1 FIX: lastInsertRowid 직접 사용으로 경쟁상황 제거)
     const uploadRecord = await query(
       `INSERT INTO file_uploads (file_name, file_size, uploaded_by, status)
        VALUES (?, ?, ?, 'processing')`,
       [file.name, file.size, payload.userId]
     );
 
-    // SQLite는 RETURNING을 지원하지 않으므로 별도로 조회
-    const uploadIdResult = await query(
-      `SELECT id FROM file_uploads WHERE uploaded_by = ? AND file_name = ? ORDER BY uploaded_at DESC LIMIT 1`,
-      [payload.userId, file.name]
-    );
-    const uploadId = uploadIdResult.rows[0].id;
+    // lastInsertRowid 사용으로 SELECT 쿼리 제거 (동시 업로드 시 경쟁상황 해결)
+    const uploadId = uploadRecord.lastInsertRowid;
 
     try {
       // 파일 데이터 읽기

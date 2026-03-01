@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { ADMIN_DASHBOARD_CARDS } from '@/lib/admin-navigation';
 import { useAuthStore } from '@/store/authStore';
@@ -12,6 +13,65 @@ import { useAuthStore } from '@/store/authStore';
  */
 export default function AdminPage() {
   const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  // 데이터 초기화 모달 상태
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
+  // 데이터 초기화 API 호출
+  const handleResetData = async () => {
+    if (resetConfirmText !== 'RESET') {
+      setResetMessage({
+        type: 'error',
+        text: '"RESET"을 정확히 입력해주세요.',
+      });
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const response = await fetch('/api/admin/reset-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ confirmText: 'RESET' }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResetMessage({
+          type: 'success',
+          text: '데이터 초기화가 완료되었습니다.',
+        });
+        setResetConfirmText('');
+        setTimeout(() => {
+          setShowResetModal(false);
+          setResetMessage(null);
+        }, 2000);
+      } else {
+        setResetMessage({
+          type: 'error',
+          text: data.error || '데이터 초기화 중 오류가 발생했습니다.',
+        });
+      }
+    } catch (error) {
+      setResetMessage({
+        type: 'error',
+        text: '데이터 초기화 중 오류가 발생했습니다.',
+      });
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">

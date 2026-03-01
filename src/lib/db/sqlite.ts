@@ -52,7 +52,7 @@ export async function query(text: string, params?: any[]): Promise<any> {
       result = { rows: rows || [], rowCount: (rows || []).length };
     } else {
       const info = stmt.run(...newParams);
-      result = { changes: info.changes, rowCount: info.changes };
+      result = { changes: info.changes, rowCount: info.changes, lastInsertRowid: info.lastInsertRowid };
     }
 
     return result;
