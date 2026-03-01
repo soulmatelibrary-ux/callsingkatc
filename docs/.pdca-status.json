@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-03-01T01:48:07.419Z",
+  "lastUpdated": "2026-03-01T05:49:00.652Z",
   "activeFeatures": [
     "actions",
     "callsign-management",
@@ -16,7 +16,8 @@
     "stats",
     "layout",
     "[id]",
-    "db"
+    "db",
+    "forgot-password"
   ],
   "primaryFeature": "actions",
   "features": {
@@ -42,9 +43,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:35:08.964Z",
-        "lastUpdated": "2026-03-01T01:48:07.419Z"
+        "lastUpdated": "2026-03-01T04:49:08.825Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/callsign-management/page.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/callsign-management/ActionsTab.tsx"
     },
     "similarity_callsign": {
       "phase": "do",
@@ -68,7 +69,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:41:35.431Z",
-        "lastUpdated": "2026-03-01T01:40:22.840Z"
+        "lastUpdated": "2026-03-01T02:21:04.766Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/callsigns-with-actions/route.ts"
     },
@@ -81,9 +82,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:44:23.628Z",
-        "lastUpdated": "2026-02-28T09:50:48.145Z"
+        "lastUpdated": "2026-03-01T04:50:16.543Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/admin/PasswordResetSection.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/admin/UserApprovalTable.tsx"
     },
     "upload-callsigns": {
       "phase": "do",
@@ -146,7 +147,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:51:51.702Z",
-        "lastUpdated": "2026-02-28T09:55:21.852Z"
+        "lastUpdated": "2026-03-01T04:43:21.927Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/users/[id]/password-reset/route.ts"
     },
@@ -198,7 +199,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T13:37:20.422Z",
-        "lastUpdated": "2026-02-28T13:42:33.576Z"
+        "lastUpdated": "2026-03-01T05:49:00.652Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/actions/[id]/route.ts"
     },
@@ -211,9 +212,22 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T13:41:08.428Z",
-        "lastUpdated": "2026-02-28T13:41:08.428Z"
+        "lastUpdated": "2026-03-01T05:48:47.031Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/lib/db/sqlite-schema.ts"
+    },
+    "forgot-password": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-01T02:19:40.093Z",
+        "lastUpdated": "2026-03-01T04:43:20.817Z"
+      },
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/auth/forgot-password/route.ts"
     }
   },
   "pipeline": {
@@ -224,7 +238,7 @@
   "session": {
     "startedAt": "2026-02-28T05:13:16.433Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-03-01T01:48:07.419Z"
+    "lastActivity": "2026-03-01T05:49:00.652Z"
   },
   "history": [
     {
@@ -1304,6 +1318,114 @@
     {
       "timestamp": "2026-03-01T01:48:07.419Z",
       "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T02:16:50.891Z",
+      "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T02:16:52.396Z",
+      "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T02:19:40.093Z",
+      "feature": "forgot-password",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T02:21:04.766Z",
+      "feature": "callsigns-with-actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T02:24:48.250Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T04:43:20.817Z",
+      "feature": "forgot-password",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T04:43:21.927Z",
+      "feature": "password-reset",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T04:48:00.849Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T04:48:01.706Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T04:48:02.252Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T04:49:08.825Z",
+      "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T04:50:16.543Z",
+      "feature": "admin",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T05:37:31.632Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T05:41:03.657Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T05:41:21.371Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T05:48:41.323Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T05:48:47.031Z",
+      "feature": "db",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-01T05:49:00.652Z",
+      "feature": "[id]",
       "phase": "do",
       "action": "updated"
     }

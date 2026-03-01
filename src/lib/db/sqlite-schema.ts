@@ -91,9 +91,31 @@ function ensureMissingTables(database: Database.Database) {
     // 인덱스 재생성
     database.exec('CREATE INDEX IF NOT EXISTS idx_password_history_user_id ON password_history(user_id)');
 
+    // 기존 테이블에 누락된 컬럼 추가 (마이그레이션)
+    ensureMissingColumns(database);
+
   } catch (error: any) {
     console.error('[SQLite] 누락 테이블 생성 오류:', error.message);
     throw error;
+  }
+}
+
+/**
+ * 기존 테이블에 누락된 컬럼 추가 (마이그레이션)
+ */
+function ensureMissingColumns(database: Database.Database) {
+  try {
+    // actions 테이블에 is_cancelled 컬럼 추가
+    const actionsTableInfo = database.pragma('table_info(actions)') as any[];
+    const hasIsCancelledColumn = actionsTableInfo.some((col: any) => col.name === 'is_cancelled');
+
+    if (!hasIsCancelledColumn) {
+      database.exec(`ALTER TABLE actions ADD COLUMN is_cancelled BOOLEAN DEFAULT 0`);
+      console.log('[SQLite] actions 테이블에 is_cancelled 컬럼 추가 완료');
+    }
+  } catch (error: any) {
+    console.error('[SQLite] 컬럼 추가 오류:', error.message);
+    // 이미 존재하는 경우 무시
   }
 }
 
@@ -244,6 +266,7 @@ function createTables(database: Database.Database) {
       status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
       result_detail TEXT,
       completed_at DATETIME,
+      is_cancelled BOOLEAN DEFAULT 0,
       registered_by TEXT NOT NULL REFERENCES users(id),
       registered_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
