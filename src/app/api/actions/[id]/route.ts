@@ -176,36 +176,69 @@ export async function PATCH(
       );
     }
 
-    // 상태 로직: 모든 상태 변경은 UPDATE (데이터 삭제 없음)
+    // 상태 로직: in_progress = 조치 취소 (이력 기록용 새 row INSERT)
     if (status === 'in_progress') {
-      // in_progress = 조치 진행중 상태로 업데이트
-      const callsignId = existingAction.rows[0].callsign_id;
-      const airlineId = existingAction.rows[0].airline_id;
-      const airlineCode = existingAction.rows[0].airline_code;
+      // in_progress = 조치 취소 (이력 남김, 새로운 row 추가)
+      const existingData = existingAction.rows[0];
+      const callsignId = existingData.callsign_id;
+      const airlineId = existingData.airline_id;
+      const airlineCode = existingData.airline_code;
 
       // 자사/타사 판단 (현재 항공사 코드와 비교)
       const airlineCheck = await query('SELECT code FROM airlines WHERE id = ?', [airlineId]);
       const isMy = airlineCheck.rows[0]?.code === airlineCode;
 
-      // 트랜잭션: action 상태 업데이트 + callsign 상태 동기화
-      await transaction(async (trx) => {
-        // 1. action 상태 업데이트 (데이터 유지)
+      // 트랜잭션: 취소 이력 INSERT + callsigns 상태 업데이트
+      const result = await transaction(async (trx) => {
+        // 1. 취소 이력 레코드 INSERT (새 row)
+        // - 기존 조치의 정보 복사 (completed_at, action_type 등)
+        // - status = 'in_progress' (취소됨)
+        // - reviewed_by, reviewed_at 기록 (누가, 언제 취소했는가)
         await trx(
-          `UPDATE actions SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-          [status, id]
+          `INSERT INTO actions (
+            airline_id, callsign_id, action_type, description,
+            manager_name, planned_due_date, completed_at,
+            status, reviewed_by, reviewed_at, registered_by, registered_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+          [
+            airlineId,
+            callsignId,
+            existingData.action_type,
+            existingData.description,
+            existingData.manager_name,
+            existingData.planned_due_date,
+            existingData.completed_at, // 원래 완료 시간 유지
+            'in_progress', // 취소됨
+            payload.userId, // 누가 취소했는가
+            new Date().toISOString(), // 언제 취소했는가
+            existingData.registered_by
+          ]
         );
 
-        // 2. callsign 상태 동기화 (진행중으로 유지)
+        // 2. callsigns 상태 동기화 (진행중으로 복원)
         const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
         await trx(
-          `UPDATE callsigns SET ${statusColumnName} = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-          ['in_progress', callsignId]
+          `UPDATE callsigns SET ${statusColumnName} = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+          ['in_progress', 'in_progress', callsignId]
         );
+
+        // 3. 생성된 취소 이력 조회
+        const insertedAction = await trx(
+          `SELECT * FROM actions WHERE airline_id = ? AND callsign_id = ? AND status = 'in_progress' ORDER BY registered_at DESC LIMIT 1`,
+          [airlineId, callsignId]
+        );
+        return insertedAction;
       });
 
-      // 업데이트된 action 데이터 반환
-      const updatedResult = await query('SELECT * FROM actions WHERE id = ?', [id]);
-      return NextResponse.json(updatedResult.rows[0], { status: 200 });
+      if (result.rows.length === 0) {
+        return NextResponse.json(
+          { error: '조치 취소 이력 기록에 실패했습니다.' },
+          { status: 500 }
+        );
+      }
+
+      // 취소된 조치 데이터 반환
+      return NextResponse.json(result.rows[0], { status: 200 });
     }
 
     // 업데이트 필드 구성 (completed 또는 다른 상태 업데이트)
