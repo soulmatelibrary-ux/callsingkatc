@@ -549,8 +549,9 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Excel 업로드 오류:', error);
+    // W-10 FIX: 500 에러에서 내부 상세 메시지 제거
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Excel 업로드 중 오류가 발생했습니다.' },
+      { error: 'Excel 업로드 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

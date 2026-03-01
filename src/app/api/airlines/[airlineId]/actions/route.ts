@@ -536,9 +536,9 @@ export async function POST(
     );
   } catch (error) {
     console.error('조치 생성 오류:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    // W-10 FIX: 500 에러에서 내부 상세 메시지 제거
     return NextResponse.json(
-      { error: `조치 생성 중 오류가 발생했습니다: ${errorMessage}` },
+      { error: '조치 생성 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
