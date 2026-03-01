@@ -19,6 +19,28 @@ import { query } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * 최종 조치 상태 계산
+ * - 상대 항공사가 국외 (DB 미등록) → 자사만 조치하면 완료
+ * - 상대 항공사가 국내 (DB 등록) → 양쪽 모두 조치해야 완료
+ */
+function calculateFinalStatus(
+  myActionStatus: string,
+  otherActionStatus: string,
+  otherAirlineCode: string | null,
+  domesticAirlines: Set<string>
+): 'completed' | 'in_progress' {
+  // 상대 항공사가 국외 (DB 미등록) → 자사만 조치하면 완료
+  if (!otherAirlineCode || !domesticAirlines.has(otherAirlineCode)) {
+    return myActionStatus === 'completed' ? 'completed' : 'in_progress';
+  }
+
+  // 국내 항공사 간 → 양쪽 모두 완료해야 완료
+  return (myActionStatus === 'completed' && otherActionStatus === 'completed')
+    ? 'completed'
+    : 'in_progress';
+}
+
 export async function GET(request: NextRequest) {
   try {
     // 인증 확인
@@ -124,6 +146,12 @@ export async function GET(request: NextRequest) {
       sqlParams
     );
 
+    // 국내 항공사 목록 조회 (최종 상태 계산용)
+    const airlinesResult = await query('SELECT code FROM airlines');
+    const domesticAirlines = new Set(
+      (airlinesResult.rows || []).map((a: any) => a.code)
+    );
+
     // myActionStatus 필터 적용 (callsigns.my_action_status 직접 사용)
     let filteredRows = callsignsResult.rows;
 
@@ -197,8 +225,15 @@ export async function GET(request: NextRequest) {
         my_airline_code: callsign.airline_code,
         my_action_status: callsign.my_action_status || 'no_action',
         other_action_status: callsign.other_action_status || 'no_action',
-        // 전체 완료 여부 (양쪽 모두 completed 아님 - 자사만 확인)
-        both_completed: callsign.my_action_status === 'completed',
+        // 최종 조치 상태
+        // - 상대가 국외 항공사: 자사만 조치하면 완료
+        // - 상대가 국내 항공사: 양쪽 모두 조치해야 완료
+        final_status: calculateFinalStatus(
+          callsign.my_action_status || 'no_action',
+          callsign.other_action_status || 'no_action',
+          callsign.other_airline_code,
+          domesticAirlines
+        ),
         // 조치 상세 정보
         action_type: callsign.action_type || null,
         completed_at: callsign.completed_at || null,

@@ -16,9 +16,8 @@ export function AnnouncementsTab({
   totalActiveAnnouncements,
 }: AnnouncementsTabProps) {
   return (
-    <div className="space-y-6">
-      {/* 공지사항 전체 */}
-      <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
+    <div className="animate-fade-in pb-12">
+      <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 p-8">
         <AirlineAnnouncementList
           title="공지사항"
           subtitle="전체 공지사항을 확인하세요"
