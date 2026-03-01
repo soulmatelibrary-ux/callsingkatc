@@ -158,11 +158,11 @@ export async function GET(request: NextRequest) {
     if (myActionStatus) {
       filteredRows = filteredRows.filter((row: any) => {
         if (myActionStatus === 'in_progress') {
-          // 진행중: 조치 없음 (no_action)
-          return row.my_action_status === 'no_action';
+          // 진행중: 실제 진행중 상태만
+          return row.my_action_status === 'in_progress';
         } else if (myActionStatus === 'completed') {
-          // 완료: 조치 있음 (no_action 제외한 모든 상태)
-          return row.my_action_status !== 'no_action';
+          // 완료: 실제 완료 상태만
+          return row.my_action_status === 'completed';
         }
         return true;
       });
