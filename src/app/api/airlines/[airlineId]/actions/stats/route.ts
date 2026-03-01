@@ -13,10 +13,10 @@ function toDateOnlyString(date: Date) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { airlineId: string } }
+  { params }: { params: Promise<{ airlineId: string }> }
 ) {
   try {
-    const airlineId = params.airlineId;
+    const airlineId = (await params).airlineId;
 
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {

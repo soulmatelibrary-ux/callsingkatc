@@ -17,9 +17,9 @@ import { query } from '@/lib/db';
 export const dynamic = 'force-dynamic';
 
 interface Params {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 
@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
       );
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
 
     // 대상 사용자와 항공사 정보 조회
     const userResult = await query(

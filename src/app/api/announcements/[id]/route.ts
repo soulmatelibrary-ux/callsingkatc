@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 // GET: 공지사항 상세 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. 인증 확인
@@ -119,7 +119,7 @@ export async function GET(
 // POST: 공지사항 읽음 상태 기록
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. 인증 확인

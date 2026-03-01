@@ -26,7 +26,7 @@ export const dynamic = 'force-dynamic';
 // PATCH: 공지사항 수정
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. 인증 확인
@@ -179,7 +179,7 @@ export async function PATCH(
 // DELETE: 공지사항 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. 인증 확인

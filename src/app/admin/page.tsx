@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ADMIN_DASHBOARD_CARDS } from '@/lib/admin-navigation';
 import { useAuthStore } from '@/store/authStore';
+import { ActionTypeDistributionChart } from '@/components/admin/ActionTypeDistributionChart';
+import { DuplicateCallsignsChart } from '@/components/admin/DuplicateCallsignsChart';
 
 /**
  * /admin 페이지 - 관리자 대시보드
@@ -117,8 +119,14 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* 조치 및 호출부호 통계 */}
+        <div className="mt-12 space-y-8">
+          <ActionTypeDistributionChart />
+          <DuplicateCallsignsChart />
+        </div>
+
         {/* 데이터 관리 */}
-        <div className="mt-8 bg-white rounded-lg shadow p-6">
+        <div className="mt-12 bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">데이터 관리</h2>
           <p className="text-gray-600 text-sm mb-4">
             시스템의 모든 데이터를 초기화할 수 있습니다.

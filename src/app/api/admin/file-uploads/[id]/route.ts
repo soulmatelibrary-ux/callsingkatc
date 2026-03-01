@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 인증 확인 (관리자만)

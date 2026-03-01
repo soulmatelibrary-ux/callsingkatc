@@ -15,9 +15,9 @@ import { verifyToken } from '@/lib/jwt';
 import { query } from '@/lib/db';
 
 interface Params {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
@@ -41,8 +41,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       );
     }
 
+    const { id } = await params;
+
     const { status, role, airlineId, airlineCode } = await request.json();
-    const userId = params.id;
+    const userId = id;
 
     // 상태 검증 (active|suspended만 가능)
     if (status && !['active', 'suspended'].includes(status)) {
@@ -194,7 +196,8 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       );
     }
 
-    const userId = params.id;
+    const { id } = await params;
+    const userId = id;
 
     // 관리자는 삭제 불가
     const adminCheck = await query('SELECT role FROM users WHERE id = ?', [userId]);

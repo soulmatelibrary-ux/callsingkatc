@@ -25,7 +25,7 @@ function checkAdminAuth(authHeader: string | null) {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authCheck = checkAdminAuth(request.headers.get('Authorization'));
@@ -128,7 +128,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authCheck = checkAdminAuth(request.headers.get('Authorization'));
