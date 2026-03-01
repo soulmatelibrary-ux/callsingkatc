@@ -110,8 +110,11 @@ function ensureMissingColumns(database: Database.Database) {
     const hasIsCancelledColumn = actionsTableInfo.some((col: any) => col.name === 'is_cancelled');
 
     if (!hasIsCancelledColumn) {
+      // 1. 컬럼 추가
       database.exec(`ALTER TABLE actions ADD COLUMN is_cancelled BOOLEAN DEFAULT 0`);
-      console.log('[SQLite] actions 테이블에 is_cancelled 컬럼 추가 완료');
+      // 2. 기존 row의 NULL값을 0으로 업데이트 (마이그레이션)
+      database.exec(`UPDATE actions SET is_cancelled = 0 WHERE is_cancelled IS NULL`);
+      console.log('[SQLite] actions 테이블에 is_cancelled 컬럼 추가 및 기존 데이터 마이그레이션 완료');
     }
   } catch (error: any) {
     console.error('[SQLite] 컬럼 추가 오류:', error.message);
