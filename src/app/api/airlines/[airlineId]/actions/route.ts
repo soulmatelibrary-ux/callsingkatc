@@ -453,28 +453,47 @@ export async function POST(
       );
 
       // 2. callsigns 테이블 업데이트
-      // - my_action_status: 자사 조치 상태를 actions.status로 설정
-      // - status: 호출부호 전체 처리 상태 (calculateFinalStatus와 동일한 로직)
-      // (W-5 FIX: 국내/국외 항공사 구분)
-      let newCallsignStatus = 'in_progress';
+      // - my_action_status, other_action_status: 조치 상태 업데이트
+      // - status: 호출부호 전체 처리 상태
+      // (W-6 FIX: 같은 항공사는 양쪽 동시 업데이트, 외국항공사는 자동완료)
 
-      // 상대 항공사가 국외(DB 미등록) → 자사만 조치하면 완료
-      if (!otherAirlineCode || !domesticAirlines.has(otherAirlineCode)) {
-        newCallsignStatus = actionStatus === 'completed' ? 'completed' : 'in_progress';
-      } else {
-        // 국내 항공사 간 → 양쪽 모두 완료해야 완료
-        newCallsignStatus = (actionStatus === 'completed' && otherActionStatus === 'completed')
-          ? 'completed'
-          : 'in_progress';
+      const isMy = callsignData.airline_code === airlineCode;
+      const isSameAirline = callsignData.airline_code === callsignData.other_airline_code;
+      const isForeignAirline = !otherAirlineCode || !domesticAirlines.has(otherAirlineCode);
+
+      let myStatus = isMy ? actionStatus : callsignData.my_action_status || 'no_action';
+      let otherStatus = !isMy ? actionStatus : callsignData.other_action_status || 'no_action';
+
+      // 같은 항공사: 한쪽이 완료되면 양쪽 모두 완료
+      if (isSameAirline && actionStatus === 'completed') {
+        myStatus = 'completed';
+        otherStatus = 'completed';
       }
 
-      // 자사인지 타사인지에 따라 업데이트할 컬럼 결정
-      const isMy = callsignData.airline_code === airlineCode;
-      const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
+      // 외국항공사: 자사 조치 시 상대도 자동완료
+      if (isForeignAirline && isMy && actionStatus === 'completed') {
+        otherStatus = 'completed';
+      }
+
+      // 최종 callsigns 상태 계산
+      const myCompleted = myStatus === 'completed';
+      const otherCompleted = otherStatus === 'completed';
+      let newCallsignStatus = 'in_progress';
+
+      if (isSameAirline) {
+        // 같은 항공사: 한쪽만 완료해도 완료
+        newCallsignStatus = (myCompleted || otherCompleted) ? 'completed' : 'in_progress';
+      } else if (isForeignAirline) {
+        // 외국항공사: 자사만 완료하면 완료 (상대는 자동완료됨)
+        newCallsignStatus = myCompleted ? 'completed' : 'in_progress';
+      } else {
+        // 국내 항공사 간: 양쪽 모두 완료해야 완료
+        newCallsignStatus = (myCompleted && otherCompleted) ? 'completed' : 'in_progress';
+      }
 
       await trx(
-        `UPDATE callsigns SET status = ?, ${statusColumnName} = ? WHERE id = ?`,
-        [newCallsignStatus, actionStatus, callsignId]
+        `UPDATE callsigns SET status = ?, my_action_status = ?, other_action_status = ? WHERE id = ?`,
+        [newCallsignStatus, myStatus, otherStatus, callsignId]
       );
     });
 
