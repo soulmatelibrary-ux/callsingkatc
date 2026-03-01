@@ -46,11 +46,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // JWT 토큰에서 user_id 추출
+    const token = request.headers.get('Authorization')?.substring(7) || '';
+    const payload = verifyToken(token);
+    const userId = payload?.sub || payload?.id;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: '사용자 정보를 확인할 수 없습니다.' },
+        { status: 400 }
+      );
+    }
+
     // 트랜잭션으로 모든 삭제 작업 처리
     const result = await transaction(async (txQuery) => {
       const deletedCounts: Record<string, number> = {};
 
-      // FK 순서에 맞춰 삭제
+      // FK 순서에 맞춰 삭제 (audit_logs는 제외 - 마지막에 로깅)
       // 1. announcement_views (announcements + users 참조)
       const result1 = await txQuery('DELETE FROM announcement_views');
       deletedCounts.announcement_views = result1.changes;
@@ -79,13 +91,23 @@ export async function POST(request: NextRequest) {
       const result7 = await txQuery('DELETE FROM file_uploads');
       deletedCounts.file_uploads = result7.changes;
 
-      // 8. audit_logs (users 참조)
-      const result8 = await txQuery('DELETE FROM audit_logs');
-      deletedCounts.audit_logs = result8.changes;
+      // 8. password_history (users 참조)
+      const result8 = await txQuery('DELETE FROM password_history');
+      deletedCounts.password_history = result8.changes;
 
-      // 9. password_history (users 참조)
-      const result9 = await txQuery('DELETE FROM password_history');
-      deletedCounts.password_history = result9.changes;
+      // 9. 초기화 이벤트를 audit_logs에 기록 (마지막)
+      const auditLogData = JSON.stringify({
+        action: 'SYSTEM_RESET',
+        deleted_tables: Object.keys(deletedCounts),
+        deleted_counts: deletedCounts,
+        timestamp: new Date().toISOString(),
+      });
+
+      await txQuery(
+        `INSERT INTO audit_logs (user_id, action, table_name, new_data)
+         VALUES (?, ?, ?, ?)`,
+        [userId, 'SYSTEM_RESET', 'all_tables', auditLogData]
+      );
 
       return deletedCounts;
     });
