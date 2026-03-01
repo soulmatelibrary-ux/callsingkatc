@@ -213,7 +213,7 @@ export async function GET(request: NextRequest) {
     }
 
     // summary 계산 (필터링 후)
-    // 양쪽 상태에 따라 구분: 완전 완료, 부분 완료, 진행중
+    // 양쪽 상태에 따라 구분: 완전 완료, 부분 완료, 진행중 (W-3 FIX)
     const summary = {
       total: filteredRows.length,
       completed: filteredRows.filter((r: any) => {
@@ -226,6 +226,16 @@ export async function GET(request: NextRequest) {
         // 다른 항공사: 양쪽 모두 완료해야 완료
         return myCompleted && otherCompleted;
       }).length,
+      partial: filteredRows.filter((r: any) => {
+        const myCompleted = r.my_action_status === 'completed';
+        const otherCompleted = r.other_action_status === 'completed';
+        const sameAirline = r.airline_code === r.other_airline_code;
+
+        // 같은 항공사: 부분완료 없음
+        if (sameAirline) return false;
+        // 다른 항공사: 한쪽만 완료면 부분완료
+        return (myCompleted && !otherCompleted) || (!myCompleted && otherCompleted);
+      }).length,
       in_progress: filteredRows.filter((r: any) => {
         const myCompleted = r.my_action_status === 'completed';
         const otherCompleted = r.other_action_status === 'completed';
@@ -233,8 +243,8 @@ export async function GET(request: NextRequest) {
 
         // 같은 항공사: 둘 다 미완료면 진행중
         if (sameAirline) return !myCompleted && !otherCompleted;
-        // 다른 항공사: 한쪽이라도 미완료면 진행중
-        return !myCompleted || !otherCompleted;
+        // 다른 항공사: 한쪽이라도 미완료면 진행중 (양쪽 다 미완료인 경우)
+        return !myCompleted && !otherCompleted;
       }).length,
     };
 
