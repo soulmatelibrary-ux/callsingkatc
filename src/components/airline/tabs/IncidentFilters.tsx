@@ -105,7 +105,6 @@ export function IncidentFilters({
         >
           <option value="all">전체</option>
           <option value="no_action">조치등록</option>
-          <option value="in_progress">조치중</option>
           <option value="completed">완료</option>
         </select>
       </div>
