@@ -92,8 +92,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // myActionStatus 화이트리스트 검증
-    const validActionStatuses = ['completed', 'in_progress', 'pending', 'no_action'];
+    // myActionStatus 화이트리스트 검증 (최종 상태: complete/partial/in_progress)
+    const validActionStatuses = ['complete', 'partial', 'in_progress'];
     if (myActionStatus && !validActionStatuses.includes(myActionStatus)) {
       return NextResponse.json(
         { error: '유효하지 않은 조치 상태입니다.' },
