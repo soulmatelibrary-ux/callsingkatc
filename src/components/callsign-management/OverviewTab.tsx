@@ -37,8 +37,8 @@ export function OverviewTab() {
   const [selectedAirlineId, setSelectedAirlineId] = useState<string>('');
   const [selectedActionStatus, setSelectedActionStatus] = useState<string>('');
   const [selectedActionType, setSelectedActionType] = useState<string>('');
-  const [completedDateFrom, setCompletedDateFrom] = useState<string>('');
-  const [completedDateTo, setCompletedDateTo] = useState<string>('');
+  const [completedDateFrom, setCompletedDateFrom] = useState<string>(getDefaultDateFrom());
+  const [completedDateTo, setCompletedDateTo] = useState<string>(getDefaultDateTo());
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const pageSizeOptions = [10, 30, 50, 100];
@@ -149,8 +149,8 @@ export function OverviewTab() {
     setSelectedAirlineId('');
     setSelectedActionStatus('');
     setSelectedActionType('');
-    setCompletedDateFrom('');
-    setCompletedDateTo('');
+    setCompletedDateFrom(getDefaultDateFrom());
+    setCompletedDateTo(getDefaultDateTo());
     setPage(1);
   };
 

@@ -216,45 +216,141 @@ export function AirlineStatisticsTab({
                 </div>
             ) : (
                 <>
-                    {/* Top KPI: Completion Rate (Most Important) */}
-                    <div className="grid grid-cols-1 gap-6">
-                        <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-40 transition-opacity duration-500">
-                                <svg className="w-24 h-24 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
+                    {/* Row 1: KPI Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Completion Rate */}
+                        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                                <svg className="w-20 h-20 text-emerald-500" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                                 </svg>
                             </div>
                             <div className="relative z-10 flex flex-col h-full justify-between gap-4">
                                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Completion Rate<br /><span className="text-xs font-medium text-slate-400">조치 완료율</span></h3>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-5xl font-black text-emerald-600 tracking-tight">{completionRate.toFixed(1)}</span>
+                                    <span className="text-4xl font-black text-emerald-600 tracking-tight">{completionRate.toFixed(1)}</span>
                                     <span className="text-lg font-bold text-emerald-600/60">%</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Second Priority: Total Actions + Status Distribution (2 columns) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Total Actions Card */}
-                        <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:opacity-40 transition-opacity duration-500">
-                                <svg className="w-24 h-24 text-indigo-500" fill="currentColor" viewBox="0 0 24 24">
+                        {/* Total Actions */}
+                        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                                <svg className="w-20 h-20 text-indigo-500" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
                                 </svg>
                             </div>
                             <div className="relative z-10 flex flex-col h-full justify-between gap-4">
                                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Total Actions<br /><span className="text-xs font-medium text-slate-400">총 조치 건수</span></h3>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-5xl font-black text-slate-800 tracking-tight">{totalActions.toLocaleString()}</span>
+                                    <span className="text-4xl font-black text-slate-800 tracking-tight">{totalActions.toLocaleString()}</span>
                                     <span className="text-lg font-bold text-slate-400">건</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Status Distribution Card */}
-                        <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[280px]">
-                            <h4 className="text-base font-bold text-slate-800 mb-6">상태별 분포 <span className="text-sm font-normal text-slate-400 ml-2">Status Distribution</span></h4>
+                        {/* Average Completion Time */}
+                        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                                <svg className="w-20 h-20 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                                </svg>
+                            </div>
+                            <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Avg. Time<br /><span className="text-xs font-medium text-slate-400">평균 조치 소요일</span></h3>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl font-black text-slate-800 tracking-tight">{avgCompletionDays > 0 ? avgCompletionDays.toFixed(1) : '-'}</span>
+                                    <span className="text-lg font-bold text-slate-400">일</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Row 2: Monthly Trends & Top 5 */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Monthly Trend Area Chart */}
+                        <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[320px]">
+                            <h4 className="text-base font-bold text-slate-800 mb-4">월별 조치 발생 추이 <span className="text-sm font-normal text-slate-400 ml-2">Monthly Trends</span></h4>
+                            <div className="flex-1 w-full relative">
+                                {monthlyTrend.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor={COLORS.blue} stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor={COLORS.blue} stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                                            <XAxis
+                                                dataKey="month"
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fill: '#64748B', fontSize: 12 }}
+                                                dy={10}
+                                            />
+                                            <YAxis
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tick={{ fill: '#64748B', fontSize: 12 }}
+                                                tickCount={5}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)' }}
+                                                formatter={(value: any) => [`${value}건`, '발생 건수']}
+                                                labelStyle={{ color: '#0F172A', fontWeight: 'bold', marginBottom: '4px' }}
+                                            />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="count"
+                                                stroke={COLORS.blue}
+                                                strokeWidth={3}
+                                                fillOpacity={1}
+                                                fill="url(#colorCount)"
+                                                activeDot={{ r: 6, strokeWidth: 0, fill: COLORS.blue }}
+                                            />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center text-slate-400 font-medium text-sm">트렌드 데이터가 없습니다.</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Top 5 Callsigns */}
+                        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[320px]">
+                            <h4 className="text-base font-bold text-slate-800 mb-4">빈발 호출부호 <span className="text-xs font-normal text-slate-400 ml-1">Top 5</span></h4>
+                            <div className="flex-1 flex flex-col justify-center gap-3">
+                                {topCallsigns.length > 0 ? (
+                                    topCallsigns.map((item, idx) => {
+                                        const max = topCallsigns[0].count;
+                                        const pct = Math.max((item.count / max) * 100, 10);
+                                        return (
+                                            <div key={idx} className="flex flex-col gap-1.5">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs font-bold text-slate-700 font-mono">{item.name}</span>
+                                                    <span className="text-xs font-bold text-indigo-600">{item.count}회</span>
+                                                </div>
+                                                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${pct}%` }}></div>
+                                                </div>
+                                            </div>
+                                        )
+                                    })
+                                ) : (
+                                    <div className="text-slate-400 text-xs py-2 text-center w-full">데이터 없음</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Row 3: 4 Donut/Bar Charts for Analysis */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        
+                        {/* Status Distribution */}
+                        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[280px]">
+                            <h4 className="text-sm font-bold text-slate-800 mb-2">상태별 분포 <span className="text-xs font-normal text-slate-400 ml-1">Status</span></h4>
                             <div className="flex-1 flex flex-col items-center justify-center relative">
                                 {statusPieData.length > 0 ? (
                                     <>
@@ -263,9 +359,9 @@ export function AirlineStatisticsTab({
                                                 <Pie
                                                     data={statusPieData}
                                                     cx="50%"
-                                                    cy="55%"
-                                                    innerRadius={50}
-                                                    outerRadius={85}
+                                                    cy="50%"
+                                                    innerRadius={45}
+                                                    outerRadius={75}
                                                     paddingAngle={2}
                                                     dataKey="value"
                                                     labelLine={false}
@@ -281,19 +377,144 @@ export function AirlineStatisticsTab({
                                                 />
                                             </PieChart>
                                         </ResponsiveContainer>
-                                        {/* Custom Legend */}
-                                        <div className="flex flex-col gap-2 w-full px-4 absolute bottom-0 bg-white/50">
+                                        <div className="flex flex-col gap-1 w-full mt-2">
                                             {statusPieData.map((entry, i) => (
-                                                <div key={i} className="flex items-center justify-between text-[12px] font-medium">
+                                                <div key={i} className="flex items-center justify-between text-[11px] font-medium">
                                                     <div className="flex items-center gap-1.5">
-                                                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
+                                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }}></div>
                                                         <span className="text-slate-600">{entry.name}</span>
                                                     </div>
-                                                    <span className="text-slate-800 font-bold">{entry.value}건</span>
+                                                    <span className="text-slate-800">{entry.value}건</span>
                                                 </div>
                                             ))}
                                         </div>
                                     </>
+                                ) : (
+                                    <div className="text-slate-400 text-xs">데이터 없음</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Error Type Analysis */}
+                        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[280px]">
+                            <h4 className="text-sm font-bold text-slate-800 mb-2">오류 요인 <span className="text-xs font-normal text-slate-400 ml-1">Errors</span></h4>
+                            <div className="flex-1 flex flex-col items-center justify-center relative">
+                                {errorTypeStats.length > 0 ? (
+                                    <>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={errorTypeStats}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={45}
+                                                    outerRadius={75}
+                                                    paddingAngle={2}
+                                                    dataKey="value"
+                                                    labelLine={false}
+                                                    label={formatDonutLabel}
+                                                >
+                                                    {errorTypeStats.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip
+                                                    formatter={(value: any) => [`${value}건`, '발생']}
+                                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)' }}
+                                                />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                        <div className="flex flex-col gap-1 w-full mt-2">
+                                            {errorTypeStats.map((entry, i) => (
+                                                <div key={i} className="flex items-center justify-between text-[11px] font-medium">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }}></div>
+                                                        <span className="text-slate-600">{entry.name}</span>
+                                                    </div>
+                                                    <span className="text-slate-800">{entry.value}건</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-slate-400 text-xs">데이터 없음</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Risk Level Distribution */}
+                        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[280px]">
+                            <h4 className="text-sm font-bold text-slate-800 mb-2">위험도 분포 <span className="text-xs font-normal text-slate-400 ml-1">Risks</span></h4>
+                            <div className="flex-1 flex flex-col items-center justify-center relative">
+                                {riskStats.length > 0 ? (
+                                    <>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={riskStats}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={45}
+                                                    outerRadius={75}
+                                                    paddingAngle={2}
+                                                    dataKey="value"
+                                                    labelLine={false}
+                                                    label={formatDonutLabel}
+                                                >
+                                                    {riskStats.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip
+                                                    formatter={(value: any) => [`${value}건`, '위험도']}
+                                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)' }}
+                                                />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                        <div className="flex flex-col gap-1 w-full mt-2">
+                                            {riskStats.map((entry, i) => (
+                                                <div key={i} className="flex items-center justify-between text-[11px] font-medium">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }}></div>
+                                                        <span className="text-slate-600">{entry.name}</span>
+                                                    </div>
+                                                    <span className="text-slate-800">{entry.value}건</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-slate-400 text-xs">데이터 없음</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Action Type Bar Chart */}
+                        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[280px]">
+                            <h4 className="text-sm font-bold text-slate-800 mb-2">조치 유형 <span className="text-xs font-normal text-slate-400 ml-1">Type</span></h4>
+                            <div className="flex-1 w-full relative pt-2">
+                                {typeDistribution.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={typeDistribution} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
+                                            <XAxis type="number" hide />
+                                            <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10, fontWeight: 600 }} width={70} />
+                                            <Tooltip
+                                                cursor={{ fill: '#F1F5F9' }}
+                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)' }}
+                                                formatter={(value: any) => [`${value}건`, '건수']}
+                                            />
+                                            <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={16} fill={COLORS.blue} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-xs">데이터 없음</div>
+                                )}
+                            </div>
+                        </div>
+
+                    </div>
+                </>
                                 ) : (
                                     <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">데이터 없음</div>
                                 )}

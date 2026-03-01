@@ -85,18 +85,18 @@ export async function GET(request: NextRequest) {
 
     if (filteredRiskLevel) {
       if (conditions) {
-        conditions += ` AND risk_level = ?`;
+        conditions += ` AND c.risk_level = ?`;
       } else {
-        conditions = `WHERE risk_level = ?`;
+        conditions = `WHERE c.risk_level = ?`;
       }
       sqlParams.push(filteredRiskLevel);
     }
 
     if (airlineId) {
       if (conditions) {
-        conditions += ` AND airline_id = ?`;
+        conditions += ` AND c.airline_id = ?`;
       } else {
-        conditions = `WHERE airline_id = ?`;
+        conditions = `WHERE c.airline_id = ?`;
       }
       sqlParams.push(airlineId);
     }
@@ -148,7 +148,8 @@ export async function GET(request: NextRequest) {
     // 처리일자 범위 필터 적용
     if (completedDateFrom || completedDateTo) {
       filteredRows = filteredRows.filter((row: any) => {
-        if (!row.completed_at) return false;
+        // 조치가 없으면 (completed_at이 NULL) 날짜 필터 무시하고 포함
+        if (!row.completed_at) return true;
         const completedDate = row.completed_at.split('T')[0]; // YYYY-MM-DD 형식 추출
         if (completedDateFrom && completedDate < completedDateFrom) return false;
         if (completedDateTo && completedDate > completedDateTo) return false;

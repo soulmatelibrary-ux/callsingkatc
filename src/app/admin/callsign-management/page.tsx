@@ -22,7 +22,7 @@ export default function CallsignManagementPage() {
 
   const menuItems = [
     { id: 'overview', label: '전체현황', icon: '📊' },
-    { id: 'actions', label: '항공사조치', icon: '✈️' },
+    // { id: 'actions', label: '항공사조치', icon: '✈️' },
     { id: 'stats', label: '통계', icon: '📈' },
     { id: 'upload', label: '엑셀입력', icon: '📁' },
   ];
@@ -99,7 +99,7 @@ export default function CallsignManagementPage() {
           {/* 오른쪽 콘텐츠 */}
           <div className="md:col-span-3">
             {activeTab === 'overview' && <OverviewTab />}
-            {activeTab === 'actions' && <ActionsTab />}
+            {/* {activeTab === 'actions' && <ActionsTab />} */}
             {activeTab === 'stats' && <StatisticsTab />}
             {activeTab === 'upload' && <Sidebar />}
           </div>
