@@ -42,7 +42,7 @@ export function ActionsTab() {
   // 전체 조치 목록 조회
   const actionsQuery = useAllActions({
     airlineId: selectedAirlineId || undefined,
-    status: selectedStatus as any,
+    status: selectedStatus || undefined,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
     page,
