@@ -21,17 +21,28 @@ export const dynamic = 'force-dynamic';
 
 /**
  * 최종 조치 상태 계산 (3가지로 구분)
- * - 'complete': 양쪽 모두 완료
- * - 'partial': 한쪽만 완료 (부분 완료)
+ * - 'complete': 조치 완료
+ *   ├─ 같은 항공사(KAL-KAL): 한쪽만 완료해도 완료
+ *   └─ 다른 항공사(KAL-HVN): 양쪽 모두 완료해야 완료
+ * - 'partial': 한쪽만 완료 (다른 항공사인 경우에만)
  * - 'in_progress': 아직 조치 없음
  */
 function calculateFinalStatus(
   myActionStatus: string,
-  otherActionStatus: string
+  otherActionStatus: string,
+  myAirlineCode: string,
+  otherAirlineCode: string | null
 ): 'complete' | 'partial' | 'in_progress' {
   const myCompleted = myActionStatus === 'completed';
   const otherCompleted = otherActionStatus === 'completed';
+  const sameAirline = myAirlineCode === otherAirlineCode;
 
+  // 같은 항공사인 경우: 한쪽만 완료해도 완료
+  if (sameAirline) {
+    return myCompleted || otherCompleted ? 'complete' : 'in_progress';
+  }
+
+  // 다른 항공사인 경우
   if (myCompleted && otherCompleted) {
     return 'complete'; // 양쪽 모두 완료
   } else if (myCompleted || otherCompleted) {
@@ -157,16 +168,28 @@ export async function GET(request: NextRequest) {
       filteredRows = filteredRows.filter((row: any) => {
         const myCompleted = row.my_action_status === 'completed';
         const otherCompleted = row.other_action_status === 'completed';
+        const sameAirline = row.airline_code === row.other_airline_code;
 
         if (myActionStatus === 'complete') {
-          // 완전 완료: 양쪽 모두 완료
-          return myCompleted && otherCompleted;
+          // 완전 완료
+          // - 같은 항공사: 한쪽만 완료해도 완료
+          // - 다른 항공사: 양쪽 모두 완료해야 완료
+          if (sameAirline) {
+            return myCompleted || otherCompleted;
+          } else {
+            return myCompleted && otherCompleted;
+          }
         } else if (myActionStatus === 'partial') {
-          // 부분 완료: 한쪽만 완료
+          // 부분 완료 (다른 항공사인 경우에만)
+          if (sameAirline) return false; // 같은 항공사는 부분완료 없음
           return (myCompleted && !otherCompleted) || (!myCompleted && otherCompleted);
         } else if (myActionStatus === 'in_progress') {
-          // 진행중: 아직 조치가 없음 (양쪽 모두 완료되지 않음)
-          return !myCompleted && !otherCompleted;
+          // 진행중: 아직 조치가 없음
+          if (sameAirline) {
+            return !myCompleted && !otherCompleted;
+          } else {
+            return !myCompleted || !otherCompleted;
+          }
         }
         return true;
       });
@@ -193,12 +216,26 @@ export async function GET(request: NextRequest) {
     // 양쪽 상태에 따라 구분: 완전 완료, 부분 완료, 진행중
     const summary = {
       total: filteredRows.length,
-      completed: filteredRows.filter((r: any) =>
-        r.my_action_status === 'completed' && r.other_action_status === 'completed'
-      ).length,
-      in_progress: filteredRows.filter((r: any) =>
-        r.my_action_status !== 'completed' && r.other_action_status !== 'completed'
-      ).length,
+      completed: filteredRows.filter((r: any) => {
+        const myCompleted = r.my_action_status === 'completed';
+        const otherCompleted = r.other_action_status === 'completed';
+        const sameAirline = r.airline_code === r.other_airline_code;
+
+        // 같은 항공사: 한쪽만 완료해도 완료
+        if (sameAirline) return myCompleted || otherCompleted;
+        // 다른 항공사: 양쪽 모두 완료해야 완료
+        return myCompleted && otherCompleted;
+      }).length,
+      in_progress: filteredRows.filter((r: any) => {
+        const myCompleted = r.my_action_status === 'completed';
+        const otherCompleted = r.other_action_status === 'completed';
+        const sameAirline = r.airline_code === r.other_airline_code;
+
+        // 같은 항공사: 둘 다 미완료면 진행중
+        if (sameAirline) return !myCompleted && !otherCompleted;
+        // 다른 항공사: 한쪽이라도 미완료면 진행중
+        return !myCompleted || !otherCompleted;
+      }).length,
     };
 
     // 페이지네이션 처리
@@ -235,12 +272,16 @@ export async function GET(request: NextRequest) {
         my_action_status: callsign.my_action_status || 'no_action',
         other_action_status: callsign.other_action_status || 'no_action',
         // 최종 조치 상태 (3가지)
-        // - complete: 양쪽 모두 완료 (완전 완료)
-        // - partial: 한쪽만 완료 (부분 완료)
+        // - complete: 조치 완료
+        //   ├─ 같은 항공사(KAL-KAL): 한쪽만 완료해도 완료
+        //   └─ 다른 항공사(KAL-HVN): 양쪽 모두 완료해야 완료
+        // - partial: 한쪽만 완료 (다른 항공사인 경우)
         // - in_progress: 아직 조치 없음
         final_status: calculateFinalStatus(
           callsign.my_action_status || 'no_action',
-          callsign.other_action_status || 'no_action'
+          callsign.other_action_status || 'no_action',
+          callsign.airline_code,
+          callsign.other_airline_code
         ),
       })),
       pagination: {
