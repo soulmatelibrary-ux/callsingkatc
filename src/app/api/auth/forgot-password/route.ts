@@ -28,29 +28,41 @@ function generateTempPassword(): string {
   const digits = '0123456789';
   const special = '!@#$%^&*';
 
-  const getRandom = (chars: string) =>
-    chars[Math.floor(Math.random() * chars.length)];
+  // crypto.getRandomValues를 사용한 암호학적으로 안전한 난수 생성
+  const getRandomChar = (chars: string): string => {
+    const randomValues = new Uint32Array(1);
+    crypto.getRandomValues(randomValues);
+    return chars[randomValues[0] % chars.length];
+  };
 
   // 각 카테고리에서 최소 1개 보장
   const required = [
-    getRandom(upper),
-    getRandom(upper),
-    getRandom(lower),
-    getRandom(lower),
-    getRandom(digits),
-    getRandom(digits),
-    getRandom(special),
-    getRandom(special),
+    getRandomChar(upper),
+    getRandomChar(upper),
+    getRandomChar(lower),
+    getRandomChar(lower),
+    getRandomChar(digits),
+    getRandomChar(digits),
+    getRandomChar(special),
+    getRandomChar(special),
   ];
 
   // 나머지 4자 랜덤
   const allChars = upper + lower + digits + special;
   for (let i = 0; i < 4; i++) {
-    required.push(getRandom(allChars));
+    required.push(getRandomChar(allChars));
   }
 
-  // 셔플
-  return required.sort(() => Math.random() - 0.5).join('');
+  // Fisher-Yates 셔플 (암호학적으로 안전)
+  const shuffled = required.slice();
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const randomValues = new Uint32Array(1);
+    crypto.getRandomValues(randomValues);
+    const j = randomValues[0] % (i + 1);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled.join('');
 }
 
 
