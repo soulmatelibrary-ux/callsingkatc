@@ -78,7 +78,7 @@ export default function CallsignManagementPage() {
                 <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">메뉴</h3>
               </div>
               <nav className="divide-y divide-gray-50">
-                {menuItems.map((item) => (
+                {menuItems.filter(item => item.id !== 'actions').map((item) => (
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id as any)}
