@@ -69,6 +69,8 @@ function ensureMissingTables(database: Database.Database) {
 
     if (missingTables.length === 0) {
       console.log('[SQLite] 모든 필수 테이블이 존재합니다.');
+      // ⭐ 누락된 컬럼 추가 (마이그레이션) - 버그 수정
+      ensureMissingColumns(database);
       return;
     }
 
