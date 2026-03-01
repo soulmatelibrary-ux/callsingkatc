@@ -56,6 +56,14 @@ export async function GET(
 
     const airlineId = (await params).airlineId;
 
+    // 권한 검증: 관리자이거나 해당 항공사 소속 사용자만 접근 (W-7 FIX)
+    if (payload.role !== 'admin' && payload.airlineId !== airlineId) {
+      return NextResponse.json(
+        { error: '해당 항공사의 조치 목록을 조회할 권한이 없습니다.' },
+        { status: 403 }
+      );
+    }
+
     // 필터 파라미터
     const status = request.nextUrl.searchParams.get('status');
     const search = request.nextUrl.searchParams.get('search');

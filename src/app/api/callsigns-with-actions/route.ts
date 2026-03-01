@@ -129,10 +129,9 @@ export async function GET(request: NextRequest) {
               c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
               c.occurrence_count, c.first_occurred_at, c.last_occurred_at,
               c.file_upload_id, c.uploaded_at, c.status, c.created_at, c.updated_at,
-              c.my_action_status, c.other_action_status,
-              a.action_type, a.completed_at
+              a.action_type, a.status as action_status, a.completed_at
        FROM callsigns c
-       LEFT JOIN actions a ON c.id = a.callsign_id AND a.airline_id = c.airline_id AND COALESCE(a.is_cancelled, 0) = 0
+       LEFT JOIN actions a ON c.id = a.callsign_id AND a.airline_id = c.airline_id
        ${conditions}
        ORDER BY
          CASE
@@ -152,17 +151,20 @@ export async function GET(request: NextRequest) {
       (airlinesResult.rows || []).map((a: any) => a.code)
     );
 
-    // myActionStatus 필터 적용 (callsigns.my_action_status 직접 사용)
+    // myActionStatus 필터 적용 (actions.status 사용)
     let filteredRows = callsignsResult.rows;
 
     if (myActionStatus) {
       filteredRows = filteredRows.filter((row: any) => {
         if (myActionStatus === 'in_progress') {
-          // 진행중: 실제 진행중 상태만
-          return row.my_action_status === 'in_progress';
+          // 진행중: pending 또는 in_progress
+          return row.action_status === 'in_progress' || row.action_status === 'pending';
         } else if (myActionStatus === 'completed') {
-          // 완료: 실제 완료 상태만
-          return row.my_action_status === 'completed';
+          // 완료: completed 상태만
+          return row.action_status === 'completed';
+        } else if (myActionStatus === 'no_action') {
+          // 미등록: 조치가 없거나 pending
+          return !row.action_status || row.action_status === 'pending';
         }
         return true;
       });
@@ -188,8 +190,8 @@ export async function GET(request: NextRequest) {
     // summary 계산 (필터링 후)
     const summary = {
       total: filteredRows.length,
-      completed: filteredRows.filter((r: any) => r.my_action_status !== 'no_action').length,
-      in_progress: filteredRows.filter((r: any) => r.my_action_status === 'no_action').length,
+      completed: filteredRows.filter((r: any) => r.action_status === 'completed').length,
+      in_progress: filteredRows.filter((r: any) => r.action_status === 'in_progress' || r.action_status === 'pending').length,
     };
 
     // 페이지네이션 처리
@@ -220,23 +222,17 @@ export async function GET(request: NextRequest) {
         status: callsign.status,
         created_at: callsign.created_at,
         updated_at: callsign.updated_at,
-        // 양쪽 항공사 조치 상태 (callsigns 테이블에서 직접 조회)
+        // 조치 상태
         my_airline_id: callsign.airline_id,
         my_airline_code: callsign.airline_code,
-        my_action_status: callsign.my_action_status || 'no_action',
-        other_action_status: callsign.other_action_status || 'no_action',
+        my_action_status: callsign.action_status || 'no_action',
+        other_action_status: null, // 현재 데이터 구조상 타사 조치 상태는 별도 조회 필요
         // 최종 조치 상태
-        // - 상대가 국외 항공사: 자사만 조치하면 완료
-        // - 상대가 국내 항공사: 양쪽 모두 조치해야 완료
-        final_status: calculateFinalStatus(
-          callsign.my_action_status || 'no_action',
-          callsign.other_action_status || 'no_action',
-          callsign.other_airline_code,
-          domesticAirlines
-        ),
+        // - 현재는 자사 조치 상태만 반영
+        final_status: callsign.action_status === 'completed' ? 'completed' : 'in_progress',
         // 조치 상세 정보
         action_type: callsign.action_type || null,
-        completed_at: callsign.completed_at || null,
+        action_completed_at: callsign.completed_at || null,
       })),
       pagination: {
         page,

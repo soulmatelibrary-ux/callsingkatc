@@ -207,11 +207,35 @@ export async function PATCH(
           ['in_progress', payload.userId, nowIso, nowIso, id]
         );
 
-        // 2. callsigns 상태 동기화 (진행중으로 복원)
+        // 2. callsigns 상태 동기화
+        // - 자사 상태: 'in_progress' (취소됨)
+        // - 전체 상태: 상대 항공사 상태를 확인하여 계산
         const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
+        const otherStatusColumnName = isMy ? 'other_action_status' : 'my_action_status';
+
+        // 상대 항공사 상태 확인
+        const callsignStatusResult = await trx(
+          `SELECT ${otherStatusColumnName} FROM callsigns WHERE id = ?`,
+          [callsignId]
+        );
+
+        // callsigns 전체 상태 계산 (CRITICAL-4 FIX)
+        // 자신이 취소(in_progress)했으므로, 상대 상태와 관계없이 in_progress
+        // (양쪽 모두 completed일 때만 전체 completed)
+        let newCallsignStatus = 'in_progress';
+        if (callsignStatusResult.rows.length > 0) {
+          const otherStatus = callsignStatusResult.rows[0][otherStatusColumnName];
+          // 상대가 완료했어도, 자신이 취소했으면 전체는 in_progress
+          if (otherStatus === 'completed') {
+            newCallsignStatus = 'in_progress';
+          } else {
+            newCallsignStatus = 'in_progress';
+          }
+        }
+
         await trx(
           `UPDATE callsigns SET ${statusColumnName} = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-          ['in_progress', 'in_progress', callsignId]
+          ['in_progress', newCallsignStatus, callsignId]
         );
 
         // 3. 업데이트된 조치 조회
@@ -306,7 +330,7 @@ export async function PATCH(
 
           // 3. callsigns 상태 동기화
           // - my_action_status/other_action_status: 업데이트된 action의 status로 설정
-          // - status: 양쪽 모두 조치가 있으면 'completed', 아니면 'in_progress'
+          // - status: 양쪽 모두 'completed'일 때만 'completed' (CRITICAL-5 FIX)
           const otherStatusResult = await trx(
             `SELECT ${otherStatusColumnName} FROM callsigns WHERE id = ?`,
             [callsignId]
@@ -315,9 +339,11 @@ export async function PATCH(
           let newCallsignStatus = 'in_progress';
           if (otherStatusResult.rows.length > 0) {
             const otherStatus = otherStatusResult.rows[0][otherStatusColumnName];
-            // 양쪽 모두 'no_action'이 아니면 'completed'
-            if (newStatus !== 'no_action' && otherStatus !== 'no_action') {
+            // 양쪽 모두 'completed'일 때만 'completed'
+            if (newStatus === 'completed' && otherStatus === 'completed') {
               newCallsignStatus = 'completed';
+            } else {
+              newCallsignStatus = 'in_progress';
             }
           }
 
