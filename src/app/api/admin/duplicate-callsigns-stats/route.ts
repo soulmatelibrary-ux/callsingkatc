@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from '@/lib/jwt';
 import { query } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/admin/duplicate-callsigns-stats
@@ -25,12 +27,20 @@ import { query } from '@/lib/db';
 export async function GET(request: NextRequest) {
   try {
     // 1️⃣ 인증 체크
-    const token = request.headers.get('Authorization')?.substring(7);
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
     const payload = verifyToken(token);
 
     if (!payload) {
       return NextResponse.json(
-        { error: '인증이 필요합니다.' },
+        { error: '유효하지 않은 토큰입니다.' },
         { status: 401 }
       );
     }
@@ -45,7 +55,7 @@ export async function GET(request: NextRequest) {
 
     // 2️⃣ 중복 유사호출부호 현황 조회
     // 같은 조치 유형으로 3건 이상 처리한 항공사만 조회
-    const duplicateStats = await query(
+    const duplicateResult = await query(
       `
       SELECT
         a.airline_id,
@@ -61,9 +71,8 @@ export async function GET(request: NextRequest) {
           1
         ) as percentage,
         ROUND(
-          COUNT(*) * 50.0 / 100.0,
-          0
-        )::int as opportunity_score
+          COUNT(*) * 50.0 / 100.0
+        ) as opportunity_score
       FROM actions a
       LEFT JOIN airlines al ON a.airline_id = al.id
       WHERE a.action_type IS NOT NULL AND a.action_type != ''
@@ -76,7 +85,7 @@ export async function GET(request: NextRequest) {
     );
 
     // 3️⃣ 전체 중복 현황 요약
-    const summaryStats = await query(
+    const summaryResult = await query(
       `
       SELECT
         a.airline_id,
@@ -99,21 +108,21 @@ export async function GET(request: NextRequest) {
     );
 
     return NextResponse.json({
-      action_types: duplicateStats.map((row) => ({
+      action_types: duplicateResult.rows.map((row: any) => ({
         airline_code: row.airline_code,
         airline_name_ko: row.airline_name_ko,
         action_type: row.action_type,
-        count: row.count,
-        percentage: row.percentage || 0,
-        opportunity_score: row.opportunity_score || 0,
+        count: parseInt(row.count, 10),
+        percentage: parseFloat(row.percentage) || 0,
+        opportunity_score: parseInt(row.opportunity_score, 10) || 0,
       })),
-      summary: summaryStats.map((row) => ({
+      summary: summaryResult.rows.map((row: any) => ({
         airline_code: row.airline_code,
         airline_name_ko: row.airline_name_ko,
-        unique_action_types: row.unique_action_types,
-        total_actions: row.total_actions,
-        unique_callsigns: row.unique_callsigns,
-        duplicate_rate: row.duplicate_rate || 0,
+        unique_action_types: parseInt(row.unique_action_types, 10),
+        total_actions: parseInt(row.total_actions, 10),
+        unique_callsigns: parseInt(row.unique_callsigns, 10),
+        duplicate_rate: parseFloat(row.duplicate_rate) || 0,
       })),
     });
   } catch (error) {

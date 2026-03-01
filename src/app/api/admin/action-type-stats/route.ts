@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/jwt';
 import { query } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/admin/action-type-stats
  *
@@ -26,12 +28,20 @@ import { query } from '@/lib/db';
 export async function GET(request: NextRequest) {
   try {
     // 1️⃣ 인증 체크
-    const token = request.headers.get('Authorization')?.substring(7);
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: '인증이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
     const payload = verifyToken(token);
 
     if (!payload) {
       return NextResponse.json(
-        { error: '인증이 필요합니다.' },
+        { error: '유효하지 않은 토큰입니다.' },
         { status: 401 }
       );
     }
@@ -45,7 +55,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 2️⃣ 조치 유형별 분포 통계 조회
-    const statsRows = await query(
+    const result = await query(
       `
       SELECT
         action_type,
@@ -66,13 +76,13 @@ export async function GET(request: NextRequest) {
     );
 
     return NextResponse.json({
-      data: statsRows.map((row) => ({
+      data: result.rows.map((row: any) => ({
         action_type: row.action_type,
-        total_count: row.total_count,
-        completed_count: row.completed_count,
-        in_progress_count: row.in_progress_count,
-        pending_count: row.pending_count,
-        completion_rate: row.completion_rate || 0,
+        total_count: parseInt(row.total_count, 10),
+        completed_count: parseInt(row.completed_count, 10),
+        in_progress_count: parseInt(row.in_progress_count, 10),
+        pending_count: parseInt(row.pending_count, 10),
+        completion_rate: parseFloat(row.completion_rate) || 0,
       })),
     });
   } catch (error) {
