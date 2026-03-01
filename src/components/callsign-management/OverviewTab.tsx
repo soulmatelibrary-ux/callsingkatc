@@ -14,31 +14,14 @@ interface StatsResponse {
   low: number;
 }
 
-// 기본 날짜값: 1개월 전 ~ 오늘
-const getDefaultDateFrom = () => {
-  const today = new Date();
-  const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-  const year = oneMonthAgo.getFullYear();
-  const month = String(oneMonthAgo.getMonth() + 1).padStart(2, '0');
-  const day = String(oneMonthAgo.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const getDefaultDateTo = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 export function OverviewTab() {
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>('');
   const [selectedAirlineId, setSelectedAirlineId] = useState<string>('');
   const [selectedActionStatus, setSelectedActionStatus] = useState<string>('');
   const [selectedActionType, setSelectedActionType] = useState<string>('');
-  const [completedDateFrom, setCompletedDateFrom] = useState<string>(getDefaultDateFrom());
-  const [completedDateTo, setCompletedDateTo] = useState<string>(getDefaultDateTo());
+  const [completedDateFrom, setCompletedDateFrom] = useState<string>('');
+  const [completedDateTo, setCompletedDateTo] = useState<string>('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const pageSizeOptions = [10, 30, 50, 100];
@@ -149,8 +132,8 @@ export function OverviewTab() {
     setSelectedAirlineId('');
     setSelectedActionStatus('');
     setSelectedActionType('');
-    setCompletedDateFrom(getDefaultDateFrom());
-    setCompletedDateTo(getDefaultDateTo());
+    setCompletedDateFrom('');
+    setCompletedDateTo('');
     setPage(1);
   };
 
