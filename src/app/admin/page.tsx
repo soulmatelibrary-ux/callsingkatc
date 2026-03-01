@@ -116,7 +116,105 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+
+        {/* 데이터 관리 */}
+        <div className="mt-8 bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">데이터 관리</h2>
+          <p className="text-gray-600 text-sm mb-4">
+            시스템의 모든 데이터를 초기화할 수 있습니다.
+            <br />
+            <span className="font-semibold text-red-600">
+              ⚠️ users와 airlines 테이블을 제외한 모든 데이터가 삭제됩니다.
+            </span>
+          </p>
+          <button
+            onClick={() => setShowResetModal(true)}
+            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition"
+          >
+            데이터 초기화
+          </button>
+        </div>
       </div>
+
+      {/* 데이터 초기화 확인 모달 */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              ⚠️ 데이터 초기화 확인
+            </h3>
+
+            <div className="bg-red-50 border border-red-200 rounded p-4 mb-6">
+              <p className="text-sm text-red-800 font-semibold mb-2">
+                다음 데이터가 모두 삭제됩니다:
+              </p>
+              <ul className="text-sm text-red-700 space-y-1 ml-4">
+                <li>• 유사호출부호 (callsigns)</li>
+                <li>• 호출부호 발생 기록 (callsign_occurrences)</li>
+                <li>• 조치사항 (actions)</li>
+                <li>• 조치 이력 (action_history)</li>
+                <li>• 공지사항 (announcements)</li>
+                <li>• 공지사항 조회 기록 (announcement_views)</li>
+                <li>• 파일 업로드 (file_uploads)</li>
+                <li>• 감사 로그 (audit_logs)</li>
+                <li>• 비밀번호 이력 (password_history)</li>
+              </ul>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-4">
+              정말 초기화하시겠습니까?
+              <br />
+              아래에 <span className="font-bold">RESET</span>을 입력하여 확인하세요.
+            </p>
+
+            <input
+              type="text"
+              placeholder='RESET 입력'
+              value={resetConfirmText}
+              onChange={(e) => {
+                setResetConfirmText(e.target.value);
+                setResetMessage(null);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+
+            {resetMessage && (
+              <div
+                className={`text-sm p-3 rounded-lg mb-4 ${
+                  resetMessage.type === 'success'
+                    ? 'bg-green-50 text-green-700 border border-green-200'
+                    : 'bg-red-50 text-red-700 border border-red-200'
+                }`}
+              >
+                {resetMessage.text}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowResetModal(false);
+                  setResetConfirmText('');
+                  setResetMessage(null);
+                }}
+                disabled={isResetting}
+                className="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-900 font-semibold rounded-lg transition disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleResetData}
+                disabled={
+                  isResetting || resetConfirmText !== 'RESET'
+                }
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white font-semibold rounded-lg transition disabled:opacity-50"
+              >
+                {isResetting ? '처리 중...' : '초기화'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
