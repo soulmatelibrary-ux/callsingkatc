@@ -473,13 +473,16 @@ export async function POST(
       let myStatus = isMy ? actionStatus : callsignData.my_action_status || 'no_action';
       let otherStatus = !isMy ? actionStatus : callsignData.other_action_status || 'no_action';
 
-      // 같은 항공사: 한쪽이 완료되면 양쪽 모두 완료
-      if (isSameAirline && actionStatus === 'completed') {
-        myStatus = 'completed';
-        otherStatus = 'completed';
+      // 같은 항공사: 한쪽이 조치되면 양쪽 모두 동일 상태로 동기화
+      // (한쪽이 completed이면 양쪽 모두 completed)
+      if (isSameAirline) {
+        const isBothCompleted = myStatus === 'completed' || otherStatus === 'completed';
+        myStatus = isBothCompleted ? 'completed' : myStatus;
+        otherStatus = isBothCompleted ? 'completed' : otherStatus;
       }
 
       // 외국항공사: 자사 조치 시 상대도 자동완료
+      // (국내 항공사가 조치했으면 외항사도 자동완료)
       if (isForeignAirline && isMy && actionStatus === 'completed') {
         otherStatus = 'completed';
       }
