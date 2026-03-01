@@ -19,6 +19,7 @@ interface IncidentsTabProps {
   endDate: string;
   activeRange: DateRangeType;
   errorTypeFilter: 'all' | ErrorType;
+  actionStatusFilter: 'all' | 'no_action' | 'in_progress' | 'completed';
   isExporting: boolean;
   // 페이징 / 검색
   incidentsPage: number;
@@ -34,6 +35,7 @@ interface IncidentsTabProps {
   onEndDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onApplyQuickRange: (type: 'today' | '1w' | '2w' | '1m') => void;
   onErrorTypeFilterChange: (filter: 'all' | ErrorType) => void;
+  onActionStatusFilterChange: (filter: 'all' | 'no_action' | 'in_progress' | 'completed') => void;
   onOpenActionModal: (incident: Incident) => void;
   onOpenActionDetail: (actionId: string) => void;
   onExport: () => void;
@@ -46,6 +48,7 @@ export function IncidentsTab({
   endDate,
   activeRange,
   errorTypeFilter,
+  actionStatusFilter,
   isExporting,
   incidentsPage,
   incidentsLimit,
@@ -59,6 +62,7 @@ export function IncidentsTab({
   onEndDateChange,
   onApplyQuickRange,
   onErrorTypeFilterChange,
+  onActionStatusFilterChange,
   onOpenActionModal,
   onOpenActionDetail,
   onExport,
@@ -79,12 +83,17 @@ export function IncidentsTab({
     });
   }, [incidents, startDate, endDate]);
 
-  // 에러 타입 + 검색어 + 정렬 적용된 최종 목록
+  // 에러 타입 + 조치 상태 + 검색어 + 정렬 적용된 최종 목록
   const allFilteredIncidents = useMemo(() => {
     let filtered =
       errorTypeFilter === 'all'
         ? filteredByDate
         : filteredByDate.filter((i) => i.errorType === errorTypeFilter);
+
+    // 조치 상태 필터
+    if (actionStatusFilter !== 'all') {
+      filtered = filtered.filter((i) => i.actionStatus === actionStatusFilter);
+    }
 
     // 호출부호 쌍 검색
     if (incidentsSearch.trim()) {
@@ -104,7 +113,7 @@ export function IncidentsTab({
       const countB = b.count || 0;
       return countB - countA;
     });
-  }, [filteredByDate, errorTypeFilter, incidentsSearch]);
+  }, [filteredByDate, errorTypeFilter, actionStatusFilter, incidentsSearch]);
 
   // 페이징
   const totalPages = Math.max(1, Math.ceil(allFilteredIncidents.length / incidentsLimit));
@@ -139,12 +148,14 @@ export function IncidentsTab({
         incidentsLimit={incidentsLimit}
         incidentsSearchInput={incidentsSearchInput}
         allFilteredIncidentsCount={allFilteredIncidents.length}
+        actionStatusFilter={actionStatusFilter}
         onSearchInputChange={onSearchInputChange}
         onSearchSubmit={onSearchSubmit}
         onLimitChange={onLimitChange}
         onStartDateChange={onStartDateChange}
         onEndDateChange={onEndDateChange}
         onApplyQuickRange={onApplyQuickRange}
+        onActionStatusFilterChange={onActionStatusFilterChange}
         onExport={onExport}
       />
 

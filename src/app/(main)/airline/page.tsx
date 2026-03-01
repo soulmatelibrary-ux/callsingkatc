@@ -63,6 +63,7 @@ export default function AirlinePage() {
   const [incidentsLimit, setIncidentsLimit] = useState(10);
   const [incidentsSearch, setIncidentsSearch] = useState('');
   const [incidentsSearchInput, setIncidentsSearchInput] = useState('');
+  const [incidentActionStatusFilter, setIncidentActionStatusFilter] = useState<'all' | 'no_action' | 'in_progress' | 'completed'>('all');
 
   // 조치이력 탭 상태
   const [actionPage, setActionPage] = useState(1);
@@ -399,6 +400,7 @@ export default function AirlinePage() {
                 endDate={incidentsDateFilter.endDate}
                 activeRange={incidentsDateFilter.activeRange}
                 errorTypeFilter={errorTypeFilter}
+                actionStatusFilter={incidentActionStatusFilter}
                 isExporting={isExporting}
                 incidentsPage={incidentsPage}
                 incidentsLimit={incidentsLimit}
@@ -412,6 +414,7 @@ export default function AirlinePage() {
                 onEndDateChange={incidentsDateFilter.handleEndDateChange}
                 onApplyQuickRange={incidentsDateFilter.applyQuickRange}
                 onErrorTypeFilterChange={setErrorTypeFilter}
+                onActionStatusFilterChange={setIncidentActionStatusFilter}
                 onOpenActionModal={handleOpenActionModal}
                 onOpenActionDetail={handleOpenActionDetail}
                 onExport={handleExportIncidents}

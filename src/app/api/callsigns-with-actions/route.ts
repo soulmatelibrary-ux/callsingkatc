@@ -81,16 +81,24 @@ export async function GET(request: NextRequest) {
 
     // SQL 쿼리 파라미터 구성 (페이지네이션은 필터 후 Node.js에서 처리)
     const sqlParams: (string | number)[] = [];
-    let conditions = "WHERE status = 'in_progress'";
+    let conditions = '';
 
     if (filteredRiskLevel) {
+      if (conditions) {
+        conditions += ` AND risk_level = ?`;
+      } else {
+        conditions = `WHERE risk_level = ?`;
+      }
       sqlParams.push(filteredRiskLevel);
-      conditions += ` AND risk_level = ?`;
     }
 
     if (airlineId) {
+      if (conditions) {
+        conditions += ` AND airline_id = ?`;
+      } else {
+        conditions = `WHERE airline_id = ?`;
+      }
       sqlParams.push(airlineId);
-      conditions += ` AND airline_id = ?`;
     }
 
     // 호출부호 목록 조회 (callsigns + actions LEFT JOIN으로 조치 정보 포함)

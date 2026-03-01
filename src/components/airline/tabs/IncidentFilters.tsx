@@ -11,6 +11,7 @@ interface IncidentFiltersProps {
   incidentsLimit: number;
   incidentsSearchInput: string;
   allFilteredIncidentsCount: number;
+  actionStatusFilter: 'all' | 'no_action' | 'in_progress' | 'completed';
 
   onSearchInputChange: (value: string) => void;
   onSearchSubmit: () => void;
@@ -18,6 +19,7 @@ interface IncidentFiltersProps {
   onStartDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onEndDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onApplyQuickRange: (type: 'today' | '1w' | '2w' | '1m') => void;
+  onActionStatusFilterChange: (filter: 'all' | 'no_action' | 'in_progress' | 'completed') => void;
   onExport: () => void;
 }
 
@@ -29,12 +31,14 @@ export function IncidentFilters({
   incidentsLimit,
   incidentsSearchInput,
   allFilteredIncidentsCount,
+  actionStatusFilter,
   onSearchInputChange,
   onSearchSubmit,
   onLimitChange,
   onStartDateChange,
   onEndDateChange,
   onApplyQuickRange,
+  onActionStatusFilterChange,
   onExport,
 }: IncidentFiltersProps) {
   return (
@@ -86,6 +90,23 @@ export function IncidentFilters({
           <option value="30">30</option>
           <option value="50">50</option>
           <option value="100">100</option>
+        </select>
+      </div>
+
+      {/* 조치 상태 필터 */}
+      <div className="bg-white/50 backdrop-blur-sm rounded-none px-3 py-2 shadow-sm border border-gray-100 flex items-center gap-1.5 flex-shrink-0">
+        <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+          Status
+        </span>
+        <select
+          value={actionStatusFilter}
+          onChange={(e) => onActionStatusFilterChange(e.target.value as any)}
+          className="bg-transparent text-sm font-black text-gray-700 focus:outline-none cursor-pointer"
+        >
+          <option value="all">전체</option>
+          <option value="no_action">조치등록</option>
+          <option value="in_progress">조치중</option>
+          <option value="completed">완료</option>
         </select>
       </div>
 
