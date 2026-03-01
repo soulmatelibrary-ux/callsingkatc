@@ -70,23 +70,16 @@ export function StatisticsTab() {
       const total = actions.length;
       const completionRate = total > 0 ? (completed / total) * 100 : 0;
 
-      // 평균 대응시간 계산 (간단한 예시)
-      const avgDays = actions.length > 0
-        ? (actions.reduce((sum, a) => {
-          if (a.completed_at && a.registered_at) {
-            const diff = new Date(a.completed_at).getTime() - new Date(a.registered_at).getTime();
-            return sum + diff / (1000 * 60 * 60 * 24);
-          }
-          return sum;
-        }, 0) / actions.length).toFixed(1)
-        : '-';
+      const pending = actions.filter((a) => a.status === 'pending').length;
+      const inProgress = actions.filter((a) => a.status === 'in_progress').length;
 
       return {
         airline,
         total,
         completed,
+        pending,
+        inProgress,
         completionRate,
-        avgDays,
       };
     }) || [];
   }, [airlinesQuery.data, actionsQuery.data]);
@@ -124,107 +117,125 @@ export function StatisticsTab() {
       {/* 차트 영역 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* 위험도별 현황 */}
-        <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
-          <h3 className="text-lg font-black text-gray-900 mb-6">위험도별 현황</h3>
-          <div className="space-y-4">
+        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 p-8">
+          <h3 className="text-xl font-black text-slate-800 mb-8 tracking-tight">위험도별 현황</h3>
+          <div className="space-y-6">
             <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">매우높음</span>
-                <span className="text-sm font-black text-red-600">{riskStats.veryHigh}건</span>
+              <div className="flex justify-between items-end mb-3">
+                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">매우높음</span>
+                <span className="text-sm font-black text-rose-600">{riskStats.veryHigh}건</span>
               </div>
-              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
+              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-red-600 transition-all duration-1000"
+                  className="h-full bg-rose-500 rounded-full transition-all duration-1000 ease-out relative"
                   style={{
                     width: `${totalCallsigns > 0 ? (riskStats.veryHigh / totalCallsigns) * 100 : 0}%`,
                   }}
-                />
+                >
+                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
+                </div>
               </div>
             </div>
             <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">높음</span>
-                <span className="text-sm font-black text-amber-600">{riskStats.high}건</span>
+              <div className="flex justify-between items-end mb-3">
+                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">높음</span>
+                <span className="text-sm font-black text-amber-500">{riskStats.high}건</span>
               </div>
-              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
+              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-amber-600 transition-all duration-1000"
+                  className="h-full bg-amber-500 rounded-full transition-all duration-1000 ease-out relative"
                   style={{
                     width: `${totalCallsigns > 0 ? (riskStats.high / totalCallsigns) * 100 : 0}%`,
                   }}
-                />
+                >
+                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
+                </div>
               </div>
             </div>
             <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">낮음</span>
-                <span className="text-sm font-black text-emerald-600">{riskStats.low}건</span>
+              <div className="flex justify-between items-end mb-3">
+                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">낮음</span>
+                <span className="text-sm font-black text-emerald-500">{riskStats.low}건</span>
               </div>
-              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
+              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-emerald-600 transition-all duration-1000"
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out relative"
                   style={{
                     width: `${totalCallsigns > 0 ? (riskStats.low / totalCallsigns) * 100 : 0}%`,
                   }}
-                />
+                >
+                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         {/* 조치 상태별 현황 */}
-        <div className="bg-white rounded-none shadow-sm border border-gray-100 p-8">
-          <h3 className="text-lg font-black text-gray-900 mb-6">조치 상태 분포</h3>
-          <div className="space-y-4">
+        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 p-8">
+          <h3 className="text-xl font-black text-slate-800 mb-8 tracking-tight">조치 상태 분포</h3>
+          <div className="space-y-6">
             <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">미조치 (Pending)</span>
+              <div className="flex justify-between items-end mb-3">
+                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-amber-500"></div> 미조치 (Pending)
+                </span>
                 <span className="text-sm font-black text-amber-600">{actionCounts.pending}건</span>
               </div>
-              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
+              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-amber-600 transition-all duration-1000"
+                  className="h-full bg-amber-500 rounded-full transition-all duration-1000 ease-out relative"
                   style={{
                     width: `${actionCounts.total > 0
                       ? (actionCounts.pending / actionCounts.total) * 100
                       : 0
                       }%`,
                   }}
-                />
+                >
+                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
+                </div>
               </div>
             </div>
             <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">진행중 (In Progress)</span>
-                <span className="text-sm font-black text-blue-600">{actionCounts.inProgress}건</span>
+              <div className="flex justify-between items-end mb-3">
+                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-indigo-500"></div> 진행중 (In Progress)
+                </span>
+                <span className="text-sm font-black text-indigo-600">{actionCounts.inProgress}건</span>
               </div>
-              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
+              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-blue-600 transition-all duration-1000"
+                  className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out relative"
                   style={{
                     width: `${actionCounts.total > 0
                       ? (actionCounts.inProgress / actionCounts.total) * 100
                       : 0
                       }%`,
                   }}
-                />
+                >
+                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
+                </div>
               </div>
             </div>
             <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-sm font-bold text-gray-700 uppercase tracking-tighter">완료 (Completed)</span>
+              <div className="flex justify-between items-end mb-3">
+                <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div> 완료 (Completed)
+                </span>
                 <span className="text-sm font-black text-emerald-600">{actionCounts.completed}건</span>
               </div>
-              <div className="w-full h-2 bg-gray-100 rounded-none overflow-hidden">
+              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-emerald-600 transition-all duration-1000"
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out relative"
                   style={{
                     width: `${actionCounts.total > 0
                       ? (actionCounts.completed / actionCounts.total) * 100
                       : 0
                       }%`,
                   }}
-                />
+                >
+                  <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
+                </div>
               </div>
             </div>
           </div>
@@ -232,10 +243,13 @@ export function StatisticsTab() {
       </div>
 
       {/* 항공사별 상세 통계 */}
-      <div className="bg-white rounded-none shadow-sm border border-gray-100">
+      <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 overflow-hidden">
         {/* 헤더 */}
-        <div className="px-8 py-6 border-b border-gray-50 bg-gray-50/30">
-          <h3 className="text-xl font-black text-gray-900">항공사별 상세 통계</h3>
+        <div className="px-8 py-7 border-b border-slate-100/80 bg-slate-50/50">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
+            <h3 className="text-lg font-black text-slate-800 tracking-tight">항공사별 상세 통계</h3>
+          </div>
         </div>
 
         {/* 테이블 */}
@@ -243,46 +257,55 @@ export function StatisticsTab() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-white">
-                  <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase">
+                <tr className="bg-white border-b border-slate-100">
+                  <th className="px-8 py-5 text-left text-[12px] font-bold text-slate-400 uppercase tracking-wider">
                     항공사
                   </th>
-                  <th className="px-8 py-4 text-center text-[11px] font-black text-gray-400 uppercase">
+                  <th className="px-8 py-5 text-center text-[12px] font-bold text-slate-400 uppercase tracking-wider">
                     호출부호
                   </th>
-                  <th className="px-8 py-4 text-center text-[11px] font-black text-gray-400 uppercase">
+                  <th className="px-8 py-5 text-center text-[12px] font-bold text-slate-400 uppercase tracking-wider">
                     조치율
                   </th>
-                  <th className="px-8 py-4 text-center text-[11px] font-black text-gray-400 uppercase">
-                    평균 대응시간
+                  <th className="px-8 py-5 text-center text-[12px] font-bold text-slate-400 uppercase tracking-wider">
+                    미조치 / 진행중
                   </th>
-                  <th className="px-8 py-4 text-left text-[11px] font-black text-gray-400 uppercase">
+                  <th className="px-8 py-5 text-left text-[12px] font-bold text-slate-400 uppercase tracking-wider">
                     최근 업로드
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-slate-50">
                 {airlineDetailStats.map((stat) => (
-                  <tr key={stat.airline.id} className="group hover:bg-primary/[0.02]">
-                    <td className="px-8 py-5 font-bold text-gray-900">{stat.airline.code}</td>
-                    <td className="px-8 py-5 text-center font-medium text-gray-600">
+                  <tr key={stat.airline.id} className="group hover:bg-slate-50/80 transition-colors">
+                    <td className="px-8 py-5 font-bold text-slate-800 text-[15px]">{stat.airline.code}</td>
+                    <td className="px-8 py-5 text-center font-semibold text-slate-500">
                       {stat.total}개
                     </td>
-                    <td className="px-8 py-5 text-center font-bold text-emerald-600">
-                      {stat.completionRate.toFixed(1)}%
+                    <td className="px-8 py-5 text-center">
+                      <span className={`inline-flex px-3 py-1 rounded-lg text-xs font-bold ${stat.completionRate > 80 ? 'bg-emerald-50 text-emerald-600' :
+                          stat.completionRate > 40 ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
+                        }`}>
+                        {stat.completionRate.toFixed(1)}%
+                      </span>
                     </td>
-                    <td className="px-8 py-5 text-center text-gray-600 font-medium">
-                      {stat.avgDays}일
+                    <td className="px-8 py-5 text-center font-medium">
+                      <span className="text-amber-500 font-bold px-2">{stat.pending}</span>
+                      <span className="text-slate-200">/</span>
+                      <span className="text-indigo-500 font-bold px-2">{stat.inProgress}</span>
                     </td>
-                    <td className="px-8 py-5 text-gray-600 font-medium">-</td>
+                    <td className="px-8 py-5 text-slate-400 font-medium">-</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <div className="px-8 py-12 text-center">
-            <p className="text-sm font-bold text-gray-400 uppercase">No Data</p>
+          <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
+            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+            </div>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No Data</p>
           </div>
         )}
       </div>

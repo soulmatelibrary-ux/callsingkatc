@@ -147,7 +147,7 @@ export function Header() {
               <span className="text-white/40 text-xs font-bold -mt-1 uppercase tracking-widest">{user.airline.name_ko}</span>
             )}
             {isAdmin && (
-              <span className="text-white/40 text-xs font-bold -mt-1 uppercase tracking-widest">ATMB</span>
+              <span className="text-white/40 text-xs font-bold -mt-1 uppercase tracking-widest"></span>
             )}
           </div>
         )}
