@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 호출부호 목록 조회 (callsigns + actions 조인으로 조치유형과 처리일자 포함)
-    // 취소되지 않은 조치 정보만 가져오기 (is_cancelled = false)
+    // 취소되지 않은 조치 정보만 가져오기 (is_cancelled = 0, SQLite INTEGER 타입)
     const callsignsResult = await query(
       `SELECT c.id, c.airline_id, c.airline_code, c.callsign_pair, c.my_callsign, c.other_callsign,
               c.other_airline_code, c.error_type, c.sub_error, c.risk_level, c.similarity,
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
               c.my_action_status, c.other_action_status,
               a.action_type, a.completed_at as action_completed_at
        FROM callsigns c
-       LEFT JOIN actions a ON c.id = a.callsign_id AND a.is_cancelled = false
+       LEFT JOIN actions a ON c.id = a.callsign_id AND COALESCE(a.is_cancelled, 0) = 0
        ${conditions}
        GROUP BY c.id
        ORDER BY
