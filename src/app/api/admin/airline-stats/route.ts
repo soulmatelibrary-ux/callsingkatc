@@ -80,6 +80,7 @@ export async function GET(request: NextRequest) {
 
     // 3️⃣ 항공사별 집계 통계 조회
     // 조치율 = 완료 건수 / (진행중 + 완료) 건수 × 100%
+    // 📌 카티션 곱셈 방지: 서브쿼리로 각각 집계 후 JOIN
     const result = await query(
       `
       SELECT
@@ -87,19 +88,29 @@ export async function GET(request: NextRequest) {
         al.code as airline_code,
         al.name_ko as airline_name_ko,
         COUNT(DISTINCT cs.id) as total_callsigns,
-        SUM(CASE WHEN a.status = 'in_progress' AND COALESCE(a.is_cancelled, 0) = 0 THEN 1 ELSE 0 END) as in_progress_actions,
-        SUM(CASE WHEN a.status = 'completed' AND COALESCE(a.is_cancelled, 0) = 0 THEN 1 ELSE 0 END) as completed_actions,
-        ROUND(
-          SUM(CASE WHEN a.status = 'completed' AND COALESCE(a.is_cancelled, 0) = 0 THEN 1 ELSE 0 END) * 100.0 /
-          NULLIF(
-            SUM(CASE WHEN a.status IN ('in_progress', 'completed') AND COALESCE(a.is_cancelled, 0) = 0 THEN 1 ELSE 0 END),
-            0
-          ),
-          1
-        ) as completion_rate
+        COALESCE(action_stats.in_progress_actions, 0) as in_progress_actions,
+        COALESCE(action_stats.completed_actions, 0) as completed_actions,
+        COALESCE(action_stats.completion_rate, 0) as completion_rate
       FROM airlines al
       LEFT JOIN callsigns cs ON cs.airline_id = al.id
-      LEFT JOIN actions a ON a.airline_id = al.id AND (${whereClause})
+      LEFT JOIN (
+        -- 액션 집계 서브쿼리 (날짜 필터 적용)
+        SELECT
+          airline_id,
+          SUM(CASE WHEN status = 'in_progress' AND COALESCE(is_cancelled, 0) = 0 THEN 1 ELSE 0 END) as in_progress_actions,
+          SUM(CASE WHEN status = 'completed' AND COALESCE(is_cancelled, 0) = 0 THEN 1 ELSE 0 END) as completed_actions,
+          ROUND(
+            SUM(CASE WHEN status = 'completed' AND COALESCE(is_cancelled, 0) = 0 THEN 1 ELSE 0 END) * 100.0 /
+            NULLIF(
+              SUM(CASE WHEN status IN ('in_progress', 'completed') AND COALESCE(is_cancelled, 0) = 0 THEN 1 ELSE 0 END),
+              0
+            ),
+            1
+          ) as completion_rate
+        FROM actions
+        WHERE (${whereClause})
+        GROUP BY airline_id
+      ) action_stats ON action_stats.airline_id = al.id
       GROUP BY al.id, al.code, al.name_ko
       ORDER BY completed_actions DESC, in_progress_actions DESC
       `,
