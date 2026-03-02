@@ -83,11 +83,13 @@ function getPeriodLabel(period: PeriodType, offset: number, customFrom?: string,
 export function StatisticsTab() {
   const [period, setPeriod] = useState<PeriodType>('monthly');
   const [periodOffset, setPeriodOffset] = useState(0);
+  const [customFrom, setCustomFrom] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [customTo, setCustomTo] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const accessToken = useAuthStore((s) => s.accessToken);
 
   // 날짜 범위 계산
-  const dateRange = useMemo(() => getDateRange(period, periodOffset), [period, periodOffset]);
-  const periodLabel = useMemo(() => getPeriodLabel(period, periodOffset), [period, periodOffset]);
+  const dateRange = useMemo(() => getDateRange(period, periodOffset, customFrom, customTo), [period, periodOffset, customFrom, customTo]);
+  const periodLabel = useMemo(() => getPeriodLabel(period, periodOffset, customFrom, customTo), [period, periodOffset, customFrom, customTo]);
 
   // 전체 호출부호 통계 (위험도별)
   const callsignStatsQuery = useQuery<CallsignStatsResponse>({
@@ -163,10 +165,10 @@ export function StatisticsTab() {
     <div className="space-y-8">
       {/* 시간 범위 선택 UI */}
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 p-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="flex flex-col gap-6">
           {/* 주기 선택 버튼 */}
-          <div className="flex gap-3">
-            {(['daily', 'monthly', 'yearly'] as const).map((p) => (
+          <div className="flex gap-2 flex-wrap">
+            {(['daily', 'monthly', 'yearly', 'custom'] as const).map((p) => (
               <button
                 key={p}
                 onClick={() => {
@@ -179,37 +181,66 @@ export function StatisticsTab() {
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                {p === 'daily' ? '일별' : p === 'monthly' ? '월별' : '년간'}
+                {p === 'daily' ? '일별' : p === 'monthly' ? '월별' : p === 'yearly' ? '년간' : '기간선택'}
               </button>
             ))}
           </div>
 
-          {/* 이전/다음 네비게이션 */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <button
-              onClick={() => setPeriodOffset(periodOffset - 1)}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-              title="이전"
-            >
-              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
-            <div className="min-w-[140px] text-center">
-              <p className="text-lg font-bold text-slate-800">{periodLabel}</p>
+          {/* 기간 선택 UI */}
+          {period === 'custom' ? (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+                  시작일
+                </label>
+                <input
+                  type="date"
+                  value={customFrom}
+                  onChange={(e) => setCustomFrom(e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-800"
+                />
+              </div>
+              <div className="hidden sm:flex items-center pt-6 text-slate-400">~</div>
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
+                  종료일
+                </label>
+                <input
+                  type="date"
+                  value={customTo}
+                  onChange={(e) => setCustomTo(e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-800"
+                />
+              </div>
             </div>
+          ) : (
+            /* 이전/다음 네비게이션 */
+            <div className="flex items-center gap-4 sm:gap-6 justify-center">
+              <button
+                onClick={() => setPeriodOffset(periodOffset - 1)}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                title="이전"
+              >
+                <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
 
-            <button
-              onClick={() => setPeriodOffset(periodOffset + 1)}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-              title="다음"
-            >
-              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
+              <div className="min-w-[140px] text-center">
+                <p className="text-lg font-bold text-slate-800">{periodLabel}</p>
+              </div>
+
+              <button
+                onClick={() => setPeriodOffset(periodOffset + 1)}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                title="다음"
+              >
+                <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
