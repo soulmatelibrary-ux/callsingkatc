@@ -165,9 +165,10 @@ export interface Action {
   is_virtual?: boolean;
 
   // API 응답 시 포함 정보
-  airline?: any; // Airline 객체
+  // ✅ CRITICAL FIX: any 제거 → 명시적 타입
+  airline?: Airline; // Airline 객체
   callsign?: Callsign; // Callsign 객체
-  registeredUser?: any; // User 객체
+  registeredUser?: User; // User 객체
 
   // API 응답용 camelCase 필드
   airlineId?: string;
