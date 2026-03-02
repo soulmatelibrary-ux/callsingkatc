@@ -1,3 +1,5 @@
+import { User } from './user';
+
 /**
  * 토큰 갱신 응답 타입
  */
@@ -10,7 +12,8 @@ export interface TokenRefreshResponse {
  * 인증 상태 타입
  */
 export interface AuthState {
-  user: any | null;
+  // ✅ CRITICAL FIX: any 제거 → User 명시적 타입
+  user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
   isLoading: boolean;

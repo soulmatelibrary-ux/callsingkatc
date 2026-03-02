@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useFileUploads, useDeleteFileUpload } from '@/hooks/useFileUploads';
+import { useFileUploads, useDeleteFileUpload, useForceDeleteFileUpload } from '@/hooks/useFileUploads';
 
 export function UploadHistoryManagement() {
   const [selectedStatus, setSelectedStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | ''>('');
@@ -10,6 +10,12 @@ export function UploadHistoryManagement() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteConfirmFileName, setDeleteConfirmFileName] = useState<string>('');
   const [deleteConfirmCallsignCount, setDeleteConfirmCallsignCount] = useState(0);
+
+  // 강제삭제 상태
+  const [forceDeleteId, setForceDeleteId] = useState<string | null>(null);
+  const [forceDeleteFileName, setForceDeleteFileName] = useState<string>('');
+  const [forceDeletePassword, setForceDeletePassword] = useState<string>('');
+  const [forceDeleteStep, setForceDeleteStep] = useState<'password' | 'confirm'>('password');
 
   // 업로드 이력 조회
   const fileUploadsQuery = useFileUploads({
@@ -20,6 +26,7 @@ export function UploadHistoryManagement() {
 
   // 삭제 mutation
   const deleteFileMutation = useDeleteFileUpload();
+  const forceDeleteMutation = useForceDeleteFileUpload();
 
   const statusColors: Record<string, string> = {
     pending: '#f59e0b',
@@ -57,6 +64,48 @@ export function UploadHistoryManagement() {
     setDeleteConfirmId(null);
     setDeleteConfirmFileName('');
     setDeleteConfirmCallsignCount(0);
+  };
+
+  // 강제삭제 클릭
+  const handleForceDeleteClick = (fileUpload: any) => {
+    setForceDeleteId(fileUpload.id);
+    setForceDeleteFileName(fileUpload.fileName);
+    setForceDeletePassword('');
+    setForceDeleteStep('password');
+  };
+
+  // 강제삭제 비밀번호 확인
+  const handleForceDeletePasswordSubmit = () => {
+    if (!forceDeletePassword) {
+      alert('비밀번호를 입력해주세요.');
+      return;
+    }
+    setForceDeleteStep('confirm');
+  };
+
+  // 강제삭제 최종 확인
+  const handleForceDeleteConfirm = async () => {
+    if (!forceDeleteId) return;
+
+    try {
+      await forceDeleteMutation.mutateAsync({
+        fileUploadId: forceDeleteId,
+        adminPassword: forceDeletePassword,
+      });
+      setForceDeleteId(null);
+      setForceDeletePassword('');
+      setPage(1);
+    } catch (error) {
+      console.error('강제삭제 실패:', error);
+    }
+  };
+
+  // 강제삭제 취소
+  const handleForceDeleteCancel = () => {
+    setForceDeleteId(null);
+    setForceDeleteFileName('');
+    setForceDeletePassword('');
+    setForceDeleteStep('password');
   };
 
   return (
@@ -193,22 +242,31 @@ export function UploadHistoryManagement() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    <button
-                      onClick={() => handleDeleteClick(fileUpload)}
-                      disabled={fileUpload.failedCount > 0}
-                      title={
-                        fileUpload.failedCount > 0
-                          ? '처리 실패 항목이 있어 삭제할 수 없습니다.'
-                          : '삭제'
-                      }
-                      className={`px-3 py-1 rounded font-medium ${
-                        fileUpload.failedCount > 0
-                          ? 'bg-gray-300 text-gray-600 cursor-not-allowed opacity-50'
-                          : 'bg-red-600 text-white hover:bg-red-700'
-                      }`}
-                    >
-                      삭제
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleDeleteClick(fileUpload)}
+                        disabled={fileUpload.failedCount > 0}
+                        title={
+                          fileUpload.failedCount > 0
+                            ? '처리 실패 항목이 있어 삭제할 수 없습니다.'
+                            : '삭제'
+                        }
+                        className={`px-3 py-1 rounded font-medium ${
+                          fileUpload.failedCount > 0
+                            ? 'bg-gray-300 text-gray-600 cursor-not-allowed opacity-50'
+                            : 'bg-red-600 text-white hover:bg-red-700'
+                        }`}
+                      >
+                        삭제
+                      </button>
+                      <button
+                        onClick={() => handleForceDeleteClick(fileUpload)}
+                        title="조치 상관없이 강제 삭제 (관리자 비밀번호 필요)"
+                        className="px-3 py-1 rounded font-medium bg-gray-900 text-white hover:bg-black text-xs"
+                      >
+                        강제삭제
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -242,7 +300,7 @@ export function UploadHistoryManagement() {
         )}
       </div>
 
-      {/* 삭제 확인 모달 */}
+      {/* 기본 삭제 확인 모달 */}
       {deleteConfirmId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
@@ -279,6 +337,106 @@ export function UploadHistoryManagement() {
                 }`}
               >
                 {deleteFileMutation.isPending ? '삭제 중...' : '삭제'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 강제삭제: 비밀번호 입력 모달 */}
+      {forceDeleteId && forceDeleteStep === 'password' && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">강제삭제 - 관리자 인증</h2>
+            <p className="text-gray-600 mb-4">
+              <strong>{forceDeleteFileName}</strong>을(를) 강제 삭제하려면<br />
+              관리자 비밀번호를 입력하세요.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                관리자 비밀번호
+              </label>
+              <input
+                type="password"
+                value={forceDeletePassword}
+                onChange={(e) => setForceDeletePassword(e.target.value)}
+                placeholder="비밀번호 입력"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleForceDeletePasswordSubmit();
+                  }
+                }}
+              />
+            </div>
+            {forceDeleteMutation.error && (
+              <p className="text-sm text-red-600 mb-4 bg-red-50 p-3 rounded">
+                {forceDeleteMutation.error instanceof Error
+                  ? forceDeleteMutation.error.message
+                  : '오류가 발생했습니다.'}
+              </p>
+            )}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleForceDeleteCancel}
+                disabled={forceDeleteMutation.isPending}
+                className="px-4 py-2 rounded bg-gray-300 text-gray-700 hover:bg-gray-400 font-medium disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleForceDeletePasswordSubmit}
+                disabled={forceDeleteMutation.isPending || !forceDeletePassword}
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                다음
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 강제삭제: 최종 확인 모달 */}
+      {forceDeleteId && forceDeleteStep === 'confirm' && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">🔴 강제삭제 확인</h2>
+            <p className="text-gray-600 mb-4">
+              <strong>{forceDeleteFileName}</strong>을(를) 정말 강제 삭제하시겠습니까?
+            </p>
+            <div className="mb-4 bg-red-50 p-4 rounded border border-red-200">
+              <p className="text-sm text-red-700 font-semibold mb-2">⚠️ 경고!</p>
+              <ul className="text-sm text-red-700 space-y-1">
+                <li>• 항공사 조치 여부와 관계없이 삭제됩니다</li>
+                <li>• 모든 연결된 호출부호 데이터가 삭제됩니다</li>
+                <li>• 삭제 후 복구할 수 없습니다</li>
+              </ul>
+            </div>
+            {forceDeleteMutation.error && (
+              <p className="text-sm text-red-600 mb-4 bg-red-50 p-3 rounded">
+                {forceDeleteMutation.error instanceof Error
+                  ? forceDeleteMutation.error.message
+                  : '오류가 발생했습니다.'}
+              </p>
+            )}
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setForceDeleteStep('password')}
+                disabled={forceDeleteMutation.isPending}
+                className="px-4 py-2 rounded bg-gray-300 text-gray-700 hover:bg-gray-400 font-medium disabled:opacity-50"
+              >
+                이전
+              </button>
+              <button
+                onClick={handleForceDeleteConfirm}
+                disabled={forceDeleteMutation.isPending}
+                className={`px-4 py-2 rounded text-white font-medium ${
+                  forceDeleteMutation.isPending
+                    ? 'bg-red-400 cursor-not-allowed'
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {forceDeleteMutation.isPending ? '삭제 중...' : '강제삭제'}
               </button>
             </div>
           </div>

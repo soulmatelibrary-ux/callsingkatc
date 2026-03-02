@@ -6,8 +6,8 @@ import { useCallsigns, useAllActions } from '@/hooks/useActions';
 import { useAuthStore } from '@/store/authStore';
 import { useActionTypeStats, useAirlineDetailStats } from '@/hooks/useAdminStats';
 import { StatCard } from './StatCard';
-import { ActionTypeDistributionChart } from '@/components/admin/ActionTypeDistributionChart';
 import { MonthlyDetectionTrendChart } from '@/components/admin/charts/MonthlyDetectionTrendChart';
+import { ActionEffectivenessChart } from '@/components/admin/charts/ActionEffectivenessChart';
 import { format, addDays, addMonths, lastDayOfMonth } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
@@ -379,8 +379,8 @@ export function StatisticsTab() {
       {/* 월별 신규 vs 재검출 비율 */}
       <MonthlyDetectionTrendChart />
 
-      {/* 조치 유형별 분포 */}
-      <ActionTypeDistributionChart dateRange={dateRange} />
+      {/* 조치 효과성 분석 */}
+      <ActionEffectivenessChart />
     </div>
   );
 }

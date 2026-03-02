@@ -454,7 +454,8 @@ export async function POST(
     }
 
     // Step 2: action UPDATE (취소된 행도 복현 가능)
-    transaction((trx) => {
+    // ⚠️ CRITICAL FIX: await 추가 (트랜잭션 완료 대기)
+    await transaction((trx) => {
       // 1. action 업데이트 (상태, 조치 정보, 취소 플래그 복원)
       const nowIso = new Date().toISOString();
       trx(

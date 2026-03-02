@@ -213,6 +213,12 @@ export async function PATCH(
         const statusColumnName = isMy ? 'my_action_status' : 'other_action_status';
         const otherStatusColumnName = isMy ? 'other_action_status' : 'my_action_status';
 
+        // ⚠️ CRITICAL FIX: SQL 인젝션 방지 (컬럼명 화이트리스트 검증)
+        const validColumns = ['my_action_status', 'other_action_status'];
+        if (!validColumns.includes(statusColumnName) || !validColumns.includes(otherStatusColumnName)) {
+          throw new Error('유효하지 않은 컬럼명입니다.');
+        }
+
         // 상대 항공사 상태 확인
         const callsignStatusResult = await trx(
           `SELECT ${otherStatusColumnName} FROM callsigns WHERE id = ?`,

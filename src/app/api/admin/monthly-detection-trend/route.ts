@@ -104,7 +104,8 @@ export async function GET(request: NextRequest) {
       ORDER BY month DESC;
     `;
 
-    const results = await query(sqlQuery) as MonthlyTrendData[];
+    const { rows } = await query(sqlQuery);
+    const results = (rows || []) as MonthlyTrendData[];
 
     console.log('[MonthlyDetectionTrend] 조회 완료:', {
       months: results.length,

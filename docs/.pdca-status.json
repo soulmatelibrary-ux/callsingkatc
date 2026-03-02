@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "lastUpdated": "2026-03-02T12:01:39.027Z",
+  "lastUpdated": "2026-03-02T12:37:58.403Z",
   "activeFeatures": [
     "actions",
     "callsign-management",
@@ -27,7 +27,10 @@
     "airline-stats",
     "store",
     "monthly-detection-trend",
-    "charts"
+    "charts",
+    "action-effectiveness",
+    "force-delete",
+    "uploads"
   ],
   "primaryFeature": "actions",
   "features": {
@@ -40,7 +43,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T05:13:16.433Z",
-        "lastUpdated": "2026-03-02T02:28:28.832Z"
+        "lastUpdated": "2026-03-02T12:18:59.816Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/airlines/[airlineId]/actions/route.ts"
     },
@@ -53,7 +56,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:35:08.964Z",
-        "lastUpdated": "2026-03-02T12:00:56.490Z"
+        "lastUpdated": "2026-03-02T12:22:04.640Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/callsign-management/StatisticsTab.tsx"
     },
@@ -66,9 +69,9 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T09:39:47.747Z",
-        "lastUpdated": "2026-03-02T11:59:56.536Z"
+        "lastUpdated": "2026-03-02T12:37:58.403Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/hooks/useMonthlyDetectionTrend.ts"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/hooks/useFileUploads.ts"
     },
     "callsigns-with-actions": {
       "phase": "do",
@@ -209,7 +212,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-02-28T13:37:20.422Z",
-        "lastUpdated": "2026-03-01T11:44:36.242Z"
+        "lastUpdated": "2026-03-02T12:19:47.878Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/actions/[id]/route.ts"
     },
@@ -352,7 +355,7 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-02T11:59:51.258Z",
-        "lastUpdated": "2026-03-02T12:01:39.027Z"
+        "lastUpdated": "2026-03-02T12:03:52.521Z"
       },
       "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/monthly-detection-trend/route.ts"
     },
@@ -365,9 +368,48 @@
       "documents": {},
       "timestamps": {
         "started": "2026-03-02T12:00:17.415Z",
-        "lastUpdated": "2026-03-02T12:00:17.415Z"
+        "lastUpdated": "2026-03-02T12:22:53.181Z"
       },
-      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/admin/charts/MonthlyDetectionTrendChart.tsx"
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/admin/charts/ActionEffectivenessChart.tsx"
+    },
+    "action-effectiveness": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-02T12:22:18.530Z",
+        "lastUpdated": "2026-03-02T12:22:18.530Z"
+      },
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/action-effectiveness/route.ts"
+    },
+    "force-delete": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-02T12:32:09.918Z",
+        "lastUpdated": "2026-03-02T12:37:48.870Z"
+      },
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/app/api/admin/file-uploads/[id]/force-delete/route.ts"
+    },
+    "uploads": {
+      "phase": "do",
+      "phaseNumber": 3,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {},
+      "timestamps": {
+        "started": "2026-03-02T12:32:29.426Z",
+        "lastUpdated": "2026-03-02T12:33:05.928Z"
+      },
+      "lastFile": "/Users/sein/Desktop/similarity_callsign/src/components/callsign-management/uploads/UploadHistoryManagement.tsx"
     }
   },
   "pipeline": {
@@ -378,7 +420,7 @@
   "session": {
     "startedAt": "2026-02-28T05:13:16.433Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-03-02T12:01:39.027Z"
+    "lastActivity": "2026-03-02T12:37:58.403Z"
   },
   "history": [
     {
@@ -2988,6 +3030,120 @@
     {
       "timestamp": "2026-03-02T12:01:39.027Z",
       "feature": "monthly-detection-trend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:03:52.521Z",
+      "feature": "monthly-detection-trend",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:18:59.816Z",
+      "feature": "actions",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:19:47.878Z",
+      "feature": "[id]",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:20:08.174Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:20:21.998Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:21:42.523Z",
+      "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:22:04.640Z",
+      "feature": "callsign-management",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:22:18.530Z",
+      "feature": "action-effectiveness",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:22:25.052Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:22:53.181Z",
+      "feature": "charts",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:32:09.918Z",
+      "feature": "force-delete",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:32:20.031Z",
+      "feature": "similarity_callsign",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:32:29.426Z",
+      "feature": "uploads",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:32:36.497Z",
+      "feature": "uploads",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:32:50.391Z",
+      "feature": "uploads",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:33:05.928Z",
+      "feature": "uploads",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:33:24.889Z",
+      "feature": "force-delete",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:37:48.870Z",
+      "feature": "force-delete",
+      "phase": "do",
+      "action": "updated"
+    },
+    {
+      "timestamp": "2026-03-02T12:37:58.403Z",
+      "feature": "similarity_callsign",
       "phase": "do",
       "action": "updated"
     }
