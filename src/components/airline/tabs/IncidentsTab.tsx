@@ -90,10 +90,8 @@ export function IncidentsTab({
         ? filteredByDate
         : filteredByDate.filter((i) => i.errorType === errorTypeFilter);
 
-    // 조치 상태 필터
-    if (actionStatusFilter !== 'all') {
-      filtered = filtered.filter((i) => i.actionStatus === actionStatusFilter);
-    }
+    // 조치대상만 표시 (완료 항목 제외)
+    filtered = filtered.filter((i) => i.actionStatus !== 'completed');
 
     // 호출부호 쌍 검색
     if (incidentsSearch.trim()) {
@@ -113,7 +111,7 @@ export function IncidentsTab({
       const countB = b.count || 0;
       return countB - countA;
     });
-  }, [filteredByDate, errorTypeFilter, actionStatusFilter, incidentsSearch]);
+  }, [filteredByDate, errorTypeFilter, incidentsSearch]);
 
   // 페이징
   const totalPages = Math.max(1, Math.ceil(allFilteredIncidents.length / incidentsLimit));
@@ -155,7 +153,6 @@ export function IncidentsTab({
         onStartDateChange={onStartDateChange}
         onEndDateChange={onEndDateChange}
         onApplyQuickRange={onApplyQuickRange}
-        onActionStatusFilterChange={onActionStatusFilterChange}
         onExport={onExport}
       />
 

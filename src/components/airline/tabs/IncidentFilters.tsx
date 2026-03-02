@@ -19,7 +19,6 @@ interface IncidentFiltersProps {
   onStartDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onEndDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onApplyQuickRange: (type: 'today' | '1w' | '2w' | '1m') => void;
-  onActionStatusFilterChange: (filter: 'all' | 'no_action' | 'in_progress' | 'completed') => void;
   onExport: () => void;
 }
 
@@ -38,7 +37,6 @@ export function IncidentFilters({
   onStartDateChange,
   onEndDateChange,
   onApplyQuickRange,
-  onActionStatusFilterChange,
   onExport,
 }: IncidentFiltersProps) {
   return (
@@ -93,22 +91,6 @@ export function IncidentFilters({
 
           {/* 분류 필터 그룹 */}
           <div className="flex items-center gap-2">
-            {/* 조치 상태 필터 */}
-            <div className="bg-white backdrop-blur-sm rounded-none px-3 py-2.5 shadow-sm border border-gray-200 flex items-center gap-2 hover:border-blue-400 transition-colors">
-              <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
-                Status
-              </span>
-              <select
-                value={actionStatusFilter}
-                onChange={(e) => onActionStatusFilterChange(e.target.value as any)}
-                className="bg-transparent text-sm font-black text-gray-700 focus:outline-none cursor-pointer border-none p-0 w-[80px]"
-              >
-                <option value="all">전체 상태</option>
-                <option value="no_action">조치 등록</option>
-                <option value="completed">완료 됨</option>
-              </select>
-            </div>
-
             {/* Limit 선택 */}
             <div className="bg-white backdrop-blur-sm rounded-none px-3 py-2.5 shadow-sm border border-gray-200 flex items-center gap-2 hover:border-blue-400 transition-colors">
               <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
