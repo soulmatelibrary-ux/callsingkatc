@@ -16,7 +16,6 @@
 
 import { create } from 'zustand';
 import { User } from '@/types/user';
-import { getRefreshedToken } from '@/lib/api/client';
 
 interface AuthStore {
   user: User | null;
@@ -270,8 +269,8 @@ export const authStore = create<AuthStore>((set, get) => ({
     return inactiveTime > INACTIVITY_TIMEOUT;
   },
 
-  // 토큰 만료 확인 및 자동 갱신 (공유 뮤텍스 사용)
-  checkTokenExpiry: async () => {
+  // 토큰 만료 확인 (갱신은 Providers.tsx의 apiFetch를 통해 자동 처리)
+  checkTokenExpiry: () => {
     const state = get();
 
     if (!state.tokenExpiresAt) {
@@ -287,35 +286,10 @@ export const authStore = create<AuthStore>((set, get) => ({
       return true;
     }
 
-    // 토큰이 만료되었거나 곧 만료: refreshToken으로 갱신
-    // 🔒 client.ts의 뮤텍스와 동일한 함수 사용 (경쟁 조건 방지)
-    try {
-      const newToken = await getRefreshedToken();
-
-      if (!newToken) {
-        // 갱신 실패: 로그아웃
-        await get().logout();
-        return false;
-      }
-
-      // sessionStorage 업데이트
-      const newExpiresAt = now + (3600 * 1000); // 기본 1시간
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('accessToken', newToken);
-        sessionStorage.setItem('tokenExpiresAt', newExpiresAt.toString());
-      }
-
-      set({
-        accessToken: newToken,
-        tokenExpiresAt: newExpiresAt,
-      });
-
-      return true;
-    } catch (error) {
-      console.error('[AuthStore] 토큰 갱신 오류:', error);
-      await get().logout();
-      return false;
-    }
+    // 토큰이 곧 만료되거나 이미 만료됨 → false 반환
+    // (Providers.tsx에서 apiFetch('/api/auth/me')를 호출하면,
+    //  apiFetch가 401 에러를 받고 자동으로 갱신함)
+    return false;
   },
 
   isAuthenticated: () => {

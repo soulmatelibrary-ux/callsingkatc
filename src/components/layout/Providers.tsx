@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { authStore } from '@/store/authStore';
+import { apiFetch } from '@/lib/api/client';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -38,9 +39,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
         authState.logout();
       }
 
-      // 토큰 만료 확인 및 갱신 (5분 전 갱신)
+      // 토큰 만료 확인 및 갱신
+      // 토큰이 곧 만료되면 apiFetch('/api/auth/me')를 호출
+      // → apiFetch가 401 에러를 받고 자동으로 토큰 갱신함 (뮤텍스 사용)
       if (authState.isAuthenticated()) {
-        authState.checkTokenExpiry().catch(() => {});
+        const isTokenValid = authState.checkTokenExpiry();
+        if (!isTokenValid) {
+          // 토큰 만료됨: apiFetch로 갱신 트리거
+          apiFetch('/api/auth/me', { method: 'GET' }).catch(() => {
+            // 갱신 실패 시 apiFetch에서 자동으로 로그아웃 처리됨
+          });
+        }
       }
     }, 60 * 1000); // 1분마다 실행
 
