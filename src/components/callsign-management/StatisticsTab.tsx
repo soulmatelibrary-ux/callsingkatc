@@ -17,11 +17,18 @@ interface CallsignStatsResponse {
   low: number;
 }
 
-type PeriodType = 'daily' | 'monthly' | 'yearly';
+type PeriodType = 'daily' | 'monthly' | 'yearly' | 'custom';
 
 // 날짜 범위 계산 함수
-function getDateRange(period: PeriodType, offset: number): { dateFrom: string; dateTo: string } {
+function getDateRange(period: PeriodType, offset: number, customFrom?: string, customTo?: string): { dateFrom: string; dateTo: string } {
   const now = new Date();
+
+  if (period === 'custom') {
+    return {
+      dateFrom: customFrom || format(now, 'yyyy-MM-dd'),
+      dateTo: customTo || format(now, 'yyyy-MM-dd'),
+    };
+  }
 
   if (period === 'monthly') {
     const date = new Date(now.getFullYear(), now.getMonth() + offset, 1);
@@ -45,8 +52,15 @@ function getDateRange(period: PeriodType, offset: number): { dateFrom: string; d
 }
 
 // 표시 텍스트 함수
-function getPeriodLabel(period: PeriodType, offset: number): string {
+function getPeriodLabel(period: PeriodType, offset: number, customFrom?: string, customTo?: string): string {
   const now = new Date();
+
+  if (period === 'custom') {
+    if (customFrom === customTo) {
+      return format(new Date(customFrom + 'T00:00:00'), 'yyyy년 M월 d일', { locale: ko });
+    }
+    return `${customFrom} ~ ${customTo}`;
+  }
 
   if (period === 'monthly') {
     const date = new Date(now.getFullYear(), now.getMonth() + offset, 1);

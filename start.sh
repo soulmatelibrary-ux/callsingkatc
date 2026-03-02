@@ -41,6 +41,32 @@ kill_port() {
   fi
 }
 
+# 함수: 캐시 초기화
+clear_cache() {
+  echo -e "\n${BLUE}🗑️  캐시 정리 중...${NC}"
+
+  # Next.js 빌드 캐시 제거
+  if [ -d .next ]; then
+    rm -rf .next
+    echo -e "${GREEN}✓ .next 캐시 제거 완료${NC}"
+  fi
+
+  # npm 캐시 제거
+  if [ -d node_modules/.cache ]; then
+    rm -rf node_modules/.cache
+    echo -e "${GREEN}✓ node_modules/.cache 제거 완료${NC}"
+  fi
+
+  # Turbo 캐시 제거
+  if [ -d .turbo ]; then
+    rm -rf .turbo
+    echo -e "${GREEN}✓ .turbo 캐시 제거 완료${NC}"
+  fi
+
+  # 브라우저 캐시 정리 안내
+  echo -e "${YELLOW}💡 팁: 브라우저에서 Ctrl+Shift+Delete로 캐시를 비우면 더 완벽합니다${NC}"
+}
+
 # 함수: SQLite 환경 설정
 setup_sqlite() {
   echo -e "\n${BLUE}📝 SQLite 환경 설정 중...${NC}"
@@ -110,13 +136,16 @@ main() {
   # Ctrl+C 트래핑
   trap cleanup SIGINT SIGTERM
 
-  # 포트 체크 및 킬
+  # 1️⃣ 포트 체크 및 킬 (기존 프로세스 종료)
   kill_port
 
-  # SQLite 설정
+  # 2️⃣ 캐시 초기화
+  clear_cache
+
+  # 3️⃣ SQLite 설정
   setup_sqlite
 
-  # Next.js 시작
+  # 4️⃣ Next.js 시작
   start_next_dev
 }
 
