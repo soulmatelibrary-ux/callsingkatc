@@ -172,6 +172,9 @@ export interface Action {
 
   // 발생이력 (callsign_occurrences 조인)
   occurrence_dates?: string; // "2026-02-28T11:37:00,2026-02-27T08:22:00,..." 형태
+  atc_count?: number; // 관제사오류 건수
+  pilot_count?: number; // 조종사오류 건수
+  unknown_count?: number; // 오류미발생 건수
 
   // API 응답용 camelCase 필드
   airlineId?: string;
@@ -191,6 +194,9 @@ export interface Action {
   reviewComment?: string;
   isVirtual?: boolean;
   occurrenceDates?: string; // camelCase 버전
+  atcCount?: number; // camelCase 버전
+  pilotCount?: number; // camelCase 버전
+  unknownCount?: number; // camelCase 버전
 }
 
 /**

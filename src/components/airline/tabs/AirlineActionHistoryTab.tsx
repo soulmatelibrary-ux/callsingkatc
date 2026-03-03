@@ -369,13 +369,17 @@ export function AirlineActionHistoryTab({
                       </button>
                     </div>
 
-                    {/* 조치 정보 테이블 */}
-                    <div className="grid grid-cols-2 gap-2 text-xs mb-3 pb-3 border-b border-gray-200">
+                    {/* 정보 테이블 - 발생현황과 동일 */}
+                    <div className="grid grid-cols-4 gap-2 text-xs mb-3 pb-3 border-b border-gray-200">
                       <div>
-                        <div className="text-gray-500 font-semibold mb-1">등록일자</div>
+                        <div className="text-gray-500 font-semibold mb-1">발생건수</div>
+                        <div className="font-bold text-gray-900">{action.callsign?.occurrence_count || 0}건</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 font-semibold mb-1">최근발생일</div>
                         <div className="font-bold text-gray-900">
-                          {action.registered_at
-                            ? new Date(action.registered_at).toLocaleDateString('ko-KR', {
+                          {action.callsign?.last_occurred_at
+                            ? new Date(action.callsign.last_occurred_at).toLocaleDateString('ko-KR', {
                                 month: '2-digit',
                                 day: '2-digit',
                               })
@@ -383,20 +387,54 @@ export function AirlineActionHistoryTab({
                         </div>
                       </div>
                       <div>
-                        <div className="text-gray-500 font-semibold mb-1">상태</div>
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold border ${getStatusColor(action.status)}`}>
-                          {getStatusLabel(action.status)}
+                        <div className="text-gray-500 font-semibold mb-1">오류유형</div>
+                        <div className="font-bold text-gray-900 text-xs">
+                          {action.callsign?.error_type ? (
+                            action.callsign.error_type === '관제사오류' ? '관제사' :
+                            action.callsign.error_type === '조종사오류' ? '조종사' :
+                            '불명'
+                          ) : '-'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-gray-500 font-semibold mb-1">위험도</div>
+                        <span className={`inline-block px-1 py-0.5 rounded text-xs font-bold border ${
+                          action.callsign?.risk_level === '매우높음' ? 'bg-rose-100 text-rose-700 border-rose-300' :
+                          action.callsign?.risk_level === '높음' ? 'bg-orange-100 text-orange-700 border-orange-300' :
+                          action.callsign?.risk_level === '중간' ? 'bg-amber-100 text-amber-700 border-amber-300' :
+                          'bg-emerald-100 text-emerald-700 border-emerald-300'
+                        }`}>
+                          {action.callsign?.risk_level === '매우높음' ? '매우높음' :
+                           action.callsign?.risk_level === '높음' ? '높음' :
+                           action.callsign?.risk_level === '중간' ? '중간' :
+                           action.callsign?.risk_level === '낮음' ? '낮음' : '-'}
                         </span>
                       </div>
-                      <div>
-                        <div className="text-gray-500 font-semibold mb-1">조치유형</div>
-                        <div className="font-bold text-gray-900 text-xs">{action.action_type || '-'}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-500 font-semibold mb-1">담당자</div>
-                        <div className="font-bold text-gray-900 text-xs">{action.manager_name || '-'}</div>
-                      </div>
                     </div>
+
+                    {/* 오류유형 섹션 */}
+                    {(action.atc_count || action.pilot_count || action.unknown_count) && (
+                      <div className="mb-3 pb-3 border-b border-gray-200">
+                        <div className="text-xs font-semibold text-gray-500 mb-2">□오류유형</div>
+                        <div className="flex flex-wrap gap-2">
+                          {(action.atc_count || 0) > 0 && (
+                            <span className="text-xs bg-rose-100 text-rose-700 px-2 py-1 rounded font-semibold">
+                              관제사 오류({action.atc_count}건)
+                            </span>
+                          )}
+                          {(action.pilot_count || 0) > 0 && (
+                            <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded font-semibold">
+                              조종사 오류({action.pilot_count}건)
+                            </span>
+                          )}
+                          {(action.unknown_count || 0) > 0 && (
+                            <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded font-semibold">
+                              오류 미분류({action.unknown_count}건)
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* 발생이력 */}
                     {occurrenceDates.length > 0 && (

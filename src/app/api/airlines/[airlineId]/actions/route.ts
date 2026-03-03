@@ -133,7 +133,10 @@ export async function GET(
          FROM callsign_occurrences
          WHERE callsign_id = cs.id
          ORDER BY occurred_time DESC
-         LIMIT 10) as occurrence_dates
+         LIMIT 10) as occurrence_dates,
+        (SELECT COUNT(*) FROM callsign_occurrences WHERE callsign_id = cs.id AND error_type = '관제사오류') as atc_count,
+        (SELECT COUNT(*) FROM callsign_occurrences WHERE callsign_id = cs.id AND error_type = '조종사오류') as pilot_count,
+        (SELECT COUNT(*) FROM callsign_occurrences WHERE callsign_id = cs.id AND error_type = '오류미발생') as unknown_count
       FROM actions a
       LEFT JOIN airlines al ON a.airline_id = al.id
       LEFT JOIN callsigns cs ON a.callsign_id = cs.id
@@ -208,7 +211,10 @@ export async function GET(
            FROM callsign_occurrences
            WHERE callsign_id = cs.id
            ORDER BY occurred_time DESC
-           LIMIT 10) as occurrence_dates
+           LIMIT 10) as occurrence_dates,
+          (SELECT COUNT(*) FROM callsign_occurrences WHERE callsign_id = cs.id AND error_type = '관제사오류') as atc_count,
+          (SELECT COUNT(*) FROM callsign_occurrences WHERE callsign_id = cs.id AND error_type = '조종사오류') as pilot_count,
+          (SELECT COUNT(*) FROM callsign_occurrences WHERE callsign_id = cs.id AND error_type = '오류미발생') as unknown_count
         FROM callsigns cs
         JOIN airlines al ON cs.airline_id = al.id
         LEFT JOIN (
@@ -294,6 +300,12 @@ export async function GET(
         otherAirlineCode: row.other_airline_code,
         occurrence_dates: row.occurrence_dates || undefined,
         occurrenceDates: row.occurrence_dates || undefined,
+        atcCount: row.atc_count || 0,
+        pilotCount: row.pilot_count || 0,
+        unknownCount: row.unknown_count || 0,
+        atc_count: row.atc_count || 0,
+        pilot_count: row.pilot_count || 0,
+        unknown_count: row.unknown_count || 0,
       })),
       pagination: {
         page,
