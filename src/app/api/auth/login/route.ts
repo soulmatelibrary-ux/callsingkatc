@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
-import { generateAccessToken, generateRefreshToken } from '@/lib/jwt';
+import { generateAccessToken } from '@/lib/jwt';
 import * as authQueries from '@/lib/db/queries/auth';
 
 export async function POST(request: NextRequest) {
@@ -81,8 +81,6 @@ export async function POST(request: NextRequest) {
       airlineId: user.airline_id,
     });
 
-    const refreshToken = generateRefreshToken(user.id);
-
     // 항공사 정보 구성
     const airline = user.airline_code
       ? {
@@ -109,8 +107,7 @@ export async function POST(request: NextRequest) {
       forceChangePassword: needsPasswordChange,
     };
 
-    // 응답 생성 (forceChangePassword 플래그 포함)
-    const response = NextResponse.json(
+    return NextResponse.json(
       {
         user: sanitizedUser,
         accessToken,
@@ -118,37 +115,6 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
-
-    // refreshToken은 httpOnly 쿠키에 저장
-    // 📌 개발 환경(localhost:3002 HTTP)에서는 secure: false, 프로덕션에서는 secure: true
-    response.cookies.set('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-      maxAge: 7 * 24 * 60 * 60,
-      path: '/',
-    });
-
-    // user 쿠키 설정 (라우트 보호 및 세션 확인용)
-    // 📌 passwordChangeRequired 추가: 미들웨어에서 강제 리다이렉트 판단용
-    // 📌 Next.js cookies.set()이 자동 인코딩하므로 JSON 문자열만 전달
-    response.cookies.set('user', JSON.stringify({
-      id: sanitizedUser.id,
-      email: sanitizedUser.email,
-      role: sanitizedUser.role,
-      status: sanitizedUser.status,
-      airline_id: sanitizedUser.airline_id,
-      airline: sanitizedUser.airline,
-      passwordChangeRequired: needsPasswordChange,
-    }), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
-      maxAge: 7 * 24 * 60 * 60,
-      path: '/',
-    });
-
-    return response;
   } catch (error) {
     return NextResponse.json(
       { error: '로그인 중 오류가 발생했습니다.' },

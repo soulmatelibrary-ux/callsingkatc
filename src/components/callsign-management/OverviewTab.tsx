@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import * as XLSX from 'xlsx';
 import { useCallsignsWithActions } from '@/hooks/useActions';
 import { useAirlines } from '@/hooks/useAirlines';
 import { useAuthStore } from '@/store/authStore';
@@ -31,6 +32,7 @@ export function OverviewTab() {
   const [selectedAirlineId, setSelectedAirlineId] = useState<string>('');
   const [selectedActionStatus, setSelectedActionStatus] = useState<string>('');
   const [selectedActionType, setSelectedActionType] = useState<string>('');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState<string>(getDefaultDateFrom());
   const [dateTo, setDateTo] = useState<string>(getDefaultDateTo());
   const [page, setPage] = useState(1);
@@ -101,6 +103,12 @@ export function OverviewTab() {
   const computedTotalPages = totalPagesFromApi > 0 ? totalPagesFromApi : 1;
   const startItem = totalItems === 0 ? 0 : (page - 1) * limit + 1;
   const endItem = totalItems === 0 ? 0 : Math.min(page * limit, totalItems);
+
+  // 상태별 필터링
+  const filteredRows = useMemo(() => {
+    if (selectedStatusFilter === 'all') return rows;
+    return rows.filter(r => r.final_status === selectedStatusFilter);
+  }, [rows, selectedStatusFilter]);
 
   // 필터 적용 여부 확인
   const hasFilters = selectedRiskLevel || selectedAirlineId || selectedActionStatus;
@@ -173,10 +181,22 @@ export function OverviewTab() {
     setSelectedAirlineId('');
     setSelectedActionStatus('');
     setSelectedActionType('');
+    setSelectedStatusFilter('all');
     setDateFrom(getDefaultDateFrom());
     setDateTo(getDefaultDateTo());
     setPage(1);
   };
+
+  // 상태별 카운팅
+  const statusCounts = useMemo(() => {
+    const counts = {
+      all: rows.length,
+      complete: rows.filter(r => r.final_status === 'complete').length,
+      partial: rows.filter(r => r.final_status === 'partial').length,
+      in_progress: rows.filter(r => r.final_status === 'in_progress').length,
+    };
+    return counts;
+  }, [rows]);
 
   if (callsignsQuery.isLoading) {
     return (
@@ -191,19 +211,75 @@ export function OverviewTab() {
 
   return (
     <div className="space-y-8">
-      {/* KPI 카드 또는 필터 결과 요약 카드 */}
-      {hasFilters && summary ? (
+      {/* 상태별 카드 (클릭 가능) - 라벨 없음 */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        {/* 발생건수 */}
+        <button
+          onClick={() => {
+            setSelectedStatusFilter('all');
+            setPage(1);
+          }}
+          className={`rounded-lg p-6 transition-all cursor-pointer text-center ${
+            selectedStatusFilter === 'all'
+              ? 'border-2 border-blue-600 bg-blue-50'
+              : 'border-2 border-blue-300 bg-blue-50 hover:border-blue-500'
+          }`}
+        >
+          <div className="text-4xl font-bold text-blue-600">{statusCounts.all}</div>
+        </button>
+
+        {/* 조치완료 */}
+        <button
+          onClick={() => {
+            setSelectedStatusFilter('complete');
+            setPage(1);
+          }}
+          className={`rounded-lg p-6 transition-all cursor-pointer text-center ${
+            selectedStatusFilter === 'complete'
+              ? 'border-2 border-green-600 bg-green-50'
+              : 'border-2 border-green-300 bg-green-50 hover:border-green-500'
+          }`}
+        >
+          <div className="text-4xl font-bold text-green-600">{statusCounts.complete}</div>
+        </button>
+
+        {/* 부분완료 */}
+        <button
+          onClick={() => {
+            setSelectedStatusFilter('partial');
+            setPage(1);
+          }}
+          className={`rounded-lg p-6 transition-all cursor-pointer text-center ${
+            selectedStatusFilter === 'partial'
+              ? 'border-2 border-amber-600 bg-amber-50'
+              : 'border-2 border-amber-300 bg-amber-50 hover:border-amber-500'
+          }`}
+        >
+          <div className="text-4xl font-bold text-amber-600">{statusCounts.partial}</div>
+        </button>
+
+        {/* 진행중 */}
+        <button
+          onClick={() => {
+            setSelectedStatusFilter('in_progress');
+            setPage(1);
+          }}
+          className={`rounded-lg p-6 transition-all cursor-pointer text-center ${
+            selectedStatusFilter === 'in_progress'
+              ? 'border-2 border-gray-600 bg-gray-100'
+              : 'border-2 border-gray-300 bg-gray-50 hover:border-gray-500'
+          }`}
+        >
+          <div className="text-4xl font-bold text-gray-600">{statusCounts.in_progress}</div>
+        </button>
+      </div>
+
+      {/* 필터 결과 요약 카드 */}
+      {hasFilters && summary && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <StatCard label="전체" value={summary.total} color="text-gray-900" />
           <StatCard label="완료" value={summary.completed} color="text-emerald-600" />
           <StatCard label="진행중" value={summary.in_progress} color="text-blue-600" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-          <StatCard label="총 호출부호" value={stats.total} color="text-gray-900" />
-          <StatCard label="매우높음" value={stats.veryHigh} color="text-red-600" />
-          <StatCard label="높음" value={stats.high} color="text-amber-600" />
-          <StatCard label="낮음" value={stats.low} color="text-emerald-600" />
         </div>
       )}
 
@@ -223,9 +299,8 @@ export function OverviewTab() {
             초기화
           </button>
           <button
-            onClick={async () => {
-              const XLSX = await import('xlsx');
-              const excelRows = rows.map((callsign) => ({
+            onClick={() => {
+              const excelRows = filteredRows.map((callsign) => ({
                 '호출부호 쌍': callsign.callsign_pair,
                 '위험도': callsign.risk_level,
                 '유사도': callsign.similarity || '-',
@@ -252,7 +327,7 @@ export function OverviewTab() {
               XLSX.utils.book_append_sheet(wb, ws, '호출부호 현황');
               XLSX.writeFile(wb, `호출부호현황_${new Date().toLocaleDateString('ko-KR')}.xlsx`);
             }}
-            disabled={rows.length === 0}
+            disabled={filteredRows.length === 0}
             className="px-4 py-2 bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-md shadow-indigo-600/20"
           >
             📊 Excel 저장
@@ -407,7 +482,7 @@ export function OverviewTab() {
 
       {/* 호출부호 테이블 영역 */}
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 overflow-hidden">
-        {rows.length > 0 ? (
+        {filteredRows.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -451,7 +526,7 @@ export function OverviewTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {rows.map((callsign) => (
+                {filteredRows.map((callsign) => (
                   <tr
                     key={callsign.id}
                     className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
@@ -608,7 +683,7 @@ export function OverviewTab() {
         )}
 
         {/* 페이지네이션 */}
-        {rows.length > 0 && (
+        {filteredRows.length > 0 && (
           <div className="px-8 py-6 border-t border-slate-100/50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white">
             <span className="text-[12px] font-bold text-slate-400 tracking-wide">
               총 <span className="text-slate-700">{totalItems}</span>건 중 {startItem}-{endItem}

@@ -10,7 +10,6 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { ROUTES } from '@/lib/constants';
 import { ADMIN_LINKS } from '@/lib/admin-navigation';
@@ -53,21 +52,12 @@ function getAirlineTextColor(airlineCode?: string): string {
 
 export function Header() {
   const router = useRouter();
-  const { user, isAuthenticated, isAdmin, logout, fetchUserInfo } = useAuthStore((s) => ({
+  const { user, isAuthenticated, isAdmin, logout } = useAuthStore((s) => ({
     user: s.user,
     isAuthenticated: s.isAuthenticated(),
     isAdmin: s.isAdmin(),
     logout: s.logout,
-    fetchUserInfo: s.fetchUserInfo,
   }));
-
-  // 페이지 로드 시 서버에서 최신 사용자 정보 가져오기 (단일 진실의 소스)
-  // isAuthenticated가 변경될 때마다 최신 정보 갱신
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchUserInfo();
-    }
-  }, [isAuthenticated, fetchUserInfo]);
 
   async function handleLogout() {
     try {

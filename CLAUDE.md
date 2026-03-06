@@ -4,6 +4,34 @@
 > Claude Code는 이 지침을 우선시하여 작업합니다.
 
 ---
+# Project Guidelines (Next.js on Render)
+
+이 프로젝트는 Render.com에 배포되는 폐쇄형(관리자 전용) Next.js 웹 서비스입니다.
+
+## 1. Tech Stack & Rules
+- **Framework**: Next.js (App Router 필수)
+- **Styling**: Tailwind CSS (권장)
+- **Deployment**: Render.com (Node.js Environment)
+- **Database**: PostgreSQL (Prisma 또는 Drizzle 사용 권장)
+- **Auth**: NextAuth.js (Admin 전용, 회원가입 없음)
+
+## 2. Next.js Best Practices (Strict)
+- **Routing**: `app/` 디렉토리(App Router)만 사용하세요.
+- **Components**: 기본적으로 **Server Component**로 작성하고, `useState`, `useEffect`가 꼭 필요한 경우만 파일 최상단에 `'use client'`를 명시하세요.
+- **Images**: `<img>` 태그 대신 반드시 `next/image`의 `<Image />` 컴포넌트를 사용하세요.
+- **Data Fetching**: 서버 컴포넌트에서 `async/await`로 직접 DB/API를 호출하세요.
+
+## 3. UI/UX & Design Guidelines
+- **Layout**: 모바일 우선(Mobile-first)으로 작성하고 `md:`, `lg:` 브레이크포인트를 사용해 확장하세요.
+- **Accessibility**: 시맨틱 태그(<main>, <section>, <button>)를 사용하고, ARIA 속성을 준수하세요.
+- **Design**: 시각적 위계(Hierarchy)를 명확히 하여 중요한 정보가 눈에 띄게 하세요.
+
+## 4. Commands (AI용 실행 명령어)
+- Build: `npm run build`
+- Dev Server: `npm run dev`
+- Lint: `npm run lint`
+
+
 
 ## 📋 프로젝트 기본 정보
 

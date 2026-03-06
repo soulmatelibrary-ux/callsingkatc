@@ -7,26 +7,6 @@ import { Building2, ShieldCheck, Mail, Lock } from 'lucide-react';
 import { ROUTES } from '@/lib/constants';
 import { useAuthStore } from '@/store/authStore';
 
-// KAC 로고 SVG 컴포넌트
-function KACLogo() {
-  return (
-    <svg viewBox="0 0 100 100" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-      {/* 배경 원 */}
-      <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
-
-      {/* KAC 텍스트 */}
-      <g fill="white" fontSize="42" fontWeight="bold" fontFamily="Arial, sans-serif" textAnchor="middle" dominantBaseline="middle">
-        <text x="50" y="45">KAC</text>
-      </g>
-
-      {/* 하단 한글 텍스트 */}
-      <g fill="white" fontSize="8" fontWeight="bold" fontFamily="Arial, sans-serif" textAnchor="middle">
-        <text x="50" y="70">한국공항공사</text>
-      </g>
-    </svg>
-  );
-}
-
 // 고퀄리티 이미지와 태스크 중심 슬로건을 활용한 신규 레이아웃
 export default function Home() {
   const router = useRouter();
@@ -36,45 +16,7 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const hasToken = document.cookie.includes('refreshToken=');
-      if (!hasToken) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch('/api/auth/me', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user) {
-            setUser(data.user);
-            const target = data.user.role === 'admin' ? ROUTES.ADMIN : ROUTES.AIRLINE;
-            router.replace(target);
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('세션 확인 실패:', error);
-      }
-
-      setLoading(false);
-    };
-
-    checkSession();
-  }, [router, setUser]);
-
-  if (loading) {
-    return null;
-  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,26 +48,9 @@ export default function Home() {
         setAuth(result.user, result.accessToken);
       }
 
-      // 역할 확인 및 라우팅
-      if (isAdmin) {
-        // 관리자 로그인
-        if (result.user.role !== 'admin') {
-          setError('관리자 계정이 아닙니다.');
-          setIsSubmitting(false);
-          return;
-        }
-        // 관리자 페이지: 유사호출부호 관리 대시보드
-        router.push('/callsign-management');
-      } else {
-        // 항공사 로그인
-        if (result.user.role === 'admin') {
-          setError('일반 사용자 계정으로 로그인해주세요.');
-          setIsSubmitting(false);
-          return;
-        }
-        // 항공사 정보와 함께 /airline으로 이동
-        router.push('/airline');
-      }
+      // 역할에 따라 즉시 라우팅 (테스트 단계에서는 추가 검증 생략)
+      const destination = result.user.role === 'admin' ? ROUTES.ADMIN : ROUTES.AIRLINE;
+      router.push(destination);
     } catch (err) {
       setError('로그인 중 오류가 발생했습니다.');
       setIsSubmitting(false);
@@ -153,18 +78,13 @@ export default function Home() {
 
       {/* 헤더 로고 */}
       <header className="absolute top-10 left-10 z-20 animate-in fade-in slide-in-from-top-4 duration-1000">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 flex items-center justify-center">
-            <KACLogo />
-          </div>
-          <div>
-            <h1 className="text-xl font-black tracking-tight text-white leading-none mb-1.5 uppercase flex items-center gap-2">
-              <span>한국공항공사</span>
-              <span className="text-white/40 font-medium">|</span>
-              <span>항공교통본부</span>
-            </h1>
-            <p className="text-[10px] text-blue-400 font-bold tracking-[0.4em] leading-none uppercase">KAC Aviation Portal</p>
-          </div>
+        <div>
+          <h1 className="text-xl font-black tracking-tight text-white leading-none mb-1.5 uppercase flex items-center gap-2">
+            <span>유사호출부호 경고시스템</span>
+            <span className="text-white/40 font-medium">|</span>
+            <span>항공교통본부</span>
+          </h1>
+          <p className="text-[10px] text-blue-400 font-bold tracking-[0.4em] leading-none uppercase">SIMILAR CALLSIGN WARNING SYSTEM</p>
         </div>
       </header>
 
@@ -312,8 +232,8 @@ export default function Home() {
             <span className="text-blue-400">Live Data Active</span>
           </div>
         </div>
-        <div className="font-mono text-[10px] text-white/40 text-right tracking-widest uppercase">
-          © 2026 KAC Portal. All rights reserved.
+        <div className="font-mono text-[10px] text-white/80 text-right tracking-widest uppercase">
+          © 2026 한국공항공사. All rights reserved.
         </div>
       </footer>
     </div>

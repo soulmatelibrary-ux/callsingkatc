@@ -58,7 +58,7 @@ export const ROUTES = {
   CHANGE_PASSWORD: '/change-password',
   AIRLINE: '/airline',
   ANNOUNCEMENTS: '/airline/announcements',
-  ADMIN: '/admin',
+  ADMIN: '/callsign-management?tab=overview',
   ADMIN_USERS: '/admin/users',
   ADMIN_PASSWORD_RESET: '/admin/password-reset',
   ADMIN_AIRLINES: '/admin/airlines',

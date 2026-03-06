@@ -24,6 +24,24 @@ export type ActionStatus = 'pending' | 'in_progress' | 'completed';
 export type DateRangeType = 'custom' | 'today' | '1w' | '2w' | '1m';
 
 /**
+ * 발생 이력 상세 정보
+ */
+export interface OccurrenceDetail {
+  occurredDate: string;      // 발생 날짜
+  occurredTime: string | null; // 발생 시간 (YYYY-MM-DD HH:MM:SS)
+  errorType: string;         // 오류 유형
+  subError: string;          // 세부 오류
+}
+
+/**
+ * 오류 유형별 집계
+ */
+export interface ErrorTypeSummary {
+  errorType: string;         // 오류 유형
+  count: number;             // 발생 건수
+}
+
+/**
  * 발생현황 (Incident) 인터페이스
  * callsigns 데이터를 화면 표시용으로 변환한 형태
  */
@@ -41,6 +59,9 @@ export interface Incident {
   firstDate: string | null;
   lastDate: string | null;
   dates: string[];        // 발생 이력 날짜 배열
+  // 발생 이력 상세 정보 (callsign_occurrences에서 가져옴)
+  occurrences?: OccurrenceDetail[];      // 발생 이력 상세 (날짜+시간+오류유형)
+  errorTypeSummary?: ErrorTypeSummary[]; // 오류 유형별 집계
   // 조치 상태
   actionId?: string | null;  // 실제 Action 레코드 ID (기존 조치 조회용)
   actionStatus?: 'no_action' | 'pending' | 'in_progress' | 'completed';

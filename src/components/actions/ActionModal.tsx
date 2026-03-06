@@ -242,11 +242,9 @@ export function ActionModal({
               }}
             >
               <option value="">선택하세요</option>
-              <option value="편명 변경">편명 변경</option>
-              <option value="브리핑 시행">브리핑 시행</option>
-              <option value="모니터링 강화">모니터링 강화</option>
-              <option value="절차 개선">절차 개선</option>
-              <option value="시스템 개선">시스템 개선</option>
+              <option value="편명변경">편명변경</option>
+              <option value="조종사 브리핑">조종사 브리핑</option>
+              <option value="스케줄조정">스케줄조정</option>
               <option value="기타">기타</option>
             </select>
           </div>

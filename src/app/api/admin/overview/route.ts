@@ -56,15 +56,23 @@ export async function GET(request: NextRequest) {
         a1.name_ko as airline1_name,
         a2.name_ko as airline2_name,
 
-        -- 항공사1 조치 상태 (내 항공사)
+        -- 항공사1 조치 상태 및 조치유형
         (SELECT status FROM actions
          WHERE callsign_id = c.id AND airline_id = a1.id AND COALESCE(is_cancelled, 0) = 0
          ORDER BY registered_at DESC LIMIT 1) as airline1_action_status,
 
-        -- 항공사2 조치 상태 (다른 항공사)
+        (SELECT action_type FROM actions
+         WHERE callsign_id = c.id AND airline_id = a1.id AND COALESCE(is_cancelled, 0) = 0
+         ORDER BY registered_at DESC LIMIT 1) as airline1_action_type,
+
+        -- 항공사2 조치 상태 및 조치유형
         (SELECT status FROM actions
          WHERE callsign_id = c.id AND airline_id = a2.id AND COALESCE(is_cancelled, 0) = 0
          ORDER BY registered_at DESC LIMIT 1) as airline2_action_status,
+
+        (SELECT action_type FROM actions
+         WHERE callsign_id = c.id AND airline_id = a2.id AND COALESCE(is_cancelled, 0) = 0
+         ORDER BY registered_at DESC LIMIT 1) as airline2_action_type,
 
         -- 항공사1 조치 완료일
         (SELECT completed_at FROM actions
@@ -136,9 +144,11 @@ export async function GET(request: NextRequest) {
         airline2_code: row.other_airline_code,
         airline2_name: row.airline2_name,
 
-        // 조치 상태
+        // 조치 상태 및 조치유형
         airline1_action_status: row.airline1_action_status || 'no_action',
+        airline1_action_type: row.airline1_action_type || '-',
         airline2_action_status: row.airline2_action_status || 'no_action',
+        airline2_action_type: row.airline2_action_type || '-',
 
         // 최종 조치 현황
         action_status,

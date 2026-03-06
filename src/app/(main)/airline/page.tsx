@@ -175,6 +175,9 @@ export default function AirlinePage() {
       firstDate: cs.first_occurred_at ? new Date(cs.first_occurred_at).toISOString().split('T')[0] : null,
       lastDate: cs.last_occurred_at ? new Date(cs.last_occurred_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       dates: [],
+      // 발생 이력 상세 정보
+      occurrences: cs.occurrences || [],
+      errorTypeSummary: cs.errorTypeSummary || [],
       // 조치 상태
       actionId: cs.action_id || cs.actionId || null,
       actionStatus: cs.action_status || cs.actionStatus || 'no_action',
