@@ -398,34 +398,32 @@ export function AirlineOccurrenceTab({
                   </div>
                 )}
 
-                {/* 발생 이력 타임라인 */}
+                {/* 발생 이력 타임라인 (날짜+시간) */}
                 {incident.occurrences && incident.occurrences.length > 0 && (
                   <div>
-                    <div className="text-[11px] font-semibold text-gray-500 mb-1">🕐 발생 이력</div>
+                    <div className="text-[11px] font-semibold text-gray-500 mb-1">🕐 발생 이력 (날짜·시간)</div>
                     <div className="flex flex-wrap gap-1.5">
                       {incident.occurrences.map((occurrence, i) => {
                         // 날짜 형식: YYYY-MM-DD → MM-DD
                         const dateStr = occurrence.occurredDate
                           ? occurrence.occurredDate.split('-').slice(1).join('-')
                           : '-';
-                        // 시간 형식: YYYY-MM-DD HH:MM:SS → HH:MM 또는 HH:MM:SS → HH:MM
+
+                        // 시간 형식: HH:MM:SS → HH:MM
                         let timeStr = '';
-                        if (occurrence.occurredTime) {
-                          // 공백으로 분리된 경우 (YYYY-MM-DD HH:MM:SS)
-                          if (occurrence.occurredTime.includes(' ')) {
-                            timeStr = occurrence.occurredTime.split(' ')[1]?.substring(0, 5) || '';
-                          } else {
-                            // 시간만 있는 경우 (HH:MM:SS)
-                            timeStr = occurrence.occurredTime.substring(0, 5);
-                          }
+                        if (occurrence.occurredTime && occurrence.occurredTime !== '00:00:00') {
+                          // HH:MM:SS 형식에서 HH:MM만 추출
+                          timeStr = occurrence.occurredTime.substring(0, 5);
+                        } else {
+                          timeStr = '00:00';
                         }
-                        
+
                         return (
                           <span
                             key={i}
-                            className="inline-block text-[11px] bg-gray-100 text-gray-800 px-2 py-0.5 rounded font-mono border border-gray-300"
+                            className="inline-block text-[11px] bg-blue-50 text-blue-800 px-2.5 py-0.5 rounded font-mono border border-blue-200"
                           >
-                            {dateStr} {timeStr}
+                            {dateStr} <span className="text-blue-500 font-bold">{timeStr}</span>
                           </span>
                         );
                       })}

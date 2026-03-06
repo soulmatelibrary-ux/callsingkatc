@@ -409,8 +409,9 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // Step 2: 발생 날짜 추출 (시작일시 row[1] 사용, 없으면 오늘)
+          // Step 2: 발생 날짜 및 시간 추출 (시작일시 row[1], 시작시간 row[2] 사용)
           let occurredDate: string;
+          let occurredTime: string = '00:00:00'; // 기본값
 
           if (!row[1]) {
             // 비어있으면 오늘 날짜
@@ -453,19 +454,40 @@ export async function POST(request: NextRequest) {
             }
           }
 
+          // 시간 정보 추출 (row[2])
+          if (row[2]) {
+            const timeValue = row[2];
+            const timeStr = String(timeValue).trim();
+
+            // "HH:MM:SS" 또는 "HH:MM" 형식 확인
+            if (timeStr.match(/^\d{1,2}:\d{2}(:\d{2})?$/)) {
+              const parts = timeStr.split(':');
+              const hour = parts[0].padStart(2, '0');
+              const minute = parts[1].padStart(2, '0');
+              const second = parts[2]?.padStart(2, '0') || '00';
+              occurredTime = `${hour}:${minute}:${second}`;
+            } else if (typeof timeValue === 'number' && timeValue > 0 && timeValue < 1) {
+              // Excel 시간 소수 (0.5 = 12:00:00)
+              const hours = Math.floor(timeValue * 24);
+              const minutes = Math.floor((timeValue * 24 * 60) % 60);
+              const seconds = Math.floor((timeValue * 24 * 60 * 60) % 60);
+              occurredTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+          }
+
           // Step 3: callsign_occurrences 테이블에 발생 이력 저장
-          // 같은 callsign이 같은 날짜에 여러 번 나타나면 스킵 (UNIQUE constraint)
+          // 같은 callsign이 같은 날짜+시간에 나타나면 스킵 (UNIQUE constraint)
           try {
             await query(
               `INSERT INTO callsign_occurrences
-                (callsign_id, occurred_date, error_type, sub_error, file_upload_id)
-               VALUES (?, ?, ?, ?, ?)
-               ON CONFLICT (callsign_id, occurred_date) DO NOTHING`,
-              [callsignId, occurredDate, rowData.error_type, rowData.sub_error, uploadId]
+                (callsign_id, occurred_date, occurred_time, error_type, sub_error, file_upload_id)
+               VALUES (?, ?, ?, ?, ?, ?)
+               ON CONFLICT (callsign_id, occurred_date, occurred_time) DO NOTHING`,
+              [callsignId, occurredDate, occurredTime, rowData.error_type, rowData.sub_error, uploadId]
             );
           } catch (occurrenceError) {
             // 발생 이력 저장 실패해도 호출부호는 이미 저장되었으므로 진행
-            console.warn(`발생 이력 저장 실패 (callsignId: ${callsignId}, date: ${occurredDate}):`, occurrenceError);
+            console.warn(`발생 이력 저장 실패 (callsignId: ${callsignId}, date: ${occurredDate}, time: ${occurredTime}):`, occurrenceError);
           }
 
           if (isNewCallsign) {

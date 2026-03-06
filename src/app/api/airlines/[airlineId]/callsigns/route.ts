@@ -145,23 +145,23 @@ export async function GET(
         }
       }
 
-      // 발생 이력 상세 조회 (callsign_occurrences 테이블)
+      // 발생 이력 상세 조회 (callsign_occurrences 테이블) - 날짜와 시간 모두 포함
       const occurrencesResult = await query(
         `SELECT callsign_id, occurred_date, occurred_time, error_type, sub_error
          FROM callsign_occurrences
          WHERE callsign_id IN (${placeholders})
-         ORDER BY occurred_date DESC, occurred_time DESC`,
+         ORDER BY occurred_date DESC, COALESCE(occurred_time, '00:00:00') DESC`,
         callsignIds
       );
 
-      // 호출부호별로 발생 이력 그룹화
+      // 호출부호별로 발생 이력 그룹화 (날짜+시간 함께 저장)
       for (const occ of occurrencesResult.rows) {
         if (!occurrencesMap[occ.callsign_id]) {
           occurrencesMap[occ.callsign_id] = [];
         }
         occurrencesMap[occ.callsign_id].push({
           occurredDate: occ.occurred_date,
-          occurredTime: occ.occurred_time,
+          occurredTime: occ.occurred_time || '00:00:00',
           errorType: occ.error_type,
           subError: occ.sub_error,
         });
