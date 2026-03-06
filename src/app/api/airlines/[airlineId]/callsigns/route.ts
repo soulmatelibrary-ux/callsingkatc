@@ -122,9 +122,13 @@ export async function GET(
     // 각 호출부호에 대한 조치 상태 조회
     const callsignIds = callsignsResult.rows.map((cs: any) => cs.id);
     let actionStatusMap: { [key: string]: any } = {};
+    let occurrencesMap: { [key: string]: any[] } = {};
+    let errorTypeSummaryMap: { [key: string]: any[] } = {};
 
     if (callsignIds.length > 0) {
       const placeholders = callsignIds.map(() => '?').join(',');
+      
+      // 조치 상태 조회
       const actionsResult = await query(
         `SELECT id, callsign_id, status, action_type, completed_at
          FROM actions
@@ -139,6 +143,42 @@ export async function GET(
         if (!actionStatusMap[action.callsign_id]) {
           actionStatusMap[action.callsign_id] = action;
         }
+      }
+
+      // 발생 이력 상세 조회 (callsign_occurrences 테이블)
+      const occurrencesResult = await query(
+        `SELECT callsign_id, occurred_date, occurred_time, error_type, sub_error
+         FROM callsign_occurrences
+         WHERE callsign_id IN (${placeholders})
+         ORDER BY occurred_date DESC, occurred_time DESC`,
+        callsignIds
+      );
+
+      // 호출부호별로 발생 이력 그룹화
+      for (const occ of occurrencesResult.rows) {
+        if (!occurrencesMap[occ.callsign_id]) {
+          occurrencesMap[occ.callsign_id] = [];
+        }
+        occurrencesMap[occ.callsign_id].push({
+          occurredDate: occ.occurred_date,
+          occurredTime: occ.occurred_time,
+          errorType: occ.error_type,
+          subError: occ.sub_error,
+        });
+      }
+
+      // 오류 유형별 집계 (공백 제거하여 정규화)
+      for (const callsignId of callsignIds) {
+        const occurrences = occurrencesMap[callsignId] || [];
+        const summary: { [key: string]: number } = {};
+        for (const occ of occurrences) {
+          const normalizedType = occ.error_type?.replace(/\s+/g, '') || '오류미발생';
+          summary[normalizedType] = (summary[normalizedType] || 0) + 1;
+        }
+        errorTypeSummaryMap[callsignId] = Object.entries(summary).map(([errorType, count]) => ({
+          errorType,
+          count,
+        }));
       }
     }
 
@@ -163,6 +203,9 @@ export async function GET(
     return NextResponse.json({
       data: callsignsResult.rows.map((callsign: any) => {
         const latestAction = actionStatusMap[callsign.id];
+        const occurrences = occurrencesMap[callsign.id] || [];
+        const errorTypeSummary = errorTypeSummaryMap[callsign.id] || [];
+        
         return {
           id: callsign.id,
           airline_id: callsign.airline_id,
@@ -183,6 +226,9 @@ export async function GET(
           uploaded_at: callsign.uploaded_at,
           created_at: callsign.created_at,
           updated_at: callsign.updated_at,
+          // 발생 이력 상세 정보
+          occurrences,
+          errorTypeSummary,
           // 조치 상태 추가
           action_id: latestAction?.id || null,
           action_status: latestAction?.status || 'no_action',
