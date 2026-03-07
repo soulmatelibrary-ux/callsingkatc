@@ -361,13 +361,13 @@ export function AirlineOccurrenceTab({
                   {/* 조치등록/수정 버튼 */}
                   <button
                     onClick={() => onOpenActionModal(incident)}
-                    className={`px-2.5 py-1 text-xs font-bold rounded transition-colors ${
+                    className={`px-2.5 py-1 text-xs font-bold rounded transition-colors cursor-pointer ${
                       incident.actionStatus === 'completed'
-                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 hover:bg-emerald-200'
+                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 hover:bg-emerald-200 hover:shadow-sm'
                         : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
                   >
-                    {incident.actionStatus === 'completed' ? '✓ 수정' : '조치등록'}
+                    {incident.actionStatus === 'completed' ? '✓ 조치완료' : '조치등록'}
                   </button>
                 </div>
 
