@@ -335,7 +335,8 @@ export async function GET(request: NextRequest) {
           callsign.my_action_status || 'no_action',
           callsign.other_action_status || 'no_action',
           callsign.airline_code,
-          callsign.other_airline_code
+          callsign.other_airline_code,
+          domesticAirlines
         ),
       })),
       pagination: {
