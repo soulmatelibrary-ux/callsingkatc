@@ -31,7 +31,7 @@ export function AirlineCallsignListTab({
 
   // 상태
   const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'risk' | 'occurrence'>('latest');
+  const [sortBy, setSortBy] = useState<'latest' | 'oldest' | 'risk' | 'occurrence' | 'priority'>('priority');
   const [isExporting, setIsExporting] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'pending'>('all');
 
@@ -109,7 +109,25 @@ export function AirlineCallsignListTab({
   // 정렬 로직
   const sortedCallsigns = useMemo(() => {
     const sorted = [...statusFilteredCallsigns];
+    const riskOrder = { '매우높음': 3, '높음': 2, '낮음': 1, '중간': 1 };
+    const similarityOrder = { '매우높음': 3, '높음': 2, '낮음': 1 };
+
     switch (sortBy) {
+      case 'priority':
+        return sorted.sort((a, b) => {
+          // 1순위: 위험도 (높을수록 우선)
+          const riskA = riskOrder[a.risk_level as keyof typeof riskOrder] || 0;
+          const riskB = riskOrder[b.risk_level as keyof typeof riskOrder] || 0;
+          if (riskB !== riskA) return riskB - riskA;
+
+          // 2순위: 유사도 (높을수록 우선)
+          const simA = similarityOrder[a.similarity as keyof typeof similarityOrder] || 0;
+          const simB = similarityOrder[b.similarity as keyof typeof similarityOrder] || 0;
+          if (simB !== simA) return simB - simA;
+
+          // 3순위: 발생건 (많을수록 우선)
+          return (b.occurrence_count || 0) - (a.occurrence_count || 0);
+        });
       case 'latest':
         return sorted.sort((a, b) => {
           const dateA = a.last_occurred_at ? new Date(a.last_occurred_at).getTime() : 0;
@@ -123,7 +141,6 @@ export function AirlineCallsignListTab({
           return dateA - dateB;
         });
       case 'risk':
-        const riskOrder = { '매우높음': 3, '높음': 2, '낮음': 1 };
         return sorted.sort((a, b) =>
           (riskOrder[b.risk_level as keyof typeof riskOrder] || 0) - (riskOrder[a.risk_level as keyof typeof riskOrder] || 0)
         );
@@ -317,6 +334,7 @@ export function AirlineCallsignListTab({
             }}
             className="px-3 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
+            <option value="priority">우선순위순 (위험도 → 유사도 → 발생)</option>
             <option value="latest">최근발생일순</option>
             <option value="oldest">오래된순</option>
             <option value="risk">위험도순</option>

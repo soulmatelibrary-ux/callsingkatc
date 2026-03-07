@@ -4,7 +4,7 @@ import React from 'react';
 import { DateRangeType } from '@/types/airline';
 
 type ActionStatusFilter = 'all' | 'no_action' | 'in_progress' | 'completed';
-type SortOrder = 'risk' | 'count' | 'latest';
+type SortOrder = 'risk' | 'count' | 'latest' | 'priority';
 
 interface IncidentFiltersProps {
   startDate: string;
@@ -125,6 +125,7 @@ export function IncidentFilters({
               onChange={(e) => onSortOrderChange?.(e.target.value as SortOrder)}
               className="border-none bg-transparent text-sm font-semibold text-gray-800 outline-none"
             >
+              <option value="priority">우선순위순 (위험도 → 유사도 → 발생)</option>
               <option value="latest">최신순</option>
               <option value="count">발생건수순</option>
               <option value="risk">오류가능성순</option>

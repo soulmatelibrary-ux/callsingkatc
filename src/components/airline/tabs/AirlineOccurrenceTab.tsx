@@ -27,7 +27,7 @@ interface AirlineOccurrenceTabProps {
   onOpenActionModal: (incident: Incident) => void;
 }
 
-type SortOrder = 'risk' | 'count' | 'latest';
+type SortOrder = 'risk' | 'count' | 'latest' | 'priority';
 type ActionStatusFilter = 'all' | 'no_action' | 'in_progress' | 'completed';
 
 export function AirlineOccurrenceTab({
@@ -52,7 +52,7 @@ export function AirlineOccurrenceTab({
   onExport,
   onOpenActionModal,
 }: AirlineOccurrenceTabProps) {
-  const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('priority');
   const [actionStatusFilter, setActionStatusFilter] = useState<ActionStatusFilter>('all');
 
   // 날짜 필터링된 incidents
@@ -94,7 +94,21 @@ export function AirlineOccurrenceTab({
       const bCompleted = b.actionStatus === 'completed' ? 0 : 1;
       if (aCompleted !== bCompleted) return aCompleted - bCompleted;
 
-      if (sortOrder === 'risk') {
+      if (sortOrder === 'priority') {
+        const similarityOrder = { '매우높음': 3, '높음': 2, '낮음': 1 };
+        // 1순위: 위험도
+        const riskA = RISK_LEVEL_ORDER[a.risk as keyof typeof RISK_LEVEL_ORDER] || 0;
+        const riskB = RISK_LEVEL_ORDER[b.risk as keyof typeof RISK_LEVEL_ORDER] || 0;
+        if (riskB !== riskA) return riskB - riskA;
+
+        // 2순위: 유사도
+        const simA = similarityOrder[a.similarity as keyof typeof similarityOrder] || 0;
+        const simB = similarityOrder[b.similarity as keyof typeof similarityOrder] || 0;
+        if (simB !== simA) return simB - simA;
+
+        // 3순위: 발생건
+        return (b.count || 0) - (a.count || 0);
+      } else if (sortOrder === 'risk') {
         const riskA = RISK_LEVEL_ORDER[a.risk as keyof typeof RISK_LEVEL_ORDER] || 0;
         const riskB = RISK_LEVEL_ORDER[b.risk as keyof typeof RISK_LEVEL_ORDER] || 0;
         if (riskA !== riskB) return riskB - riskA;
@@ -344,19 +358,17 @@ export function AirlineOccurrenceTab({
                       );
                     })()}
                   </div>
-                  {/* 조치등록 버튼 or 조치완료 */}
-                  {incident.actionStatus === 'completed' ? (
-                    <div className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded border border-emerald-300">
-                      ✓ 조치완료
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => onOpenActionModal(incident)}
-                      className="px-2.5 py-1 bg-blue-600 text-white text-xs font-bold rounded hover:bg-blue-700 transition-colors"
-                    >
-                      조치등록
-                    </button>
-                  )}
+                  {/* 조치등록/수정 버튼 */}
+                  <button
+                    onClick={() => onOpenActionModal(incident)}
+                    className={`px-2.5 py-1 text-xs font-bold rounded transition-colors ${
+                      incident.actionStatus === 'completed'
+                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-300 hover:bg-emerald-200'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {incident.actionStatus === 'completed' ? '✓ 수정' : '조치등록'}
+                  </button>
                 </div>
 
                 {/* 정보 테이블 */}
