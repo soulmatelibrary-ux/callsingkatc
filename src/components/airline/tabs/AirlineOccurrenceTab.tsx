@@ -89,6 +89,11 @@ export function AirlineOccurrenceTab({
     }
 
     return filtered.sort((a, b) => {
+      // 완료 상태를 상단에 배치 (조치중/미조치 아래)
+      const aCompleted = a.actionStatus === 'completed' ? 0 : 1;
+      const bCompleted = b.actionStatus === 'completed' ? 0 : 1;
+      if (aCompleted !== bCompleted) return aCompleted - bCompleted;
+
       if (sortOrder === 'risk') {
         const riskA = RISK_LEVEL_ORDER[a.risk as keyof typeof RISK_LEVEL_ORDER] || 0;
         const riskB = RISK_LEVEL_ORDER[b.risk as keyof typeof RISK_LEVEL_ORDER] || 0;
@@ -198,9 +203,7 @@ export function AirlineOccurrenceTab({
     <div className="space-y-6">
       {/* 통계 카드 섹션 */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-sm font-bold text-gray-600 mb-4 uppercase tracking-widest">
-          📊 발생현황 요약
-        </h3>
+
 
         {/* 메인 통계 */}
         <div className="mb-6">
@@ -212,10 +215,17 @@ export function AirlineOccurrenceTab({
             ※ 오류 유형별 건수는 발생 이력 기준이며, 전체 유사호출부호 쌍 수와 일치하지 않습니다.
           </div>
 
-          {/* 3칸 카드 그리드 */}
+          {/* 3칸 카드 그리드 (클릭하면 필터링) */}
           <div className="grid grid-cols-3 gap-3">
             {/* ATC 오류 */}
-            <div className="border-2 border-rose-200 rounded-lg p-4 bg-rose-50 cursor-pointer hover:shadow-md transition-shadow">
+            <button
+              onClick={() => onErrorTypeFilterChange(errorTypeFilter === '관제사 오류' ? 'all' : '관제사 오류')}
+              className={`border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all ${
+                errorTypeFilter === '관제사 오류'
+                  ? 'border-rose-400 bg-rose-100 shadow-md'
+                  : 'border-rose-200 bg-rose-50'
+              }`}
+            >
               <div className="text-xs font-bold text-rose-600 uppercase mb-2">
                 관제사 오류
               </div>
@@ -223,10 +233,17 @@ export function AirlineOccurrenceTab({
                 <span className="text-2xl font-black text-rose-700">{stats.atc}</span>
                 <span className="text-xs font-bold text-rose-500">{stats.atcPercent}%</span>
               </div>
-            </div>
+            </button>
 
             {/* PILOT 오류 */}
-            <div className="border-2 border-orange-200 rounded-lg p-4 bg-orange-50 cursor-pointer hover:shadow-md transition-shadow">
+            <button
+              onClick={() => onErrorTypeFilterChange(errorTypeFilter === '조종사 오류' ? 'all' : '조종사 오류')}
+              className={`border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all ${
+                errorTypeFilter === '조종사 오류'
+                  ? 'border-orange-400 bg-orange-100 shadow-md'
+                  : 'border-orange-200 bg-orange-50'
+              }`}
+            >
               <div className="text-xs font-bold text-orange-600 uppercase mb-2">
                 조종사 오류
               </div>
@@ -234,10 +251,17 @@ export function AirlineOccurrenceTab({
                 <span className="text-2xl font-black text-orange-700">{stats.pilot}</span>
                 <span className="text-xs font-bold text-orange-500">{stats.pilotPercent}%</span>
               </div>
-            </div>
+            </button>
 
-            {/* 불명 */}
-            <div className="border-2 border-emerald-200 rounded-lg p-4 bg-emerald-50 cursor-pointer hover:shadow-md transition-shadow">
+            {/* 오류 미분류 */}
+            <button
+              onClick={() => onErrorTypeFilterChange(errorTypeFilter === '오류 미발생' ? 'all' : '오류 미발생')}
+              className={`border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all ${
+                errorTypeFilter === '오류 미발생'
+                  ? 'border-emerald-400 bg-emerald-100 shadow-md'
+                  : 'border-emerald-200 bg-emerald-50'
+              }`}
+            >
               <div className="text-xs font-bold text-emerald-600 uppercase mb-2">
                 오류 미분류
               </div>
@@ -245,7 +269,7 @@ export function AirlineOccurrenceTab({
                 <span className="text-2xl font-black text-emerald-700">{stats.none}</span>
                 <span className="text-xs font-bold text-emerald-500">{stats.nonePercent}%</span>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -441,24 +465,61 @@ export function AirlineOccurrenceTab({
 
         {/* 페이지네이션 */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-6">
-            <button
-              onClick={() => onPageChange(Math.max(1, incidentsPage - 1))}
-              disabled={incidentsPage === 1}
-              className="px-3 py-1 text-sm font-semibold text-gray-600 hover:text-gray-900 disabled:text-gray-300"
-            >
-              이전
-            </button>
-            <span className="text-sm text-gray-600">
-              {incidentsPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => onPageChange(Math.min(totalPages, incidentsPage + 1))}
-              disabled={incidentsPage === totalPages}
-              className="px-3 py-1 text-sm font-semibold text-gray-600 hover:text-gray-900 disabled:text-gray-300"
-            >
-              다음
-            </button>
+          <div className="px-6 py-6 border-t border-gray-200">
+            {/* 정보 텍스트 */}
+            <div className="text-center mb-4">
+              <span className="text-[12px] font-bold text-gray-600">
+                총 <span className="text-gray-800 font-black">{allFilteredIncidents.length}</span>건 중 <span className="text-blue-600">{(incidentsPage - 1) * incidentsLimit + 1}-{Math.min(incidentsPage * incidentsLimit, allFilteredIncidents.length)}</span>
+              </span>
+            </div>
+
+            {/* 페이지네이션 버튼 */}
+            <div className="flex items-center justify-center gap-1">
+              {/* 첫 페이지 */}
+              <button
+                onClick={() => onPageChange(1)}
+                disabled={incidentsPage === 1}
+                title="첫 페이지"
+                className="px-3 py-2 rounded border border-gray-300 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 disabled:border-gray-200 disabled:text-gray-300 disabled:bg-gray-50 transition-all"
+              >
+                ⏮
+              </button>
+
+              {/* 이전 */}
+              <button
+                onClick={() => onPageChange(Math.max(1, incidentsPage - 1))}
+                disabled={incidentsPage === 1}
+                className="px-3 py-2 rounded border border-gray-300 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 disabled:border-gray-200 disabled:text-gray-300 disabled:bg-gray-50 transition-all"
+              >
+                ◀
+              </button>
+
+              {/* 페이지 번호 표시 */}
+              <div className="px-4 py-2 mx-1 rounded border border-blue-300 bg-blue-50">
+                <span className="text-sm font-black text-blue-600">
+                  {incidentsPage} <span className="text-gray-400 font-bold">/ {totalPages}</span>
+                </span>
+              </div>
+
+              {/* 다음 */}
+              <button
+                onClick={() => onPageChange(Math.min(totalPages, incidentsPage + 1))}
+                disabled={incidentsPage >= totalPages}
+                className="px-3 py-2 rounded border border-gray-300 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 disabled:border-gray-200 disabled:text-gray-300 disabled:bg-gray-50 transition-all"
+              >
+                ▶
+              </button>
+
+              {/* 마지막 페이지 */}
+              <button
+                onClick={() => onPageChange(totalPages)}
+                disabled={incidentsPage === totalPages}
+                title="마지막 페이지"
+                className="px-3 py-2 rounded border border-gray-300 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 disabled:border-gray-200 disabled:text-gray-300 disabled:bg-gray-50 transition-all"
+              >
+                ⏭
+              </button>
+            </div>
           </div>
         )}
       </div>

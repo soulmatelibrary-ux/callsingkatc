@@ -52,7 +52,8 @@ export function IncidentFilters({
 
   return (
     <div className="w-full rounded-none border border-gray-200 bg-white px-5 py-4 shadow-sm space-y-3">
-      <div className="flex w-full flex-wrap items-center gap-3">
+      {/* 첫 번째 행: 조회기간 + 빠른 선택 + 조회 */}
+      <div className="flex w-full items-center gap-3">
         <div className="flex items-center gap-3 rounded-none border border-gray-200 bg-white px-3 py-2 shadow-sm">
           <input
             type="date"
@@ -92,54 +93,11 @@ export function IncidentFilters({
         >
           조회
         </button>
-
-        {showSort && (
-          <div className="flex h-10 items-center gap-2 rounded-none border border-gray-200 bg-white px-3 py-2 shadow-sm">
-            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">정렬</span>
-            <select
-              value={sortOrder}
-              onChange={(e) => onSortOrderChange?.(e.target.value as SortOrder)}
-              className="w-full border-none bg-transparent text-sm font-semibold text-gray-800 outline-none"
-            >
-              <option value="latest">최신순</option>
-              <option value="count">발생건수순</option>
-              <option value="risk">오류가능성순</option>
-            </select>
-          </div>
-        )}
-
-        <div className="flex h-10 items-center gap-2 rounded-none border border-gray-200 bg-white px-3 py-2 shadow-sm">
-          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">LIMIT</span>
-          <select
-            value={incidentsLimit}
-            onChange={(e) => onLimitChange(parseInt(e.target.value, 10))}
-            className="border-none bg-transparent text-sm font-semibold text-gray-800 outline-none"
-          >
-            <option value="10">10건</option>
-            <option value="30">30건</option>
-            <option value="50">50건</option>
-            <option value="100">100건</option>
-          </select>
-        </div>
-
-        <button
-          type="button"
-          onClick={onExport}
-          disabled={isExporting || allFilteredIncidentsCount === 0}
-          className={`ml-auto flex h-10 items-center gap-2 rounded-none border px-5 text-[13px] font-bold shadow-sm transition-colors ${
-            isExporting || allFilteredIncidentsCount === 0
-              ? 'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400'
-              : 'border-green-700 bg-green-700 text-white hover:bg-green-800'
-          }`}
-        >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          <span>{isExporting ? '추출 중...' : '엑셀 다운로드'}</span>
-        </button>
       </div>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      {/* 두 번째 행: 검색 + 정렬 + LIMIT + 상태 + 엑셀 (한 줄) */}
+      <div className="flex w-full items-center gap-3">
+        {/* 검색 입력창 */}
         <div className="relative flex-1 group">
           <div className="pointer-events-none absolute inset-y-0 left-5 flex items-center text-gray-400 group-focus-within:text-[#0f1b40]">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,44 +112,73 @@ export function IncidentFilters({
             onKeyDown={(e) => {
               if (e.key === 'Enter') onSearchSubmit();
             }}
-            className="w-full rounded-none border border-gray-200 py-3 pl-14 pr-28 text-sm font-semibold text-gray-900 shadow-sm outline-none transition focus:border-[#0f1b40] focus:ring-2 focus:ring-[#0f1b40]/10"
+            className="w-full rounded-none border border-gray-200 py-3 pl-14 pr-5 text-sm font-semibold text-gray-900 shadow-sm outline-none transition focus:border-[#0f1b40] focus:ring-2 focus:ring-[#0f1b40]/10"
           />
-          <button
-            onClick={onSearchSubmit}
-            className="absolute right-1 top-1 bottom-1 rounded-none bg-[#0f1b40] px-8 text-xs font-black tracking-[0.4em] text-white transition hover:bg-[#0b142f]"
-          >
-            SEARCH
-          </button>
         </div>
 
-        {showStatusFilter && (
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-gray-500">상태</span>
-            <div className="flex overflow-hidden rounded-full border border-gray-200 bg-white shadow-sm">
-              {[
-                { label: '전체', value: 'all' as ActionStatusFilter },
-                { label: '진행중', value: 'in_progress' as ActionStatusFilter },
-                { label: '조치완료', value: 'completed' as ActionStatusFilter },
-              ].map(({ label, value }) => {
-                const isActive = actionStatusFilter === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => onActionStatusFilterChange?.(value)}
-                    className={`px-4 py-2 text-sm font-bold transition-colors ${
-                      isActive
-                        ? 'bg-[#0f1b40] text-white'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
+        {/* 정렬 */}
+        {showSort && (
+          <div className="flex h-10 items-center gap-2 rounded-none border border-gray-200 bg-white px-3 py-2 shadow-sm">
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">정렬</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => onSortOrderChange?.(e.target.value as SortOrder)}
+              className="border-none bg-transparent text-sm font-semibold text-gray-800 outline-none"
+            >
+              <option value="latest">최신순</option>
+              <option value="count">발생건수순</option>
+              <option value="risk">오류가능성순</option>
+            </select>
           </div>
         )}
+
+        {/* LIMIT */}
+        <div className="flex h-10 items-center gap-2 rounded-none border border-gray-200 bg-white px-3 py-2 shadow-sm">
+          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">LIMIT</span>
+          <select
+            value={incidentsLimit}
+            onChange={(e) => onLimitChange(parseInt(e.target.value, 10))}
+            className="border-none bg-transparent text-sm font-semibold text-gray-800 outline-none"
+          >
+            <option value="10">10건</option>
+            <option value="30">30건</option>
+            <option value="50">50건</option>
+            <option value="100">100건</option>
+          </select>
+        </div>
+
+        {/* 상태 */}
+        {showStatusFilter && (
+          <div className="flex h-10 items-center gap-2 rounded-none border border-gray-200 bg-white px-3 py-2 shadow-sm">
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">상태</span>
+            <select
+              value={actionStatusFilter}
+              onChange={(e) => onActionStatusFilterChange?.(e.target.value as ActionStatusFilter)}
+              className="border-none bg-transparent text-sm font-semibold text-gray-800 outline-none"
+            >
+              <option value="all">전체</option>
+              <option value="in_progress">진행중</option>
+              <option value="completed">조치완료</option>
+            </select>
+          </div>
+        )}
+
+        {/* 엑셀 다운로드 */}
+        <button
+          type="button"
+          onClick={onExport}
+          disabled={isExporting || allFilteredIncidentsCount === 0}
+          className={`flex h-10 items-center gap-2 rounded-none border px-5 text-[13px] font-bold shadow-sm transition-colors ${
+            isExporting || allFilteredIncidentsCount === 0
+              ? 'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400'
+              : 'border-green-700 bg-green-700 text-white hover:bg-green-800'
+          }`}
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span>{isExporting ? '추출 중...' : '엑셀 다운로드'}</span>
+        </button>
       </div>
     </div>
   );

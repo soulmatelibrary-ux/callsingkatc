@@ -13,14 +13,15 @@ import { useDateRangeFilter, formatDateInput, toInputDate } from '@/hooks/useDat
 import { ActionModal } from '@/components/actions/ActionModal';
 import { Header } from '@/components/layout/Header';
 import { AirlineStatisticsTab } from '@/components/airline/AirlineStatisticsTab';
-import { IncidentsTab, ActionsTab, AnnouncementsTab, AirlineOccurrenceTab, AirlineActionHistoryTab } from '@/components/airline/tabs';
+import { AnnouncementsTab, AirlineOccurrenceTab, AirlineActionHistoryTab, AirlineCallsignListTab } from '@/components/airline/tabs';
 import { AnnouncementPopup } from '@/components/airline/AnnouncementPopup';
 import { NanoIcon } from '@/components/ui/NanoIcon';
 import {
   BarChart3,
   ClipboardList,
   TrendingUp,
-  Megaphone
+  Megaphone,
+  type LucideIcon
 } from 'lucide-react';
 import {
   AirlineTabType,
@@ -63,12 +64,6 @@ export default function AirlinePage() {
   const [occurrencePage, setOccurrencePage] = useState(1);
   const [occurrenceLimit, setOccurrenceLimit] = useState(10);
   const [occurrenceSearchInput, setOccurrenceSearchInput] = useState('');
-
-  // 조치대상 탭 상태 (기존)
-  const [incidentsPage, setIncidentsPage] = useState(1);
-  const [incidentsLimit, setIncidentsLimit] = useState(10);
-  const [incidentsSearch, setIncidentsSearch] = useState('');
-  const [incidentsSearchInput, setIncidentsSearchInput] = useState('');
 
   // 조치이력 탭 상태
   const [actionPage, setActionPage] = useState(1);
@@ -253,14 +248,6 @@ export default function AirlinePage() {
     setIsActionModalOpen(true);
   }, [airlineId]);
 
-  const handleCreateActionFromCallsign = useCallback((callsignId?: string) => {
-    if (!callsignId) return;
-    const targetIncident = incidents.find((incident) => incident.id === callsignId);
-    if (targetIncident) {
-      handleOpenActionModal(targetIncident);
-    }
-  }, [incidents, handleOpenActionModal]);
-
   const handleCloseActionModal = useCallback(() => {
     setIsActionModalOpen(false);
     setSelectedIncident(null);
@@ -290,16 +277,6 @@ export default function AirlinePage() {
     }
   }, [actionsData]);
 
-  const handleIncidentsSearchSubmit = useCallback(() => {
-    setIncidentsSearch(incidentsSearchInput);
-    setIncidentsPage(1);
-  }, [incidentsSearchInput]);
-
-  const handleIncidentsLimitChange = useCallback((limit: number) => {
-    setIncidentsLimit(limit);
-    setIncidentsPage(1);
-  }, []);
-
   const handleSearchSubmit = useCallback(() => {
     setActionSearch(actionSearchInput);
     setActionPage(1);
@@ -318,11 +295,9 @@ export default function AirlinePage() {
     return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
   }, []);
 
-  const navItems: Array<{ id: AirlineTabType; label: string; icon: any; color: 'primary' | 'info' | 'success' | 'orange' }> = [
+  const navItems: Array<{ id: AirlineTabType; label: string; icon: LucideIcon; color: 'primary' | 'info' | 'success' | 'orange' }> = [
     { id: 'occurrence', label: '발생현황', icon: BarChart3, color: 'primary' },
     { id: 'action-history', label: '조치이력', icon: ClipboardList, color: 'info' },
-    { id: 'incidents', label: '조치대상', icon: BarChart3, color: 'primary' },
-    { id: 'actions', label: '검출이력', icon: ClipboardList, color: 'info' },
     { id: 'statistics', label: '통계', icon: TrendingUp, color: 'success' },
     { id: 'announcements', label: '공지사항', icon: Megaphone, color: 'orange' },
   ];
@@ -393,78 +368,15 @@ export default function AirlinePage() {
             )}
 
             {activeTab === 'action-history' && (
-              <AirlineActionHistoryTab
-                actionsData={actionsData}
-                actionsLoading={actionsLoading}
-                actionPage={actionPage}
-                actionLimit={actionLimit}
-                actionSearchInput={actionSearchInput}
-                actionStatusFilter={actionStatusFilter}
-                onPageChange={setActionPage}
-                onLimitChange={handleLimitChange}
-                onSearchInputChange={setActionSearchInput}
-                onSearchSubmit={handleSearchSubmit}
-                onStatusFilterChange={setActionStatusFilter}
-                onActionClick={(action) => {
-                  setSelectedAction(action);
-                  setIsActionDetailModalOpen(true);
-                }}
-              />
-            )}
-
-            {activeTab === 'incidents' && (
-              <IncidentsTab
-                incidents={incidents}
-                airlineCode={airlineCode}
+              <AirlineCallsignListTab
+                callsigns={callsignsData?.data || []}
+                isLoading={callsignsLoading}
                 startDate={incidentsDateFilter.startDate}
                 endDate={incidentsDateFilter.endDate}
                 activeRange={incidentsDateFilter.activeRange}
-                errorTypeFilter={errorTypeFilter}
-                actionStatusFilter="all"
-                isExporting={isExporting}
-                incidentsPage={incidentsPage}
-                incidentsLimit={incidentsLimit}
-                incidentsSearch={incidentsSearch}
-                incidentsSearchInput={incidentsSearchInput}
-                onPageChange={setIncidentsPage}
-                onLimitChange={handleIncidentsLimitChange}
-                onSearchInputChange={setIncidentsSearchInput}
-                onSearchSubmit={handleIncidentsSearchSubmit}
                 onStartDateChange={incidentsDateFilter.handleStartDateChange}
                 onEndDateChange={incidentsDateFilter.handleEndDateChange}
                 onApplyQuickRange={incidentsDateFilter.applyQuickRange}
-                onErrorTypeFilterChange={setErrorTypeFilter}
-                onActionStatusFilterChange={() => {}}
-                onOpenActionModal={handleOpenActionModal}
-                onOpenActionDetail={handleOpenActionDetail}
-                onExport={handleExportIncidents}
-              />
-            )}
-
-            {activeTab === 'actions' && (
-              <ActionsTab
-                actionsData={actionsData}
-                actionsLoading={actionsLoading}
-                callsignsData={callsignsData?.data || []}
-                actionPage={actionPage}
-                actionLimit={actionLimit}
-                actionSearch={actionSearch}
-                actionSearchInput={actionSearchInput}
-                actionStatusFilter={actionStatusFilter}
-                onPageChange={setActionPage}
-                onLimitChange={handleLimitChange}
-                onSearchInputChange={setActionSearchInput}
-                onSearchSubmit={handleSearchSubmit}
-                onStatusFilterChange={setActionStatusFilter}
-                onCreateAction={handleCreateActionFromCallsign}
-                onActionClick={(action) => {
-                  setSelectedAction(action);
-                  setIsActionDetailModalOpen(true);
-                }}
-                onCallsignClick={(callsign) => {
-                  setSelectedCallsignForDetail(callsign);
-                  setIsCallsignDetailModalOpen(true);
-                }}
               />
             )}
 

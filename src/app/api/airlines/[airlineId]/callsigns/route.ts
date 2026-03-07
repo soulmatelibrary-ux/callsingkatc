@@ -17,7 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ airlineId: string }> }
 ) {
   try {
-    const requestedAirlineId = params.airlineId;
+    const requestedAirlineId = (await params).airlineId;
 
     // 인증 확인
     const authHeader = request.headers.get('Authorization');
@@ -104,9 +104,9 @@ export async function GET(
          c.last_occurred_at
        FROM callsigns c
        WHERE c.airline_code = ?
-         AND c.status = 'in_progress'
          ${riskLevelCondition}
        ORDER BY
+         CASE WHEN c.status = 'in_progress' THEN 0 ELSE 1 END,
          CASE
            WHEN c.risk_level = '매우높음' THEN 3
            WHEN c.risk_level = '높음' THEN 2
@@ -128,12 +128,13 @@ export async function GET(
     if (callsignIds.length > 0) {
       const placeholders = callsignIds.map(() => '?').join(',');
       
-      // 조치 상태 조회
+      // 조치 상태 조회 (취소되지 않은 조치만)
       const actionsResult = await query(
         `SELECT id, callsign_id, status, action_type, completed_at
          FROM actions
          WHERE callsign_id IN (${placeholders})
            AND airline_id = ?
+           AND COALESCE(is_cancelled, 0) = 0
          ORDER BY registered_at DESC`,
         [...callsignIds, requestedAirlineId]
       );
@@ -194,7 +195,6 @@ export async function GET(
       `SELECT COUNT(DISTINCT c.id) as total
        FROM callsigns c
        WHERE c.airline_code = ?
-         AND c.status = 'in_progress'
          ${countRiskCondition}`,
       countParams
     );

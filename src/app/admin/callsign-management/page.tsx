@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { OverviewTab } from '@/components/callsign-management/OverviewTab';
+import { AdminOccurrenceTab } from '@/components/admin/callsign-management/AdminOccurrenceTab';
 // import { ActionsTab } from '@/components/callsign-management/ActionsTab';
 import { StatisticsTab } from '@/components/callsign-management/StatisticsTab';
 import { Sidebar } from '@/components/callsign-management/Sidebar';
@@ -18,11 +19,11 @@ export default function CallsignManagementPage() {
   }));
   const isAdmin = useAuthStore((state) => state.isAdmin());
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'actions' | 'stats' | 'upload'>('overview');
+  const [activeTab, setActiveTab] = useState<'actions' | 'occurrences' | 'stats' | 'upload'>('actions');
 
   const menuItems = [
-    { id: 'overview', label: '전체현황', icon: '📊' },
-    // { id: 'actions', label: '항공사조치', icon: '✈️' },
+    { id: 'actions', label: '조치현황', icon: '📊' },
+    { id: 'occurrences', label: '발생현황', icon: '⚠️' },
     { id: 'stats', label: '통계', icon: '📈' },
     { id: 'upload', label: '엑셀입력', icon: '📁' },
   ];
@@ -70,7 +71,7 @@ export default function CallsignManagementPage() {
                 <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">메뉴</h3>
               </div>
               <nav className="divide-y divide-gray-50">
-                {menuItems.filter(item => item.id !== 'actions').map((item) => (
+                {menuItems.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id as any)}
@@ -90,12 +91,17 @@ export default function CallsignManagementPage() {
 
           {/* 오른쪽 콘텐츠 */}
           <div className="md:col-span-3">
-            {activeTab === 'overview' && <OverviewTab />}
-            {/* {activeTab === 'actions' && <ActionsTab />} */}
+            {activeTab === 'actions' && <OverviewTab />}
+            {activeTab === 'occurrences' && <AdminOccurrenceTab />}
             {activeTab === 'stats' && <StatisticsTab />}
             {activeTab === 'upload' && <Sidebar />}
           </div>
         </div>
+
+        {/* 푸터 */}
+        <footer className="mt-12 pt-8 border-t border-gray-200 text-center text-xs text-gray-500 pb-8">
+          © 한국공항공사 인천항공교통시설단 시스템정보부
+        </footer>
       </main>
     </div>
   );

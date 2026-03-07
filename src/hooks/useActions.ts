@@ -353,9 +353,11 @@ export function useCreateAction() {
       return (await response.json()) as Action;
     },
     onSuccess: () => {
-      // 조치 목록 및 호출부호 목록 캐시 무효화
+      // 조치 목록, 통계 캐시만 무효화 (호출부호 목록은 유지)
+      // airline-callsigns 캐시를 무효화하면 데이터가 재조회되면서
+      // 로컬 incidents 데이터와 불일치가 발생하므로 제거
       queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['airline-callsigns'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
     },
   });
 }
@@ -399,10 +401,10 @@ export function useUpdateAction() {
       return (await response.json()) as Action;
     },
     onSuccess: () => {
-      // 조치 목록, 호출부호 목록, 상세 캐시 무효화
+      // 조치 목록, 상세, 통계 캐시만 무효화 (호출부호 목록은 유지)
       queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['airline-callsigns'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['action'] });
+      queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
     },
   });
 }
@@ -442,9 +444,9 @@ export function useDeleteAction() {
       return response.json();
     },
     onSuccess: () => {
-      // 조치 목록, 호출부호 목록 캐시 무효화
+      // 조치 목록, 통계 캐시만 무효화 (호출부호 목록은 유지)
       queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['airline-callsigns'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
     },
   });
 }

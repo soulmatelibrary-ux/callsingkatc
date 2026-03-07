@@ -7,11 +7,12 @@ import { OverviewTab } from '@/components/callsign-management/OverviewTab';
 // import { ActionsTab } from '@/components/callsign-management/ActionsTab';
 import { StatisticsTab } from '@/components/callsign-management/StatisticsTab';
 import { Sidebar } from '@/components/callsign-management/Sidebar';
+import { AdminOccurrenceTab } from '@/components/admin/callsign-management/AdminOccurrenceTab';
 import { Header } from '@/components/layout/Header';
 import { NanoIcon } from '@/components/ui/NanoIcon';
 import {
   BarChart3,
-  Plane,
+  AlertTriangle,
   TrendingUp,
   FileSpreadsheet
 } from 'lucide-react';
@@ -28,8 +29,8 @@ export default function CallsignManagementPublicPage() {
   const activeTab = searchParams.get('tab') || 'overview';
 
   const menuItems = [
-    { id: 'overview', label: '전체현황', icon: BarChart3, color: 'primary' },
-    // { id: 'actions', label: '항공사조치', icon: Plane, color: 'info' },
+    { id: 'overview', label: '조치현황', icon: BarChart3, color: 'primary' },
+    { id: 'occurrences', label: '발생현황', icon: AlertTriangle, color: 'warning' },
     { id: 'stats', label: '통계', icon: TrendingUp, color: 'success' },
     { id: 'upload', label: '엑셀입력', icon: FileSpreadsheet, color: 'orange' },
   ];
@@ -94,10 +95,15 @@ export default function CallsignManagementPublicPage() {
 
             {/* 콘텐츠 표시 */}
             {activeTab === 'overview' && <OverviewTab />}
+            {activeTab === 'occurrences' && <AdminOccurrenceTab />}
             {/* {activeTab === 'actions' && <ActionsTab />} */}
             {activeTab === 'stats' && <StatisticsTab />}
             {activeTab === 'upload' && <Sidebar />}
           </main>
+          {/* 푸터 */}
+          <footer className="mt-12 pt-8 border-t border-slate-200/80 text-center text-xs text-slate-500 pb-8">
+            © 한국공항공사 인천항공교통시설단 시스템정보부
+          </footer>
         </div>
       </div>
     </div>
