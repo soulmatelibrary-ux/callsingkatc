@@ -23,19 +23,22 @@ export const dynamic = 'force-dynamic';
  * 최종 조치 상태 계산 (3가지로 구분)
  * - 'complete': 조치 완료
  *   ├─ 같은 항공사(KAL-KAL): 한쪽만 완료해도 완료
- *   └─ 다른 항공사(KAL-HVN): 양쪽 모두 완료해야 완료
- * - 'partial': 한쪽만 완료 (다른 항공사인 경우에만)
+ *   ├─ 국내↔외항사: 자사만 완료해도 완료
+ *   └─ 국내↔국내: 양쪽 모두 완료해야 완료
+ * - 'partial': 국내↔국내에서 한쪽만 완료 (다른 항공사 중 둘 다 국내인 경우에만)
  * - 'in_progress': 아직 조치 없음
  */
 function calculateFinalStatus(
   myActionStatus: string,
   otherActionStatus: string,
   myAirlineCode: string,
-  otherAirlineCode: string | null
+  otherAirlineCode: string | null,
+  domesticAirlines: Set<string>
 ): 'complete' | 'partial' | 'in_progress' {
   const myCompleted = myActionStatus === 'completed';
   const otherCompleted = otherActionStatus === 'completed';
   const sameAirline = myAirlineCode === otherAirlineCode;
+  const otherIsForeignAirline = otherAirlineCode && !domesticAirlines.has(otherAirlineCode);
 
   // 같은 항공사인 경우: 한쪽만 완료해도 완료
   if (sameAirline) {
@@ -43,12 +46,18 @@ function calculateFinalStatus(
   }
 
   // 다른 항공사인 경우
-  if (myCompleted && otherCompleted) {
-    return 'complete'; // 양쪽 모두 완료
-  } else if (myCompleted || otherCompleted) {
-    return 'partial'; // 한쪽만 완료
+  if (otherIsForeignAirline) {
+    // 상대가 외항사: 자사만 완료하면 완료
+    return myCompleted ? 'complete' : 'in_progress';
   } else {
-    return 'in_progress'; // 아직 조치 없음
+    // 상대가 국내항공사: 양쪽 모두 완료해야 완료
+    if (myCompleted && otherCompleted) {
+      return 'complete'; // 양쪽 모두 완료
+    } else if (myCompleted || otherCompleted) {
+      return 'partial'; // 한쪽만 완료
+    } else {
+      return 'in_progress'; // 아직 조치 없음
+    }
   }
 }
 
@@ -195,26 +204,35 @@ export async function GET(request: NextRequest) {
         const myCompleted = row.my_action_status === 'completed';
         const otherCompleted = row.other_action_status === 'completed';
         const sameAirline = row.airline_code === row.other_airline_code;
+        const otherIsForeignAirline = row.other_airline_code && !domesticAirlines.has(row.other_airline_code);
 
         if (myActionStatus === 'complete') {
           // 완전 완료
           // - 같은 항공사: 한쪽만 완료해도 완료
-          // - 다른 항공사: 양쪽 모두 완료해야 완료
+          // - 국내↔외항사: 자사만 완료해도 완료
+          // - 국내↔국내: 양쪽 모두 완료해야 완료
           if (sameAirline) {
             return myCompleted || otherCompleted;
+          } else if (otherIsForeignAirline) {
+            return myCompleted; // 자사만 완료하면 완료
           } else {
-            return myCompleted && otherCompleted;
+            return myCompleted && otherCompleted; // 국내항공사: 양쪽 모두 완료
           }
         } else if (myActionStatus === 'partial') {
-          // 부분 완료 (다른 항공사인 경우에만)
+          // 부분 완료: 국내↔국내에서 한쪽만 완료
           if (sameAirline) return false; // 같은 항공사는 부분완료 없음
+          if (otherIsForeignAirline) return false; // 외항사는 부분완료 없음
+          // 둘 다 국내항공사: 한쪽만 완료
           return (myCompleted && !otherCompleted) || (!myCompleted && otherCompleted);
         } else if (myActionStatus === 'in_progress') {
-          // 진행중: 아직 조치가 없음
+          // 진행중: 아직 조치가 없거나 국내↔국내에서 미완료
           if (sameAirline) {
             return !myCompleted && !otherCompleted;
+          } else if (otherIsForeignAirline) {
+            return !myCompleted; // 자사가 미조치
           } else {
-            return !myCompleted || !otherCompleted;
+            // 국내↔국내: 둘 다 미조치인 경우만
+            return !myCompleted && !otherCompleted;
           }
         }
         return true;
@@ -227,37 +245,46 @@ export async function GET(request: NextRequest) {
     }
 
     // summary 계산 (필터링 후)
-    // 양쪽 상태에 따라 구분: 완전 완료, 부분 완료, 진행중 (W-3 FIX)
+    // 양쪽 상태에 따라 구분: 완전 완료, 부분 완료, 진행중
     const summary = {
       total: filteredRows.length,
       completed: filteredRows.filter((r: any) => {
         const myCompleted = r.my_action_status === 'completed';
         const otherCompleted = r.other_action_status === 'completed';
         const sameAirline = r.airline_code === r.other_airline_code;
+        const otherIsForeignAirline = r.other_airline_code && !domesticAirlines.has(r.other_airline_code);
 
         // 같은 항공사: 한쪽만 완료해도 완료
         if (sameAirline) return myCompleted || otherCompleted;
-        // 다른 항공사: 양쪽 모두 완료해야 완료
+        // 국내↔외항사: 자사만 완료해도 완료
+        if (otherIsForeignAirline) return myCompleted;
+        // 국내↔국내: 양쪽 모두 완료해야 완료
         return myCompleted && otherCompleted;
       }).length,
       partial: filteredRows.filter((r: any) => {
         const myCompleted = r.my_action_status === 'completed';
         const otherCompleted = r.other_action_status === 'completed';
         const sameAirline = r.airline_code === r.other_airline_code;
+        const otherIsForeignAirline = r.other_airline_code && !domesticAirlines.has(r.other_airline_code);
 
         // 같은 항공사: 부분완료 없음
         if (sameAirline) return false;
-        // 다른 항공사: 한쪽만 완료면 부분완료
+        // 외항사: 부분완료 없음
+        if (otherIsForeignAirline) return false;
+        // 국내↔국내: 한쪽만 완료면 부분완료
         return (myCompleted && !otherCompleted) || (!myCompleted && otherCompleted);
       }).length,
       in_progress: filteredRows.filter((r: any) => {
         const myCompleted = r.my_action_status === 'completed';
         const otherCompleted = r.other_action_status === 'completed';
         const sameAirline = r.airline_code === r.other_airline_code;
+        const otherIsForeignAirline = r.other_airline_code && !domesticAirlines.has(r.other_airline_code);
 
         // 같은 항공사: 둘 다 미완료면 진행중
         if (sameAirline) return !myCompleted && !otherCompleted;
-        // 다른 항공사: 한쪽이라도 미완료면 진행중 (양쪽 다 미완료인 경우)
+        // 국내↔외항사: 자사가 미완료면 진행중
+        if (otherIsForeignAirline) return !myCompleted;
+        // 국내↔국내: 둘 다 미완료인 경우만 진행중
         return !myCompleted && !otherCompleted;
       }).length,
     };
