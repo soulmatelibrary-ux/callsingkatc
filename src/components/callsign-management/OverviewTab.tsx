@@ -187,16 +187,26 @@ export function OverviewTab() {
     setPage(1);
   };
 
-  // 상태별 카운팅
+  // 상태별 카운팅 - 전체 데이터 기반 (페이지네이션 무시)
   const statusCounts = useMemo(() => {
-    const counts = {
-      all: rows.length,
+    // 필터가 적용된 경우 summary 사용, 없으면 전체 totalItems 사용
+    if (hasFilters && summary) {
+      return {
+        all: summary.total,
+        complete: summary.completed,
+        partial: (summary.total - summary.completed - summary.in_progress),
+        in_progress: summary.in_progress,
+      };
+    }
+
+    // 필터 없음: 전체 데이터 기반 카운팅
+    return {
+      all: totalItems,
       complete: rows.filter(r => r.final_status === 'complete').length,
       partial: rows.filter(r => r.final_status === 'partial').length,
       in_progress: rows.filter(r => r.final_status === 'in_progress').length,
     };
-    return counts;
-  }, [rows]);
+  }, [hasFilters, summary, totalItems, rows]);
 
   if (callsignsQuery.isLoading) {
     return (
