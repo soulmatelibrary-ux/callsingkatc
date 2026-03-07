@@ -298,8 +298,9 @@ export interface CallsignListResponse {
   };
   summary?: {
     total: number;
-    completed: number; // 조치 있음
-    in_progress: number; // 조치 없음
+    completed: number; // 조치 완료
+    partial: number; // 부분 완료
+    in_progress: number; // 진행중
   };
 }
 

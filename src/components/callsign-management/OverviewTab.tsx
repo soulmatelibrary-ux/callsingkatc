@@ -189,24 +189,24 @@ export function OverviewTab() {
 
   // 상태별 카운팅 - 전체 데이터 기반 (페이지네이션 무시)
   const statusCounts = useMemo(() => {
-    // 필터가 적용된 경우 summary 사용, 없으면 전체 totalItems 사용
-    if (hasFilters && summary) {
+    // summary가 있으면 (필터 적용 여부 관계없이) API 계산값 사용
+    if (summary) {
       return {
         all: summary.total,
         complete: summary.completed,
-        partial: (summary.total - summary.completed - summary.in_progress),
+        partial: summary.partial ?? 0,
         in_progress: summary.in_progress,
       };
     }
 
-    // 필터 없음: 전체 데이터 기반 카운팅
+    // summary 없음: 전체 데이터 기반 카운팅 (fallback)
     return {
       all: totalItems,
       complete: rows.filter(r => r.final_status === 'complete').length,
       partial: rows.filter(r => r.final_status === 'partial').length,
       in_progress: rows.filter(r => r.final_status === 'in_progress').length,
     };
-  }, [hasFilters, summary, totalItems, rows]);
+  }, [summary, totalItems, rows]);
 
   if (callsignsQuery.isLoading) {
     return (
