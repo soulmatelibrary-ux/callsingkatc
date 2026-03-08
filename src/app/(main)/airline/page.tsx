@@ -279,11 +279,6 @@ export default function AirlinePage() {
     }
   }, [actionsData, modal]);
 
-  const handleSearchSubmit = useCallback(() => {
-    setActionSearch(actionSearchInput);
-    setActionPage(1);
-  }, [actionSearchInput]);
-
   // 순수 함수 - useCallback 제거 (의존성 없음)
   const formatDisplayDate = (value?: string | null): string => {
     if (!value) return '-';
