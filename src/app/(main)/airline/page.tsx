@@ -362,9 +362,11 @@ export default function AirlinePage() {
               <AirlineCallsignListTab
                 callsigns={callsignsData?.data || []}
                 isLoading={callsignsLoading}
-                startDate={incidentsDateFilter.startDate}
-                endDate={incidentsDateFilter.endDate}
-                activeRange={incidentsDateFilter.activeRange}
+                dateFilter={{
+                  startDate: incidentsDateFilter.startDate,
+                  endDate: incidentsDateFilter.endDate,
+                  activeRange: incidentsDateFilter.activeRange,
+                }}
                 onStartDateChange={incidentsDateFilter.handleStartDateChange}
                 onEndDateChange={incidentsDateFilter.handleEndDateChange}
                 onApplyQuickRange={incidentsDateFilter.applyQuickRange}

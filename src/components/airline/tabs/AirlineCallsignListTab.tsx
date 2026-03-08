@@ -4,14 +4,12 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { Callsign } from '@/types/action';
 import * as XLSX from 'xlsx';
-import { ActionDetailModal } from '../ActionDetailModal';
+import { DateRangeFilterState } from '@/types/airline';
 
 interface AirlineCallsignListTabProps {
   callsigns: Callsign[];
   isLoading: boolean;
-  startDate: string;
-  endDate: string;
-  activeRange: 'custom' | 'today' | '1w' | '2w' | '1m';
+  dateFilter: DateRangeFilterState;
   onStartDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onEndDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onApplyQuickRange: (type: 'today' | '1w' | '2w' | '1m') => void;
@@ -20,9 +18,7 @@ interface AirlineCallsignListTabProps {
 export function AirlineCallsignListTab({
   callsigns,
   isLoading,
-  startDate,
-  endDate,
-  activeRange,
+  dateFilter,
   onStartDateChange,
   onEndDateChange,
   onApplyQuickRange,
@@ -45,10 +41,10 @@ export function AirlineCallsignListTab({
 
   // 날짜 필터링
   const dateFilteredCallsigns = useMemo(() => {
-    if (!startDate || !endDate) return airlineCallsigns;
+    if (!dateFilter.startDate || !dateFilter.endDate) return airlineCallsigns;
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = new Date(dateFilter.startDate);
+    const end = new Date(dateFilter.endDate);
     end.setHours(23, 59, 59, 999);
 
     return airlineCallsigns.filter((cs) => {
@@ -56,7 +52,7 @@ export function AirlineCallsignListTab({
       if (!uploadDate) return true;
       return uploadDate >= start && uploadDate <= end;
     });
-  }, [airlineCallsigns, startDate, endDate]);
+  }, [airlineCallsigns, dateFilter.startDate, dateFilter.endDate]);
 
   // 상태 필터링
   const statusFilteredCallsigns = useMemo(() => {
@@ -284,14 +280,14 @@ export function AirlineCallsignListTab({
           <div className="bg-gray-50 border border-gray-300 rounded-none px-3 py-2 flex items-center gap-2">
             <input
               type="date"
-              value={startDate}
+              value={dateFilter.startDate}
               onChange={onStartDateChange}
               className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer outline-none"
             />
             <span className="text-gray-300 font-bold mx-1">~</span>
             <input
               type="date"
-              value={endDate}
+              value={dateFilter.endDate}
               onChange={onEndDateChange}
               className="bg-transparent border-none p-0 text-sm font-bold text-gray-900 focus:ring-0 cursor-pointer outline-none"
             />
@@ -312,7 +308,7 @@ export function AirlineCallsignListTab({
                   type="button"
                   onClick={() => onApplyQuickRange(range)}
                   className={`px-4 py-2.5 text-[13px] font-black tracking-tight transition-all border-r border-gray-200 last:border-r-0 ${
-                    activeRange === range
+                    dateFilter.activeRange === range
                       ? 'bg-[#00205b] text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
