@@ -29,7 +29,8 @@ export interface AirlineModalState {
 }
 
 interface UseAirlineModalReturn {
-  modal: AirlineModalState;
+  type: ModalType;
+  data: Incident | Action | Callsign | null;
   openActionModal: (incident: Incident) => void;
   openDetailModal: (action: Action) => void;
   openCallsignModal: (callsign: Callsign) => void;
@@ -72,7 +73,8 @@ export function useAirlineModal(): UseAirlineModalReturn {
   };
 
   return {
-    modal,
+    type: modal.type,
+    data: modal.data,
     openActionModal,
     openDetailModal,
     openCallsignModal,
