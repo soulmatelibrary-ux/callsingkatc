@@ -10,6 +10,7 @@ import { ROUTES } from '@/lib/constants';
 import { useAirlineActions, useAirlineActionStats, useAirlineCallsigns } from '@/hooks/useActions';
 import { useActiveAnnouncements, useAnnouncementHistory } from '@/hooks/useAnnouncements';
 import { useDateRangeFilter, formatDateInput, toInputDate } from '@/hooks/useDateRangeFilter';
+import { useAirlineModal } from '@/hooks/useAirlineModal';
 import { ActionModal } from '@/components/actions/ActionModal';
 import { Header } from '@/components/layout/Header';
 import { AirlineStatisticsTab } from '@/components/airline/AirlineStatisticsTab';
@@ -44,13 +45,8 @@ export default function AirlinePage() {
   const [airlineId, setAirlineId] = useState<string | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<AirlineTabType>('occurrence');
 
-  // 모달 상태
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
-  const [selectedAction, setSelectedAction] = useState<Action | null>(null);
-  const [isActionDetailModalOpen, setIsActionDetailModalOpen] = useState(false);
-  const [selectedCallsignForDetail, setSelectedCallsignForDetail] = useState<Callsign | null>(null);
-  const [isCallsignDetailModalOpen, setIsCallsignDetailModalOpen] = useState(false);
+  // 모달 상태 (통합 관리)
+  const modal = useAirlineModal();
 
   // 공지사항 팝업 상태
   const [isAnnouncementPopupOpen, setIsAnnouncementPopupOpen] = useState(false);
@@ -195,19 +191,20 @@ export default function AirlinePage() {
 
   // 호출부호 상세 메타 (메모이제이션)
   const callsignDetailMeta = useMemo<CallsignDetailMeta | null>(() => {
-    if (!selectedCallsignForDetail) return null;
+    if (modal.type !== 'callsign-detail' || !modal.data) return null;
+    const callsign = modal.data as Callsign;
     return {
-      occurrenceCount: selectedCallsignForDetail.occurrence_count ?? 0,
-      firstOccurredAt: selectedCallsignForDetail.first_occurred_at ?? null,
-      lastOccurredAt: selectedCallsignForDetail.last_occurred_at ?? null,
-      similarity: selectedCallsignForDetail.similarity ?? '-',
-      riskLevel: selectedCallsignForDetail.risk_level ?? '-',
-      myCallsign: selectedCallsignForDetail.my_callsign ?? '-',
-      otherCallsign: selectedCallsignForDetail.other_callsign ?? '-',
-      errorType: selectedCallsignForDetail.error_type ?? '-',
-      subError: selectedCallsignForDetail.sub_error ?? '-',
+      occurrenceCount: callsign.occurrence_count ?? 0,
+      firstOccurredAt: callsign.first_occurred_at ?? null,
+      lastOccurredAt: callsign.last_occurred_at ?? null,
+      similarity: callsign.similarity ?? '-',
+      riskLevel: callsign.risk_level ?? '-',
+      myCallsign: callsign.my_callsign ?? '-',
+      otherCallsign: callsign.other_callsign ?? '-',
+      errorType: callsign.error_type ?? '-',
+      subError: callsign.sub_error ?? '-',
     };
-  }, [selectedCallsignForDetail]);
+  }, [modal.type, modal.data]);
 
   // 콜백 함수들
   const handleExportIncidents = useCallback(() => {
@@ -246,38 +243,31 @@ export default function AirlinePage() {
       console.error('[AirlinePage] airlineId is missing:', { airlineId, user: user?.airline });
       return;
     }
-    setSelectedIncident(incident);
-    setIsActionModalOpen(true);
-  }, [airlineId]);
-
-  const handleCloseActionModal = useCallback(() => {
-    setIsActionModalOpen(false);
-    setSelectedIncident(null);
-  }, []);
+    modal.openActionModal(incident);
+  }, [airlineId, modal]);
 
   const handleActionSuccess = useCallback(() => {
-    handleCloseActionModal();
+    modal.closeModal();
     queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
     queryClient.invalidateQueries({ queryKey: ['airline-callsigns'], exact: false });
     queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
-  }, [handleCloseActionModal, queryClient]);
+  }, [modal, queryClient]);
 
   const handleActionDetailSuccess = useCallback(() => {
-    setIsActionDetailModalOpen(false);
+    modal.closeModal();
     setActionPage(1);
     queryClient.invalidateQueries({ queryKey: ['airline-actions'], exact: false });
     queryClient.invalidateQueries({ queryKey: ['airline-callsigns'], exact: false });
     queryClient.invalidateQueries({ queryKey: ['airline-action-stats'], exact: false });
-  }, [queryClient]);
+  }, [modal, queryClient]);
 
   const handleOpenActionDetail = useCallback((actionId: string) => {
     if (!actionsData) return;
     const action = actionsData.data.find((a) => a.id === actionId);
     if (action) {
-      setSelectedAction(action);
-      setIsActionDetailModalOpen(true);
+      modal.openDetailModal(action);
     }
-  }, [actionsData]);
+  }, [actionsData, modal]);
 
   const handleSearchSubmit = useCallback(() => {
     setActionSearch(actionSearchInput);
@@ -407,43 +397,43 @@ export default function AirlinePage() {
       </main>
 
       {/* 조치 등록/수정 모달 */}
-      {isActionModalOpen && selectedIncident && callsignsData && (
+      {modal.type === 'action' && (modal.data as Incident) && callsignsData && (
         <ActionModal
           airlineId={airlineId || ''}
           callsigns={callsignsData.data}
-          selectedCallsign={callsignsData.data.find((cs) => cs.callsign_pair === selectedIncident.pair)}
-          actionId={selectedIncident.actionId || undefined}
-          onClose={handleCloseActionModal}
+          selectedCallsign={callsignsData.data.find((cs) => cs.callsign_pair === (modal.data as Incident).pair)}
+          actionId={(modal.data as Incident).actionId || undefined}
+          onClose={modal.closeModal}
           onSuccess={handleActionSuccess}
         />
       )}
 
       {/* 조치 편집 모달 */}
-      {isActionDetailModalOpen && selectedAction && callsignsData && (
+      {modal.type === 'detail' && (modal.data as Action) && callsignsData && (
         <ActionModal
           airlineId={airlineId || ''}
           callsigns={callsignsData.data}
-          selectedCallsign={callsignsData.data.find((cs) => cs.id === selectedAction.callsign_id)}
-          actionId={selectedAction.id}
+          selectedCallsign={callsignsData.data.find((cs) => cs.id === (modal.data as Action).callsign_id)}
+          actionId={(modal.data as Action).id}
           initialData={{
-            callsignId: String(selectedAction.callsign_id),
-            callsign_id: String(selectedAction.callsign_id),
-            actionType: selectedAction.action_type,
-            description: selectedAction.description,
-            plannedDueDate: toInputDate(selectedAction.planned_due_date) || undefined,
-            completedDate: toInputDate(selectedAction.completed_at) || toInputDate(selectedAction.registered_at) || undefined,
-            status: selectedAction.status === 'pending' ? 'in_progress' : (selectedAction.status || 'in_progress'),
+            callsignId: String((modal.data as Action).callsign_id),
+            callsign_id: String((modal.data as Action).callsign_id),
+            actionType: (modal.data as Action).action_type,
+            description: (modal.data as Action).description,
+            plannedDueDate: toInputDate((modal.data as Action).planned_due_date) || undefined,
+            completedDate: toInputDate((modal.data as Action).completed_at) || toInputDate((modal.data as Action).registered_at) || undefined,
+            status: (modal.data as Action).status === 'pending' ? 'in_progress' : ((modal.data as Action).status || 'in_progress'),
           }}
-          onClose={() => setIsActionDetailModalOpen(false)}
+          onClose={modal.closeModal}
           onSuccess={handleActionDetailSuccess}
         />
       )}
 
       {/* 호출부호 상세 모달 */}
-      {isCallsignDetailModalOpen && selectedCallsignForDetail && callsignDetailMeta && (
+      {modal.type === 'callsign-detail' && (modal.data as Callsign) && callsignDetailMeta && (
         <div
           className="fixed inset-0 bg-black/35 flex items-center justify-center z-50 overflow-y-auto"
-          onClick={() => setIsCallsignDetailModalOpen(false)}
+          onClick={modal.closeModal}
         >
           <div
             className="w-[900px] max-w-[95vw] bg-white rounded-xl shadow-2xl p-8 my-8"
@@ -453,13 +443,13 @@ export default function AirlinePage() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-black text-gray-900">
-                  {selectedCallsignForDetail.callsign_pair}
+                  {(modal.data as Callsign).callsign_pair}
                 </h2>
                 <p className="text-sm text-gray-500 mt-2">발생내역 상세정보</p>
               </div>
               <button
                 type="button"
-                onClick={() => setIsCallsignDetailModalOpen(false)}
+                onClick={modal.closeModal}
                 className="text-2xl text-gray-400 hover:text-gray-600 transition"
               >
                 ×
