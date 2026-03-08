@@ -570,10 +570,10 @@ export default function AirlinePage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap gap-6 items-center justify-center">
             <div className="text-sm font-medium text-white">
-              유사호출부호 경고시스템 | 한국공항공사 · 항공교통본부
+              Callsign Safety Management Platform | Korea Airports Corporation
             </div>
             <div className="flex gap-5 text-sm">
-              <span className="text-gray-400">항행안전팀</span>
+              <span className="text-gray-400">Aviation Safety Division</span>
               <div>
                 <span className="text-gray-400">T.</span>
                 <span className="font-medium ml-1">1588-2311</span>
@@ -585,7 +585,7 @@ export default function AirlinePage() {
             </div>
           </div>
           <div className="border-t border-gray-600 mt-3 pt-3 text-xs text-gray-400 text-center">
-            © 2026 한국공항공사 · 항공교통본부. 유사호출부호 경고시스템은 항공기 안전운항을 위해 개발되었습니다.
+            © 2026 Korea Airports Corporation. All Rights Reserved.
           </div>
         </div>
       </footer>

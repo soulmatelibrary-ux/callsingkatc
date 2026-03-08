@@ -102,7 +102,7 @@ export default function CallsignManagementPublicPage() {
           </main>
           {/* 푸터 */}
           <footer className="mt-12 pt-8 border-t border-slate-200/80 text-center text-xs text-slate-500 pb-8">
-            © 한국공항공사 인천항공교통시설단 시스템정보부
+            © 2026 Korea Airports Corporation. All Rights Reserved.
           </footer>
         </div>
       </div>

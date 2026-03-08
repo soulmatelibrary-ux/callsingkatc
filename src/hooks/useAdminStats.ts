@@ -153,3 +153,48 @@ export function useAirlineDetailStats(dateRange?: DateRange) {
     gcTime: 10 * 60 * 1000, // 10분
   });
 }
+
+/**
+ * 종합 통계 (관리자용 대시보드 메인 다차원 분석 데이터)
+ */
+export interface SystemStatsResponse {
+  monthlyTrend: { month: string; count: number }[];
+  dailyTrend: { day: string; count: number }[];
+  topAirlines: { name: string; count: number }[];
+  errorDistribution: { name: string; value: number }[];
+  routeDistribution: { name: string; count: number }[];
+  timeDistribution: { name: string; count: number }[];
+}
+
+export function useSystemStats(dateRange?: DateRange) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery({
+    queryKey: ['admin-system-stats', dateRange?.dateFrom, dateRange?.dateTo],
+    queryFn: async () => {
+      if (!accessToken) {
+        throw new Error('인증 토큰이 없습니다.');
+      }
+
+      const params = new URLSearchParams();
+      if (dateRange?.dateFrom) params.append('dateFrom', dateRange.dateFrom);
+      if (dateRange?.dateTo) params.append('dateTo', dateRange.dateTo);
+
+      const response = await fetch(`/api/admin/comprehensive-stats?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('통계 조회 실패');
+      }
+
+      const result = await response.json();
+      return result.data as SystemStatsResponse;
+    },
+    enabled: !!accessToken,
+    staleTime: 60 * 1000, // 1분
+    gcTime: 5 * 60 * 1000, // 5분
+  });
+}

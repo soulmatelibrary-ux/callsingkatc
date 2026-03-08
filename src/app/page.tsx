@@ -212,7 +212,7 @@ export default function Home() {
 
               <div className="mt-10 pt-8 border-t border-white/5 text-center">
                 <p className="text-[11px] font-black text-white/30 tracking-[0.2em] uppercase leading-loose">
-                  한국공항공사 <span className="text-white/10 mx-1">|</span> 항공교통본부
+                  Korea Airports Corporation <span className="text-white/10 mx-1">|</span> Aviation Services
                 </p>
               </div>
             </div>
@@ -233,7 +233,7 @@ export default function Home() {
           </div>
         </div>
         <div className="font-mono text-[10px] text-white/80 text-right tracking-widest uppercase">
-          © 2026 한국공항공사. All rights reserved.
+          © 2026 Korea Airports Corporation. All Rights Reserved.
         </div>
       </footer>
     </div>

@@ -2,14 +2,16 @@
 
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useCallsigns, useAllActions } from '@/hooks/useActions';
 import { useAuthStore } from '@/store/authStore';
-import { useActionTypeStats, useAirlineDetailStats } from '@/hooks/useAdminStats';
+import { useActionTypeStats, useAirlineDetailStats, useSystemStats } from '@/hooks/useAdminStats';
+import { useAllActions } from '@/hooks/useActions';
 import { StatCard } from './StatCard';
-import { MonthlyDetectionTrendChart } from '@/components/admin/charts/MonthlyDetectionTrendChart';
-import { ActionEffectivenessChart } from '@/components/admin/charts/ActionEffectivenessChart';
-import { format, addDays, addMonths, lastDayOfMonth } from 'date-fns';
+import { format, addDays, lastDayOfMonth } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import {
+  BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+} from 'recharts';
 
 interface CallsignStatsResponse {
   total: number;
@@ -20,64 +22,52 @@ interface CallsignStatsResponse {
 
 type PeriodType = 'daily' | 'monthly' | 'yearly' | 'custom';
 
+const COLORS = {
+  rose: '#e11d48',    // 매우높음, Error
+  amber: '#d97706',   // 높음, Warning
+  emerald: '#059669', // 낮음, Success
+  blue: '#2563eb',    // Info
+  purple: '#7c3aed',
+  indigo: '#4f46e5',
+};
+
 // 날짜 범위 계산 함수
 function getDateRange(period: PeriodType, offset: number, customFrom?: string, customTo?: string): { dateFrom: string; dateTo: string } {
   const now = new Date();
-
   if (period === 'custom') {
-    return {
-      dateFrom: customFrom || format(now, 'yyyy-MM-dd'),
-      dateTo: customTo || format(now, 'yyyy-MM-dd'),
-    };
+    return { dateFrom: customFrom || format(now, 'yyyy-MM-dd'), dateTo: customTo || format(now, 'yyyy-MM-dd') };
   }
-
   if (period === 'monthly') {
     const date = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    const first = format(date, 'yyyy-MM-01');
-    const last = format(lastDayOfMonth(date), 'yyyy-MM-dd');
-    return { dateFrom: first, dateTo: last };
+    return { dateFrom: format(date, 'yyyy-MM-01'), dateTo: format(lastDayOfMonth(date), 'yyyy-MM-dd') };
   }
-
   if (period === 'daily') {
-    const date = addDays(now, offset);
-    const d = format(date, 'yyyy-MM-dd');
+    const d = format(addDays(now, offset), 'yyyy-MM-dd');
     return { dateFrom: d, dateTo: d };
   }
-
   if (period === 'yearly') {
     const year = now.getFullYear() + offset;
     return { dateFrom: `${year}-01-01`, dateTo: `${year}-12-31` };
   }
-
   return { dateFrom: '', dateTo: '' };
 }
 
 // 표시 텍스트 함수
 function getPeriodLabel(period: PeriodType, offset: number, customFrom?: string, customTo?: string): string {
   const now = new Date();
-
   if (period === 'custom') {
-    if (customFrom === customTo) {
-      return format(new Date(customFrom + 'T00:00:00'), 'yyyy년 M월 d일', { locale: ko });
-    }
+    if (customFrom === customTo) return format(new Date(customFrom + 'T00:00:00'), 'yyyy년 M월 d일', { locale: ko });
     return `${customFrom} ~ ${customTo}`;
   }
-
   if (period === 'monthly') {
-    const date = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    return format(date, 'yyyy년 M월', { locale: ko });
+    return format(new Date(now.getFullYear(), now.getMonth() + offset, 1), 'yyyy년 M월', { locale: ko });
   }
-
   if (period === 'daily') {
-    const date = addDays(now, offset);
-    return format(date, 'yyyy년 M월 d일', { locale: ko });
+    return format(addDays(now, offset), 'yyyy년 M월 d일', { locale: ko });
   }
-
   if (period === 'yearly') {
-    const year = now.getFullYear() + offset;
-    return `${year}년`;
+    return `${now.getFullYear() + offset}년`;
   }
-
   return '';
 }
 
@@ -88,52 +78,28 @@ export function StatisticsTab() {
   const [customTo, setCustomTo] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const accessToken = useAuthStore((s) => s.accessToken);
 
-  // 날짜 범위 계산
   const dateRange = useMemo(() => getDateRange(period, periodOffset, customFrom, customTo), [period, periodOffset, customFrom, customTo]);
   const periodLabel = useMemo(() => getPeriodLabel(period, periodOffset, customFrom, customTo), [period, periodOffset, customFrom, customTo]);
 
-  // 전체 호출부호 통계 (위험도별)
   const callsignStatsQuery = useQuery<CallsignStatsResponse>({
     queryKey: ['callsigns-stats', dateRange.dateFrom, dateRange.dateTo],
     queryFn: async () => {
-      if (!accessToken) {
-        throw new Error('인증 토큰이 없습니다.');
-      }
-
-      const params = new URLSearchParams();
-      params.append('dateFrom', dateRange.dateFrom);
-      params.append('dateTo', dateRange.dateTo);
-
-      const response = await fetch(`/api/callsigns/stats?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('통계 조회 실패');
-      }
-
-      return (await response.json()) as CallsignStatsResponse;
+      const params = new URLSearchParams({ dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo });
+      const res = await fetch(`/api/callsigns/stats?${params.toString()}`, { headers: { Authorization: `Bearer ${accessToken}` } });
+      if (!res.ok) throw new Error('통계 조회 실패');
+      return res.json();
     },
     enabled: !!accessToken,
-    staleTime: 30 * 1000,
-    gcTime: 5 * 60 * 1000,
   });
 
-  // 조치 건수 및 상태별 집계
   const totalActionsQuery = useAllActions({ page: 1, limit: 1, dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo });
   const pendingActionsQuery = useAllActions({ page: 1, limit: 1, status: 'pending', dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo });
   const inProgressActionsQuery = useAllActions({ page: 1, limit: 1, status: 'in_progress', dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo });
   const completedActionsQuery = useAllActions({ page: 1, limit: 1, status: 'completed', dateFrom: dateRange.dateFrom, dateTo: dateRange.dateTo });
 
-  // 항공사별 상세 통계 (서버 집계)
   const airlineDetailStatsQuery = useAirlineDetailStats(dateRange);
+  const sysStatsQuery = useSystemStats(dateRange);
 
-  // 조치 유형별 분포
-  const actionTypeStatsQuery = useActionTypeStats(dateRange);
-
-  // KPI 데이터 계산
   const totalCallsigns = callsignStatsQuery.data?.total ?? 0;
   const riskStats = callsignStatsQuery.data || { total: 0, veryHigh: 0, high: 0, low: 0 };
   const actionCounts = {
@@ -143,221 +109,230 @@ export function StatisticsTab() {
     completed: completedActionsQuery.data?.pagination.total ?? 0,
   };
 
+  const sysData = sysStatsQuery.data;
+
+  // 도넛 차트 포맷터
+  const formatDonutLabel = ({ percent }: { percent?: number }) => {
+    if (!percent || percent === 0) return '';
+    return `${(percent * 100).toFixed(0)}%`;
+  };
+
+  // Pie Chart Data
+  const riskPieData = [
+    { name: '매우높음', value: riskStats.veryHigh, color: COLORS.rose },
+    { name: '높음', value: riskStats.high, color: COLORS.amber },
+    { name: '낮음', value: riskStats.low, color: COLORS.emerald },
+  ].filter(i => i.value > 0);
+
+  const errorPieData = (sysData?.errorDistribution || []).map((err, i) => ({
+    name: err.name,
+    value: err.value,
+    color: [COLORS.rose, COLORS.amber, COLORS.emerald, COLORS.blue][i % 4]
+  })).filter(i => i.value > 0);
+
   const isLoading =
-    callsignStatsQuery.isLoading ||
-    totalActionsQuery.isLoading ||
-    pendingActionsQuery.isLoading ||
-    inProgressActionsQuery.isLoading ||
-    completedActionsQuery.isLoading ||
-    airlineDetailStatsQuery.isLoading;
+    callsignStatsQuery.isLoading || totalActionsQuery.isLoading || sysStatsQuery.isLoading || airlineDetailStatsQuery.isLoading;
 
   if (isLoading) {
     return (
       <div className="py-20 text-center">
-        <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-sm font-bold text-gray-400 uppercase tracking-widest">
-          Loading Data...
-        </p>
+        <div className="inline-block w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        <p className="mt-4 text-sm font-bold text-slate-400 uppercase tracking-widest">Loading Data...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {/* 시간 범위 선택 UI */}
+    <div className="space-y-8 animate-fade-in pb-12">
+      {/* 1. 시간 범위 선택 UI */}
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 p-8">
         <div className="flex flex-col gap-6">
-          {/* 주기 선택 버튼 */}
           <div className="flex gap-2 flex-wrap">
             {(['daily', 'monthly', 'yearly', 'custom'] as const).map((p) => (
               <button
                 key={p}
-                onClick={() => {
-                  setPeriod(p);
-                  setPeriodOffset(0);
-                }}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                  period === p
-                    ? 'bg-indigo-500 text-white shadow-lg'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                onClick={() => { setPeriod(p); setPeriodOffset(0); }}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${period === p ? 'bg-indigo-500 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
               >
                 {p === 'daily' ? '일별' : p === 'monthly' ? '월별' : p === 'yearly' ? '년간' : '기간선택'}
               </button>
             ))}
           </div>
 
-          {/* 기간 선택 UI */}
           {period === 'custom' ? (
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="flex-1">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
-                  시작일
-                </label>
-                <input
-                  type="date"
-                  value={customFrom}
-                  onChange={(e) => setCustomFrom(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-800"
-                />
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">시작일</label>
+                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-800" />
               </div>
               <div className="hidden sm:flex items-center pt-6 text-slate-400">~</div>
               <div className="flex-1">
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">
-                  종료일
-                </label>
-                <input
-                  type="date"
-                  value={customTo}
-                  onChange={(e) => setCustomTo(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-800"
-                />
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">종료일</label>
+                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-800" />
               </div>
             </div>
           ) : (
-            /* 이전/다음 네비게이션 */
             <div className="flex items-center gap-4 sm:gap-6 justify-center">
-              <button
-                onClick={() => setPeriodOffset(periodOffset - 1)}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                title="이전"
-              >
-                <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-
-              <div className="min-w-[140px] text-center">
-                <p className="text-lg font-bold text-slate-800">{periodLabel}</p>
-              </div>
-
-              <button
-                onClick={() => setPeriodOffset(periodOffset + 1)}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                title="다음"
-              >
-                <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
+              <button onClick={() => setPeriodOffset(periodOffset - 1)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors"><svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
+              <div className="min-w-[140px] text-center"><p className="text-lg font-bold text-slate-800">{periodLabel}</p></div>
+              <button onClick={() => setPeriodOffset(periodOffset + 1)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors"><svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
             </div>
           )}
         </div>
       </div>
 
-      {/* KPI 카드 */}
+      {/* 2. KPI 카드 */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-        <StatCard label="총 호출부호" value={totalCallsigns} color="text-gray-900" />
-        <StatCard label="미조치" value={actionCounts.pending} color="text-amber-600" />
-        <StatCard label="진행중" value={actionCounts.inProgress} color="text-blue-600" />
-        <StatCard label="완료" value={actionCounts.completed} color="text-emerald-600" />
+        <StatCard label="총 호출부호" value={totalCallsigns} color="text-slate-800" />
+        <StatCard label="대기 중 조치" value={actionCounts.pending} color="text-amber-600" />
+        <StatCard label="진행중 조치" value={actionCounts.inProgress} color="text-blue-600" />
+        <StatCard label="완료된 조치" value={actionCounts.completed} color="text-emerald-600" />
       </div>
 
-      {/* 위험도별 현황 */}
-      <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 p-8">
-        <h3 className="text-xl font-black text-slate-800 mb-8 tracking-tight">위험도별 현황</h3>
-        <div className="space-y-6">
-          <div>
-            <div className="flex justify-between items-end mb-3">
-              <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">매우높음</span>
-              <span className="text-sm font-black text-rose-600">{riskStats.veryHigh}건</span>
-            </div>
-            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-rose-500 rounded-full transition-all duration-1000 ease-out relative"
-                style={{
-                  width: `${totalCallsigns > 0 ? (riskStats.veryHigh / totalCallsigns) * 100 : 0}%`,
-                }}
-              >
-                <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
-              </div>
-            </div>
+      {/* 3. 중단 트렌드 (발생 추이 & Top 항공사) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 추세 Area Chart */}
+        <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[360px]">
+          <h4 className="text-base font-bold text-slate-800 mb-4">{period === 'monthly' || period === 'yearly' ? '상반기/연간 발생 추이' : '기간별 발생 추이'} <span className="text-sm font-normal text-slate-400 ml-2">Trends</span></h4>
+          <div className="flex-1 w-full relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={(period === 'daily' || period === 'custom') ? sysData?.dailyTrend : sysData?.monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorCountSys" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={COLORS.blue} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={COLORS.blue} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey={(period === 'daily' || period === 'custom') ? 'day' : 'month'} axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12 }} tickCount={5} />
+                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)' }} formatter={(v: any) => [`${v}건`, '건수']} />
+                <Area type="monotone" dataKey="count" stroke={COLORS.blue} strokeWidth={3} fillOpacity={1} fill="url(#colorCountSys)" activeDot={{ r: 6, strokeWidth: 0, fill: COLORS.blue }} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
-          <div>
-            <div className="flex justify-between items-end mb-3">
-              <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">높음</span>
-              <span className="text-sm font-black text-amber-500">{riskStats.high}건</span>
-            </div>
-            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-amber-500 rounded-full transition-all duration-1000 ease-out relative"
-                style={{
-                  width: `${totalCallsigns > 0 ? (riskStats.high / totalCallsigns) * 100 : 0}%`,
-                }}
-              >
-                <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <div className="flex justify-between items-end mb-3">
-              <span className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">낮음</span>
-              <span className="text-sm font-black text-emerald-500">{riskStats.low}건</span>
-            </div>
-            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out relative"
-                style={{
-                  width: `${totalCallsigns > 0 ? (riskStats.low / totalCallsigns) * 100 : 0}%`,
-                }}
-              >
-                <div className="absolute inset-0 bg-white/20 w-full rounded-full" style={{ maskImage: 'linear-gradient(to right, transparent, black)' }}></div>
-              </div>
-            </div>
+        </div>
+
+        {/* 발생 Top 5 항공사 Bar Chart */}
+        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[360px]">
+          <h4 className="text-base font-bold text-slate-800 mb-4">빈발 항공사 <span className="text-sm font-normal text-slate-400 ml-2">Top 5</span></h4>
+          <div className="flex-1 w-full relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={sysData?.topAirlines || []} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
+                <XAxis type="number" hide />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12, fontWeight: 700 }} width={50} />
+                <Tooltip cursor={{ fill: '#F1F5F9' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)' }} formatter={(value: any) => [`${value}건`, '호출부호 건수']} />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={16} fill={COLORS.indigo} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* 항공사별 상세 통계 */}
+      {/* 4. 하단 다차원 분석 3종 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 위험도 분포 Donut */}
+        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[280px]">
+          <h4 className="text-sm font-bold text-slate-800 mb-2">위험도 분포 <span className="text-xs font-normal text-slate-400 ml-1">Risks</span></h4>
+          <div className="flex-1 flex flex-col items-center justify-center relative">
+            {riskPieData.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={riskPieData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={2} dataKey="value" labelLine={false} label={formatDonutLabel}>
+                      {riskPieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
+                    </Pie>
+                    <Tooltip formatter={(value: any) => [`${value}건`, '위험도']} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex flex-col gap-1 w-full mt-2">
+                  {riskPieData.map((entry, i) => (
+                    <div key={i} className="flex items-center justify-between text-[11px] font-medium">
+                      <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }}></div><span className="text-slate-600">{entry.name}</span></div>
+                      <span className="text-slate-800">{entry.value}건</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (<div className="text-slate-400 text-xs text-center w-full">데이터 없음</div>)}
+          </div>
+        </div>
+
+        {/* 오류 요인 비율 Donut */}
+        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[280px]">
+          <h4 className="text-sm font-bold text-slate-800 mb-2">주요 오류 요인 <span className="text-xs font-normal text-slate-400 ml-1">Errors</span></h4>
+          <div className="flex-1 flex flex-col items-center justify-center relative">
+            {errorPieData.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={errorPieData} cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={2} dataKey="value" labelLine={false} label={formatDonutLabel}>
+                      {errorPieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
+                    </Pie>
+                    <Tooltip formatter={(value: any) => [`${value}건`, '건수']} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex flex-col gap-1 w-full mt-2">
+                  {errorPieData.map((entry, i) => (
+                    <div key={i} className="flex items-center justify-between text-[11px] font-medium">
+                      <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }}></div><span className="text-slate-600">{entry.name}</span></div>
+                      <span className="text-slate-800">{entry.value}건</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (<div className="text-slate-400 text-xs text-center w-full">데이터 없음</div>)}
+          </div>
+        </div>
+
+        {/* 노선별 발생 분포 Bar */}
+        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[280px]">
+          <h4 className="text-sm font-bold text-slate-800 mb-2">주말/평일 및 노선 분석 <span className="text-xs font-normal text-slate-400 ml-1">Routes</span></h4>
+          <div className="flex-1 w-full relative pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={sysData?.routeDistribution || []} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
+                <XAxis type="number" hide />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 10, fontWeight: 600 }} width={75} />
+                <Tooltip cursor={{ fill: '#F1F5F9' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)' }} formatter={(value: any) => [`${value}건`, '건수']} />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={14} fill={COLORS.amber} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. 기존 항공사별 상세 테이블 (디자인 변경 없이 그대로 유지) */}
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 overflow-hidden">
-        {/* 헤더 */}
         <div className="px-8 py-7 border-b border-slate-100/80 bg-slate-50/50">
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div>
             <h3 className="text-lg font-black text-slate-800 tracking-tight">항공사별 상세 통계</h3>
           </div>
         </div>
-
-        {/* 테이블 */}
         {airlineDetailStatsQuery.data && airlineDetailStatsQuery.data.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-white border-b border-slate-100">
-                  <th className="px-8 py-5 text-left text-[12px] font-bold text-slate-400 uppercase tracking-wider">
-                    항공사
-                  </th>
-                  <th className="px-8 py-5 text-center text-[12px] font-bold text-slate-400 uppercase tracking-wider">
-                    호출부호
-                  </th>
-                  <th className="px-8 py-5 text-center text-[12px] font-bold text-slate-400 uppercase tracking-wider">
-                    조치 현황
-                  </th>
-                  <th className="px-8 py-5 text-center text-[12px] font-bold text-slate-400 uppercase tracking-wider">
-                    조치율
-                  </th>
+                  <th className="px-8 py-5 text-left text-[12px] font-bold text-slate-400 uppercase tracking-wider">항공사</th>
+                  <th className="px-8 py-5 text-center text-[12px] font-bold text-slate-400 uppercase tracking-wider">호출부호</th>
+                  <th className="px-8 py-5 text-center text-[12px] font-bold text-slate-400 uppercase tracking-wider">조치 현황</th>
+                  <th className="px-8 py-5 text-center text-[12px] font-bold text-slate-400 uppercase tracking-wider">조치율</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {airlineDetailStatsQuery.data.map((stat) => (
                   <tr key={stat.airline_id} className="group hover:bg-slate-50/80 transition-colors">
                     <td className="px-8 py-5 font-bold text-slate-800 text-[15px]">{stat.airline_code}</td>
-                    <td className="px-8 py-5 text-center font-semibold text-slate-500">
-                      {stat.total_callsigns}개
-                    </td>
+                    <td className="px-8 py-5 text-center font-semibold text-slate-500">{stat.total_callsigns}개</td>
                     <td className="px-8 py-5 text-center font-medium">
-                      {stat.in_progress_actions > 0 && (
-                        <>
-                          <span className="text-indigo-500 font-bold px-1">{stat.in_progress_actions}건</span>
-                          <span className="text-slate-300 px-1">/</span>
-                        </>
-                      )}
+                      {stat.in_progress_actions > 0 && (<><span className="text-indigo-500 font-bold px-1">{stat.in_progress_actions}건</span><span className="text-slate-300 px-1">/</span></>)}
                       <span className="text-emerald-500 font-bold px-1">{stat.completed_actions}건</span>
                     </td>
                     <td className="px-8 py-5 text-center">
-                      <span className={`inline-flex px-3 py-1 rounded-lg text-xs font-bold ${stat.action_rate > 50 ? 'bg-emerald-50 text-emerald-600' :
-                          stat.action_rate > 20 ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'
-                        }`}>
+                      <span className={`inline-flex px-3 py-1 rounded-lg text-xs font-bold ${stat.action_rate > 50 ? 'bg-emerald-50 text-emerald-600' : stat.action_rate > 20 ? 'bg-amber-50 text-amber-600' : 'bg-slate-100 text-slate-500'}`}>
                         {stat.action_rate.toFixed(1)}%
                       </span>
                     </td>
@@ -368,19 +343,10 @@ export function StatisticsTab() {
           </div>
         ) : (
           <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
-            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
-            </div>
             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No Data</p>
           </div>
         )}
       </div>
-
-      {/* 월별 신규 vs 재검출 비율 */}
-      <MonthlyDetectionTrendChart />
-
-      {/* 조치 효과성 분석 */}
-      <ActionEffectivenessChart />
     </div>
   );
 }

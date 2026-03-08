@@ -33,7 +33,7 @@ export function AdminOccurrenceTab() {
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest');
   const [actionStatusFilter, setActionStatusFilter] = useState<ActionStatusFilter>('all');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<'all' | 'completed' | 'partial' | 'inProgress'>('all');
+  const [selectedStatus, setSelectedStatus] = useState<'all' | 'completed' | 'inProgress'>('all');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
@@ -81,6 +81,24 @@ export function AdminOccurrenceTab() {
       }
     },
     enabled: !!accessToken && selectedAirlineId !== 'all',
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // 정확한 통계 (부분완료 포함)를 위해 callsigns-with-actions API 사용
+  const summaryQuery = useQuery({
+    queryKey: ['admin-occurrence-summary', selectedAirlineId, accessToken],
+    queryFn: async () => {
+      if (!accessToken) return null;
+      const airlineParam = selectedAirlineId !== 'all' ? `&airlineId=${selectedAirlineId}` : '';
+      const response = await fetch(
+        `/api/callsigns-with-actions?page=1&limit=1${airlineParam}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      if (!response.ok) return null;
+      const result = await response.json();
+      return result.summary as { total: number; completed: number; partial: number; in_progress: number } | null;
+    },
+    enabled: !!accessToken,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -173,9 +191,6 @@ export function AdminOccurrenceTab() {
     } else if (primaryFilter === 'no_action') {
       // 미조치: 아직 조치가 없는 경우
       filtered = filtered.filter((i) => !i.actionStatus || i.actionStatus === 'no_action');
-    } else if (primaryFilter === 'partial') {
-      // 발생현황은 부분완료 개념이 없음 (다른 항공사 정보 불가) → 항상 빈 결과
-      filtered = [];
     }
 
     // 검색 필터
@@ -258,27 +273,14 @@ export function AdminOccurrenceTab() {
     }
   };
 
-  // 통계 계산 (선택된 항공사 기반)
+  // 통계 계산 (callsigns-with-actions summary 기반 - 부분완료 정확히 계산)
   const stats = useMemo(() => {
-    const sourceData = selectedAirlineId === 'all'
-      ? (allAirlinesQuery.data || [])
-      : (occurrencesQuery.data || []);
+    const summary = summaryQuery.data;
 
-    const total = sourceData.length;
-    console.log('[AdminOccurrenceTab] stats:', {
-      selectedAirlineId,
-      sourceDataLength: total,
-      allAirlinesQueryData: allAirlinesQuery.data?.length,
-      occurrencesQueryData: occurrencesQuery.data?.length,
-    });
-    const completed = sourceData.filter((i) => i.actionStatus === 'completed').length;
-    const inProgress = sourceData.filter((i) =>
-      i.actionStatus === 'in_progress' ||
-      i.actionStatus === 'no_action' ||
-      !i.actionStatus
-    ).length;
-    // 부분완료: 발생현황은 한 항공사 관점이므로 부분완료 개념이 없음 (항상 0)
-    const partial = 0;
+    const total = summary?.total ?? 0;
+    const completed = summary?.completed ?? 0;
+    const partial = summary?.partial ?? 0;
+    const inProgress = summary?.in_progress ?? 0;
 
     const errorTypeCounts = {
       '관제사오류': 0,
@@ -286,7 +288,11 @@ export function AdminOccurrenceTab() {
       '오류미발생': 0,
     };
 
-    sourceData.forEach((incident) => {
+    const errorSourceData = selectedAirlineId === 'all'
+      ? (allAirlinesQuery.data || [])
+      : (occurrencesQuery.data || []);
+
+    errorSourceData.forEach((incident) => {
       const normalized = incident.errorType?.replace(/\s+/g, '') || '';
       if (normalized === '관제사오류') {
         errorTypeCounts['관제사오류']++;
@@ -307,7 +313,7 @@ export function AdminOccurrenceTab() {
       pilotPercentage: total > 0 ? Math.round((errorTypeCounts['조종사오류'] / total) * 100) : 0,
       nonePercentage: total > 0 ? Math.round((errorTypeCounts['오류미발생'] / total) * 100) : 0,
     };
-  }, [allAirlinesQuery.data, occurrencesQuery.data, selectedAirlineId]);
+  }, [summaryQuery.data, allAirlinesQuery.data, occurrencesQuery.data, selectedAirlineId]);
 
   const isLoading = selectedAirlineId === 'all' ? allAirlinesQuery.isLoading : occurrencesQuery.isLoading;
 
