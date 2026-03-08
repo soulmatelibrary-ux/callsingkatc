@@ -328,8 +328,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ airlineId: string }> }
 ) {
+  let airlineId: string;
   try {
-    const { airlineId } = await params;
+    airlineId = (await params).airlineId;
 
     // 인증 확인
     const authHeader = request.headers.get('Authorization');
@@ -500,7 +501,7 @@ export async function POST(
       // 2. callsigns 동기화 (중앙화된 함수 사용)
       // Phase 1: syncCallsignStatus 함수로 my_action_status, other_action_status, status 자동 계산
       // 📌 FIX: 미리 조회한 callsignData 전달 (트랜잭션 내 재조회 방지)
-      syncCallsignStatus(trx, {
+      await syncCallsignStatus(trx, {
         callsignId,
         actingAirlineCode: airlineCode,
         newActionStatus: actionStatus,

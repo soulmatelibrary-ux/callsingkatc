@@ -217,7 +217,7 @@ export function AirlineStatisticsTab({
             ) : (
                 <>
                     {/* Row 1: KPI Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Completion Rate */}
                         <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
@@ -246,22 +246,6 @@ export function AirlineStatisticsTab({
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-4xl font-black text-slate-800 tracking-tight">{totalActions.toLocaleString()}</span>
                                     <span className="text-lg font-bold text-slate-400">건</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Average Completion Time */}
-                        <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
-                                <svg className="w-20 h-20 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                                </svg>
-                            </div>
-                            <div className="relative z-10 flex flex-col h-full justify-between gap-4">
-                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest">Avg. Time<br /><span className="text-xs font-medium text-slate-400">평균 조치 소요일</span></h3>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-4xl font-black text-slate-800 tracking-tight">{avgCompletionDays > 0 ? avgCompletionDays.toFixed(1) : '-'}</span>
-                                    <span className="text-lg font-bold text-slate-400">일</span>
                                 </div>
                             </div>
                         </div>
@@ -347,7 +331,7 @@ export function AirlineStatisticsTab({
 
                     {/* Row 3: 4 Donut/Bar Charts for Analysis */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        
+
                         {/* Status Distribution */}
                         <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 flex flex-col h-[280px]">
                             <h4 className="text-sm font-bold text-slate-800 mb-2">상태별 분포 <span className="text-xs font-normal text-slate-400 ml-1">Status</span></h4>

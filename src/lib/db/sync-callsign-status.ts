@@ -70,10 +70,10 @@ function calculateFinalStatus(
  *
  * @throws Error - callsign 찾지 못했거나 동기화 실패
  */
-export function syncCallsignStatus(
-  trx: (sql: string, params?: any[]) => any,
+export async function syncCallsignStatus(
+  trx: (sql: string, params?: any[]) => Promise<any>,
   params: SyncCallsignStatusParams
-): void {
+): Promise<void> {
   const { callsignId, actingAirlineCode, newActionStatus, callsignData: providedCallsignData } = params;
 
   // 1. callsign 정보 조회 (또는 미리 제공된 데이터 사용)
@@ -88,7 +88,7 @@ export function syncCallsignStatus(
     });
   } else {
     // 트랜잭션 내에서 조회 (기존 로직)
-    const callsignResult = trx(
+    const callsignResult = await trx(
       `SELECT id, airline_code, other_airline_code, my_action_status, other_action_status
        FROM callsigns WHERE id = ?`,
       [callsignId]
@@ -105,7 +105,7 @@ export function syncCallsignStatus(
   }
 
   // 2. 국내항공사 목록 조회
-  const airlinesResult = trx('SELECT code FROM airlines');
+  const airlinesResult = await trx('SELECT code FROM airlines');
   const domesticAirlines = new Set(
     (airlinesResult.rows || []).map((a: any) => a.code)
   );
@@ -135,7 +135,7 @@ export function syncCallsignStatus(
   );
 
   // 6. 단일 UPDATE (원자적 업데이트)
-  const updateResult = trx(
+  const updateResult = await trx(
     `UPDATE callsigns
      SET my_action_status = ?, other_action_status = ?, status = ?
      WHERE id = ?`,

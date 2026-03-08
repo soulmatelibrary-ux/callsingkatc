@@ -197,7 +197,7 @@ export async function PATCH(
       const result = await transaction(async (trx) => {
         // 1. 조치 취소: status를 in_progress로 변경, is_cancelled 플래그 추가
         const nowIso = new Date().toISOString();
-        trx(
+        await trx(
           `UPDATE actions SET
             status = ?,
             is_cancelled = 1,
@@ -210,7 +210,7 @@ export async function PATCH(
 
         // 2. callsigns 동기화 (중앙화된 함수 사용)
         // Phase 1: syncCallsignStatus 함수로 my_action_status, other_action_status, status 자동 계산
-        syncCallsignStatus(trx, {
+        await syncCallsignStatus(trx, {
           callsignId,
           actingAirlineCode: airlineCode,
           newActionStatus: 'in_progress'  // 취소 = in_progress
@@ -312,7 +312,7 @@ export async function PATCH(
 
           // 3. callsigns 동기화 (중앙화된 함수 사용)
           // Phase 1: syncCallsignStatus 함수로 my_action_status, other_action_status, status 자동 계산
-          syncCallsignStatus(trx, {
+          await syncCallsignStatus(trx, {
             callsignId,
             actingAirlineCode: airlineCode,
             newActionStatus: newStatus
@@ -424,11 +424,11 @@ export async function DELETE(
     // 동시에 callsigns 상태 업데이트
     await transaction(async (trx) => {
       // 1. action 삭제
-      trx('DELETE FROM actions WHERE id = ?', [id]);
+      await trx('DELETE FROM actions WHERE id = ?', [id]);
 
       // 2. callsigns 동기화 (중앙화된 함수 사용)
       // Phase 1: syncCallsignStatus 함수로 my_action_status, other_action_status, status 자동 계산
-      syncCallsignStatus(trx, {
+      await syncCallsignStatus(trx, {
         callsignId,
         actingAirlineCode: airlineCode,
         newActionStatus: 'no_action'  // 삭제 = no_action
